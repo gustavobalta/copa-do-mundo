@@ -242,6 +242,7 @@
       <div class="form-group"><label>Nome de usuário</label><input type="text" id="reg-name" placeholder="escolha um nome" autocomplete="username"></div>
       <div class="form-group"><label>Senha</label><input type="password" id="reg-pass" placeholder="crie uma senha" autocomplete="new-password"></div>
       <div class="form-group"><label>Confirmar senha</label><input type="password" id="reg-pass2" placeholder="repita a senha" autocomplete="new-password"></div>
+      <div class="form-group"><label>Senha de convite</label><input type="password" id="reg-invite" placeholder="peça para o Gustavo"></div>
       <button class="auth-btn" id="btn-register" onclick="doRegister()">Criar conta</button>
     </div>
     <div class="auth-msg" id="auth-msg"></div>
@@ -582,8 +583,10 @@ async function doRegister() {
   const name = document.getElementById('reg-name').value.trim();
   const pass = document.getElementById('reg-pass').value;
   const pass2 = document.getElementById('reg-pass2').value;
+  const invite = document.getElementById('reg-invite').value;
 
-  if(!name || !pass || !pass2) { showAuthMsg('Preencha todos os campos'); return; }
+  if(!name || !pass || !pass2 || !invite) { showAuthMsg('Preencha todos os campos'); return; }
+  if(invite !== 'neymarnacopa2018') { showAuthMsg('Senha de convite incorreta'); return; }
   if(pass !== pass2) { showAuthMsg('As senhas não coincidem'); return; }
   if(name.length < 2) { showAuthMsg('Nome muito curto'); return; }
   if(pass.length < 3) { showAuthMsg('Senha muito curta (mín. 3 caracteres)'); return; }
