@@ -753,8 +753,9 @@ function updateHeader() {
 function renderGrid() {
   const grid=document.getElementById('countries-grid');
   const search=currentSearch.toLowerCase();
+  const normalize = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   let filtered=ALL_COUNTRIES.filter(c=>{
-    if(search && !c.name.toLowerCase().includes(search)) return false;
+    if(search && !normalize(c.name).includes(normalize(search))) return false;
     if(currentFilter==='all') return true;
     const st=getCountryStats(c.id);
     if(currentFilter==='complete') return st.have===st.total;
