@@ -14,42 +14,73 @@
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
 
+  /* ===== AUTH ===== */
+  #auth-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .auth-box { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:40px 36px; width:100%; max-width:420px; }
+  .auth-logo { text-align:center; margin-bottom:28px; }
+  .auth-logo .trophy { font-size:52px; display:block; animation:glow 2.5s ease-in-out infinite alternate; }
+  .auth-logo h1 { font-family:Impact,'Arial Narrow',sans-serif; font-size:26px; letter-spacing:2px; margin-top:10px; }
+  .auth-logo p { font-size:12px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-top:4px; }
+  .auth-tabs { display:flex; background:var(--bg); border-radius:10px; padding:4px; margin-bottom:24px; }
+  .auth-tab { flex:1; padding:9px; text-align:center; border-radius:7px; cursor:pointer; font-size:13px; font-weight:600; color:var(--muted); transition:all .2s; border:none; background:none; font-family:inherit; }
+  .auth-tab.active { background:var(--card2); color:var(--text); }
+  .form-group { margin-bottom:16px; }
+  .form-group label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.5px; }
+  .form-group input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:9px; padding:11px 14px; color:var(--text); font-size:14px; outline:none; transition:border-color .2s; font-family:inherit; }
+  .form-group input:focus { border-color:var(--amarelo); }
+  .auth-btn { width:100%; padding:13px; background:linear-gradient(135deg,var(--azul),var(--verde)); border:none; border-radius:10px; color:#fff; font-size:15px; font-weight:700; letter-spacing:1px; cursor:pointer; transition:opacity .2s; font-family:inherit; margin-top:4px; }
+  .auth-btn:hover { opacity:.9; }
+  .auth-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .auth-msg { text-align:center; font-size:13px; margin-top:14px; min-height:20px; }
+  .auth-msg.error { color:var(--danger); }
+  .auth-msg.success { color:var(--success); }
+
+  /* ===== APP ===== */
+  #app-screen { display:none; }
+
   header { background:linear-gradient(135deg,#003087,#006847,#c8a800); padding:0; position:relative; overflow:hidden; }
   header::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,.03) 20px,rgba(255,255,255,.03) 40px); }
-  .header-inner { position:relative; padding:24px 28px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
-  .trophy { font-size:48px; animation:glow 2.5s ease-in-out infinite alternate; }
+  .header-inner { position:relative; padding:18px 28px 16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .trophy { font-size:40px; animation:glow 2.5s ease-in-out infinite alternate; }
   @keyframes glow { from{filter:drop-shadow(0 0 8px rgba(255,215,0,.4))} to{filter:drop-shadow(0 0 24px rgba(255,215,0,.9))} }
-  .header-text h1 { font-family:Impact,'Arial Narrow',sans-serif; font-size:clamp(22px,4vw,42px); letter-spacing:2px; text-shadow:2px 2px 8px rgba(0,0,0,.5); }
-  .header-text p { font-size:12px; letter-spacing:3px; text-transform:uppercase; opacity:.8; margin-top:3px; }
-  .header-stats { margin-left:auto; display:flex; gap:12px; flex-wrap:wrap; }
-  .hstat { background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.15); border-radius:10px; padding:10px 16px; text-align:center; }
-  .hstat-num { font-family:Impact,'Arial Narrow',sans-serif; font-size:26px; color:var(--amarelo); line-height:1; }
+  .header-text h1 { font-family:Impact,'Arial Narrow',sans-serif; font-size:clamp(18px,3.5vw,36px); letter-spacing:2px; text-shadow:2px 2px 8px rgba(0,0,0,.5); }
+  .header-text p { font-size:11px; letter-spacing:2px; text-transform:uppercase; opacity:.8; margin-top:2px; }
+  .header-stats { margin-left:auto; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .hstat { background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.15); border-radius:10px; padding:8px 14px; text-align:center; }
+  .hstat-num { font-family:Impact,'Arial Narrow',sans-serif; font-size:22px; color:var(--amarelo); line-height:1; }
   .hstat-label { font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.75; }
+  .user-badge { background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.2); border-radius:10px; padding:8px 14px; display:flex; align-items:center; gap:8px; cursor:pointer; transition:background .2s; }
+  .user-badge:hover { background:rgba(0,0,0,.6); }
+  .user-avatar { width:28px; height:28px; border-radius:99px; background:var(--amarelo); color:#000; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; }
+  .user-name { font-size:13px; font-weight:600; }
+  .logout-hint { font-size:10px; opacity:.6; }
 
-  .progress-section { background:var(--card); border-bottom:1px solid var(--border); padding:14px 28px; }
-  .progress-label { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:7px; }
+  .progress-section { background:var(--card); border-bottom:1px solid var(--border); padding:12px 28px; }
+  .progress-label { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:6px; }
   .progress-label span:last-child { color:var(--amarelo); font-weight:600; }
-  .progress-bar { height:9px; background:var(--border); border-radius:99px; overflow:hidden; }
+  .progress-bar { height:8px; background:var(--border); border-radius:99px; overflow:hidden; }
   .progress-fill { height:100%; background:linear-gradient(90deg,var(--verde),var(--amarelo)); border-radius:99px; transition:width .5s; width:0; }
 
-  .controls { background:var(--card); border-bottom:1px solid var(--border); padding:12px 28px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .search-box { flex:1; min-width:180px; position:relative; }
-  .search-box input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px 8px 36px; color:var(--text); font-size:13px; outline:none; transition:border-color .2s; font-family:inherit; }
+  /* NAV TABS */
+  .nav-tabs { background:var(--card); border-bottom:1px solid var(--border); padding:0 28px; display:flex; gap:0; }
+  .nav-tab { padding:13px 18px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:all .2s; border-top:none; border-left:none; border-right:none; background:none; font-family:inherit; }
+  .nav-tab:hover { color:var(--text); }
+  .nav-tab.active { color:var(--amarelo); border-bottom-color:var(--amarelo); }
+
+  .controls { background:var(--card); border-bottom:1px solid var(--border); padding:10px 28px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .search-box { flex:1; min-width:160px; position:relative; }
+  .search-box input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:7px 12px 7px 34px; color:var(--text); font-size:13px; outline:none; transition:border-color .2s; font-family:inherit; }
   .search-box input:focus { border-color:var(--amarelo); }
-  .search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:15px; }
+  .search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:14px; }
   .filter-btns { display:flex; gap:5px; flex-wrap:wrap; }
-  .filter-btn { padding:7px 13px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); font-size:12px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; cursor:pointer; transition:all .2s; font-family:inherit; }
+  .filter-btn { padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); font-size:12px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; cursor:pointer; transition:all .2s; font-family:inherit; }
   .filter-btn:hover { border-color:var(--amarelo); color:var(--amarelo); }
   .filter-btn.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); }
   .filter-btn.dup-btn { border-color:#f59e0b; color:#f59e0b; }
   .filter-btn.dup-btn.active { background:#f59e0b; color:#000; }
   .view-btns { display:flex; gap:5px; }
-  .view-btn { width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; transition:all .2s; }
+  .view-btn { width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:all .2s; }
   .view-btn:hover,.view-btn.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); }
-
-  /* EXPORT BTN */
-  .export-btn { padding:7px 14px; border-radius:8px; border:1px solid #a855f7; background:rgba(168,85,247,.1); color:#a855f7; font-size:12px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; cursor:pointer; transition:all .2s; font-family:inherit; }
-  .export-btn:hover { background:#a855f7; color:#fff; }
 
   main { padding:20px 28px; max-width:1400px; margin:0 auto; }
   .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
@@ -61,24 +92,20 @@
   .country-card { background:var(--card); border:1px solid var(--border); border-radius:13px; overflow:hidden; cursor:pointer; transition:transform .2s,border-color .2s,box-shadow .2s; }
   .country-card:hover { transform:translateY(-3px); border-color:rgba(255,215,0,.3); box-shadow:0 8px 28px rgba(0,0,0,.3); }
   .country-card.complete { border-color:rgba(34,197,94,.4); }
-
-  .card-header { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; background:var(--card2); border-bottom:1px solid var(--border); }
-  .country-info .country-name { font-weight:700; font-size:15px; }
+  .card-header { padding:12px 14px; display:flex; align-items:center; justify-content:space-between; background:var(--card2); border-bottom:1px solid var(--border); }
+  .country-info .country-name { font-weight:700; font-size:14px; }
   .country-info .country-group { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
-  .card-flag { width:48px; height:32px; border-radius:4px; object-fit:cover; border:1px solid rgba(255,255,255,.1); flex-shrink:0; }
-  .card-flag-placeholder { width:48px; height:32px; border-radius:4px; background:var(--border); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .card-flag { width:44px; height:30px; border-radius:4px; object-fit:cover; border:1px solid rgba(255,255,255,.1); flex-shrink:0; }
   .complete-badge { background:var(--success); color:#000; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 7px; border-radius:5px; }
-
-  .card-progress { padding:10px 14px; }
-  .mini-bar { height:5px; background:var(--border); border-radius:99px; overflow:hidden; margin-bottom:7px; }
+  .card-progress { padding:9px 12px; }
+  .mini-bar { height:5px; background:var(--border); border-radius:99px; overflow:hidden; margin-bottom:6px; }
   .mini-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--azul),var(--verde)); transition:width .4s; }
   .country-card.complete .mini-fill { background:var(--success); }
   .sticker-counts { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); }
   .sticker-counts .have { color:var(--success); font-weight:600; }
   .sticker-counts .need { color:var(--danger); font-weight:600; }
   .sticker-counts .dup  { color:var(--warning); font-weight:600; }
-
-  .stickers-grid { padding:0 14px 14px; display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
+  .stickers-grid { padding:0 12px 12px; display:grid; grid-template-columns:repeat(5,1fr); gap:4px; }
   .sticker { aspect-ratio:1; border-radius:5px; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:600; cursor:pointer; transition:all .15s; background:var(--bg); color:var(--muted); position:relative; user-select:none; }
   .sticker:hover { border-color:var(--amarelo); }
   .sticker.have { background:var(--verde); border-color:var(--verde); color:#fff; }
@@ -90,45 +117,41 @@
   .modal-overlay.open { opacity:1; pointer-events:all; }
   .modal { background:var(--card); border:1px solid var(--border); border-radius:16px; width:100%; max-width:600px; max-height:90vh; overflow-y:auto; transform:scale(.95); transition:transform .25s; }
   .modal-overlay.open .modal { transform:scale(1); }
-  .modal-header { padding:20px 22px 14px; display:flex; align-items:center; gap:14px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--card); z-index:2; }
-  .modal-flag img { width:60px; height:40px; border-radius:5px; object-fit:cover; border:1px solid rgba(255,255,255,.15); }
+  .modal-header { padding:18px 20px 12px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--card); z-index:2; }
+  .modal-flag img { width:56px; height:37px; border-radius:5px; object-fit:cover; border:1px solid rgba(255,255,255,.15); }
   .modal-title { flex:1; }
-  .modal-title h2 { font-family:Impact,'Arial Narrow',sans-serif; font-size:26px; letter-spacing:2px; }
-  .modal-title p { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:3px; }
-  .modal-close { width:34px; height:34px; border-radius:99px; border:1px solid var(--border); background:none; color:var(--muted); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+  .modal-title h2 { font-family:Impact,'Arial Narrow',sans-serif; font-size:24px; letter-spacing:2px; }
+  .modal-title p { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:2px; }
+  .modal-close { width:32px; height:32px; border-radius:99px; border:1px solid var(--border); background:none; color:var(--muted); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
   .modal-close:hover { background:var(--danger); color:#fff; border-color:var(--danger); }
-  .modal-body { padding:18px 22px 22px; }
-  .modal-actions { display:flex; gap:7px; margin-bottom:18px; flex-wrap:wrap; }
-  .btn { padding:8px 14px; border-radius:8px; border:1px solid; font-size:12px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; cursor:pointer; transition:all .2s; font-family:inherit; }
+  .modal-body { padding:16px 20px 20px; }
+  .modal-actions { display:flex; gap:7px; margin-bottom:16px; flex-wrap:wrap; }
+  .btn { padding:7px 13px; border-radius:8px; border:1px solid; font-size:12px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; cursor:pointer; transition:all .2s; font-family:inherit; }
   .btn-green  { background:var(--verde);   border-color:var(--verde);   color:#fff; }
   .btn-yellow { background:var(--amarelo); border-color:var(--amarelo); color:#000; }
   .btn-red    { background:transparent;    border-color:var(--danger);  color:var(--danger); }
   .btn-red:hover { background:var(--danger); color:#fff; }
-  .legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; font-size:11px; color:var(--muted); }
+  .legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; font-size:11px; color:var(--muted); }
   .leg-item { display:flex; align-items:center; gap:4px; }
   .leg-dot { width:9px; height:9px; border-radius:2px; }
-
-  .modal-sticker-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(58px,1fr)); gap:7px; }
-  .modal-sticker { border-radius:9px; border:2px solid var(--border); background:var(--bg); padding:7px 4px 5px; text-align:center; cursor:pointer; transition:all .15s; position:relative; user-select:none; }
+  .modal-sticker-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(56px,1fr)); gap:6px; }
+  .modal-sticker { border-radius:9px; border:2px solid var(--border); background:var(--bg); padding:6px 4px 5px; text-align:center; cursor:pointer; transition:all .15s; position:relative; user-select:none; }
   .modal-sticker:hover { border-color:var(--amarelo); transform:scale(1.05); }
   .modal-sticker.have { background:rgba(0,104,71,.3); border-color:var(--verde); }
   .modal-sticker.duplicate { background:rgba(245,158,11,.25); border-color:var(--warning); }
-  .ms-num { font-family:Impact,'Arial Narrow',sans-serif; font-size:14px; line-height:1; color:var(--text); }
-  .ms-name { font-size:8px; color:var(--muted); margin-top:2px; line-height:1.2; height:18px; overflow:hidden; }
+  .ms-num { font-family:Impact,'Arial Narrow',sans-serif; font-size:13px; line-height:1; color:var(--text); }
+  .ms-name { font-size:8px; color:var(--muted); margin-top:2px; line-height:1.2; height:16px; overflow:hidden; }
   .ms-status { font-size:7px; font-weight:700; text-transform:uppercase; margin-top:2px; height:9px; }
   .modal-sticker.have .ms-status { color:var(--success); }
   .modal-sticker.duplicate .ms-status { color:var(--warning); }
   .ms-dup { position:absolute; top:-6px; right:-6px; background:var(--danger); color:#fff; font-size:8px; font-weight:700; min-width:16px; height:16px; border-radius:99px; display:flex; align-items:center; justify-content:center; border:2px solid var(--card); padding:0 2px; }
-
-  /* Quantity editor shown when sticker has duplicates */
-  .qty-editor { display:flex; align-items:center; justify-content:center; gap:3px; margin-top:5px; }
-  .qty-btn { width:20px; height:20px; border-radius:5px; border:1px solid var(--warning); background:rgba(245,158,11,.15); color:var(--warning); font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; transition:all .15s; flex-shrink:0; }
+  .qty-editor { display:flex; align-items:center; justify-content:center; gap:3px; margin-top:4px; }
+  .qty-btn { width:18px; height:18px; border-radius:4px; border:1px solid var(--warning); background:rgba(245,158,11,.15); color:var(--warning); font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; transition:all .15s; flex-shrink:0; }
   .qty-btn:hover { background:var(--warning); color:#000; }
-  .qty-input { width:32px; height:20px; border-radius:5px; border:1px solid var(--warning); background:var(--bg); color:var(--text); font-size:12px; font-weight:700; text-align:center; outline:none; padding:0; font-family:inherit; }
-  .qty-input:focus { border-color:var(--amarelo); }
+  .qty-input { width:28px; height:18px; border-radius:4px; border:1px solid var(--warning); background:var(--bg); color:var(--text); font-size:11px; font-weight:700; text-align:center; outline:none; padding:0; font-family:inherit; }
 
   /* DUP PANEL */
-  .dup-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:10px; }
+  .dup-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px; }
   .dup-section-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   .dup-list { display:flex; flex-wrap:wrap; gap:5px; }
   .dup-tag { background:rgba(245,158,11,.15); border:1px solid var(--warning); border-radius:5px; padding:3px 9px; font-size:11px; font-weight:600; color:var(--warning); }
@@ -138,96 +161,180 @@
   .ctx-item { padding:7px 12px; border-radius:5px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:7px; transition:background .15s; }
   .ctx-item:hover { background:var(--card2); }
 
+  /* ===== SOCIAL ===== */
+  #social-panel { display:none; }
+  .social-header { margin-bottom:20px; }
+  .social-header h2 { font-family:Impact,'Arial Narrow',sans-serif; font-size:22px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:4px; }
+  .social-header p { font-size:12px; color:var(--muted); }
+  .users-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; margin-bottom:30px; }
+  .user-card { background:var(--card); border:1px solid var(--border); border-radius:13px; padding:18px; }
+  .user-card-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .user-card-avatar { width:42px; height:42px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .user-card-name { font-weight:700; font-size:16px; }
+  .user-card-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+  .user-card-bar { height:8px; background:var(--border); border-radius:99px; overflow:hidden; margin-bottom:8px; }
+  .user-card-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--azul),var(--verde)); transition:width .5s; }
+  .user-card-stats { display:flex; gap:14px; font-size:12px; }
+  .user-card-stats span { color:var(--muted); }
+  .user-card-stats .s-have { color:var(--success); font-weight:600; }
+  .user-card-stats .s-dup  { color:var(--warning); font-weight:600; }
+
+  .troca-section { background:var(--card); border:1px solid var(--border); border-radius:13px; padding:18px; margin-bottom:14px; }
+  .troca-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .troca-avatar { width:34px; height:34px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .troca-name { font-weight:700; font-size:14px; }
+  .troca-sub { font-size:11px; color:var(--warning); margin-top:1px; }
+  .troca-countries { display:flex; flex-direction:column; gap:8px; }
+  .troca-country { display:flex; align-items:center; gap:10px; }
+  .troca-flag { width:32px; height:22px; border-radius:3px; object-fit:cover; border:1px solid rgba(255,255,255,.1); flex-shrink:0; }
+  .troca-country-name { font-size:12px; font-weight:600; min-width:120px; }
+  .troca-tags { display:flex; flex-wrap:wrap; gap:4px; }
+
   .empty-state { text-align:center; padding:50px 20px; color:var(--muted); }
   .empty-state .emoji { font-size:44px; margin-bottom:10px; }
+
+  /* LOADING */
+  .loading-overlay { position:fixed; inset:0; background:rgba(10,15,30,.85); z-index:300; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+  .loading-overlay.hidden { display:none; }
+  .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--amarelo); border-radius:99px; animation:spin .8s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .loading-text { font-size:13px; color:var(--muted); letter-spacing:1px; }
 
   ::-webkit-scrollbar { width:5px; }
   ::-webkit-scrollbar-track { background:var(--bg); }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px; }
 
-  /* PRINT / PDF STYLES */
-  @media print {
-    body { background:#fff; color:#000; font-family:Arial,sans-serif; }
-    header, .controls, .progress-section, .modal-overlay, .ctx-menu { display:none !important; }
-    main { padding:10px; }
-    #panel-selecoes { display:none !important; }
-    #panel-repetidas { display:block !important; }
-    .dup-section { border:1px solid #ccc; border-radius:6px; padding:10px; margin-bottom:8px; break-inside:avoid; background:#fff; }
-    .dup-section-header { margin-bottom:6px; }
-    .dup-tag { background:#fff3cd; border:1px solid #f59e0b; color:#000; font-size:10px; padding:2px 7px; }
-    .section-title { color:#000; font-size:18px; }
-    .section-header { margin-bottom:10px; }
-    #btn-copy-all-dups, .export-btn, .view-btns { display:none !important; }
-    .print-header { display:block !important; text-align:center; margin-bottom:16px; font-family:Impact,Arial; font-size:22px; letter-spacing:2px; }
-    .card-flag { display:none; }
-  }
-
   @media (max-width:600px) {
-    .header-inner { padding:16px; }
+    .header-inner { padding:14px; }
     main { padding:14px; }
-    .controls { padding:10px 14px; }
+    .controls { padding:8px 14px; }
     #countries-grid { grid-template-columns:1fr 1fr; }
+    .nav-tabs { padding:0 14px; overflow-x:auto; }
   }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-inner">
-    <div class="trophy">🏆</div>
-    <div class="header-text">
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Carregando...</div>
+</div>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="trophy">🏆</span>
       <h1>FIFA WORLD CUP 2026™</h1>
-      <p>Gerenciador de Figurinhas · Panini</p>
+      <p>Álbum Panini · Entre Amigos</p>
     </div>
-    <div class="header-stats">
-      <div class="hstat"><div class="hstat-num" id="stat-total">0</div><div class="hstat-label">Coladas</div></div>
-      <div class="hstat"><div class="hstat-num" id="stat-need" style="color:#ef4444">0</div><div class="hstat-label">Faltam</div></div>
-      <div class="hstat"><div class="hstat-num" id="stat-dup" style="color:#f59e0b">0</div><div class="hstat-label">Repetidas</div></div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Entrar</button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Cadastrar</button>
     </div>
-  </div>
-</header>
-
-<div class="progress-section">
-  <div class="progress-label"><span>Progresso do álbum</span><span id="progress-pct">0% completo</span></div>
-  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-</div>
-
-<div class="controls">
-  <div class="search-box">
-    <span class="search-icon">🔍</span>
-    <input type="text" id="search-input" placeholder="Buscar seleção...">
-  </div>
-  <div class="filter-btns">
-    <button class="filter-btn active" data-filter="all">Todas</button>
-    <button class="filter-btn" data-filter="incomplete">Incompletas</button>
-    <button class="filter-btn" data-filter="complete">Completas</button>
-    <button class="filter-btn" data-filter="started">Iniciadas</button>
-    <button class="filter-btn dup-btn" data-filter="duplicates">🔄 Repetidas</button>
-  </div>
-  <button class="export-btn" id="btn-export-pdf">📄 Exportar PDF</button>
-  <div class="view-btns">
-    <button class="view-btn active" id="grid-view" title="Grade">⊞</button>
-    <button class="view-btn" id="list-view-btn" title="Lista">☰</button>
+    <div id="login-form">
+      <div class="form-group"><label>Nome de usuário</label><input type="text" id="login-name" placeholder="seu nome" autocomplete="username"></div>
+      <div class="form-group"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••" autocomplete="current-password"></div>
+      <button class="auth-btn" id="btn-login" onclick="doLogin()">Entrar</button>
+    </div>
+    <div id="register-form" style="display:none">
+      <div class="form-group"><label>Nome de usuário</label><input type="text" id="reg-name" placeholder="escolha um nome" autocomplete="username"></div>
+      <div class="form-group"><label>Senha</label><input type="password" id="reg-pass" placeholder="crie uma senha" autocomplete="new-password"></div>
+      <div class="form-group"><label>Confirmar senha</label><input type="password" id="reg-pass2" placeholder="repita a senha" autocomplete="new-password"></div>
+      <button class="auth-btn" id="btn-register" onclick="doRegister()">Criar conta</button>
+    </div>
+    <div class="auth-msg" id="auth-msg"></div>
   </div>
 </div>
 
-<main>
-  <div id="panel-selecoes">
-    <div class="section-header">
-      <div class="section-title" id="section-label">48 Seleções</div>
-      <div style="font-size:11px;color:var(--muted)">Clique na figurinha para adicionar · Botão direito para remover</div>
+<!-- APP -->
+<div id="app-screen">
+  <header>
+    <div class="header-inner">
+      <div class="trophy">🏆</div>
+      <div class="header-text">
+        <h1>FIFA WORLD CUP 2026™</h1>
+        <p>Gerenciador de Figurinhas · Panini</p>
+      </div>
+      <div class="header-stats">
+        <div class="hstat"><div class="hstat-num" id="stat-total">0</div><div class="hstat-label">Coladas</div></div>
+        <div class="hstat"><div class="hstat-num" id="stat-need" style="color:#ef4444">0</div><div class="hstat-label">Faltam</div></div>
+        <div class="hstat"><div class="hstat-num" id="stat-dup" style="color:#f59e0b">0</div><div class="hstat-label">Repetidas</div></div>
+        <div class="user-badge" onclick="doLogout()">
+          <div class="user-avatar" id="user-avatar">?</div>
+          <div>
+            <div class="user-name" id="user-name-display">-</div>
+            <div class="logout-hint">sair</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="countries-grid"></div>
+  </header>
+
+  <div class="progress-section">
+    <div class="progress-label"><span>Meu progresso</span><span id="progress-pct">0% completo</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
   </div>
 
-  <div id="panel-repetidas" style="display:none">
-    <div class="section-header">
-      <div class="section-title" style="color:var(--warning)">🔄 Repetidas para Troca</div>
-      <button class="btn btn-yellow" id="btn-copy-all-dups" style="font-size:11px;padding:5px 11px">📋 Copiar lista</button>
-    </div>
-    <div id="dup-panel-full"></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('album')">📖 Meu Álbum</button>
+    <button class="nav-tab" onclick="showTab('social')">👥 Amigos</button>
   </div>
-</main>
+
+  <!-- ALBUM TAB -->
+  <div id="album-tab">
+    <div class="controls">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Buscar seleção...">
+      </div>
+      <div class="filter-btns">
+        <button class="filter-btn active" data-filter="all">Todas</button>
+        <button class="filter-btn" data-filter="incomplete">Incompletas</button>
+        <button class="filter-btn" data-filter="complete">Completas</button>
+        <button class="filter-btn" data-filter="started">Iniciadas</button>
+        <button class="filter-btn dup-btn" data-filter="duplicates">🔄 Repetidas</button>
+      </div>
+      <div class="view-btns">
+        <button class="view-btn active" id="grid-view" title="Grade">⊞</button>
+        <button class="view-btn" id="list-view-btn" title="Lista">☰</button>
+      </div>
+    </div>
+
+    <main>
+      <div id="panel-selecoes">
+        <div class="section-header">
+          <div class="section-title" id="section-label">48 Seleções</div>
+          <div style="font-size:11px;color:var(--muted)">Clique para adicionar · Botão direito para remover</div>
+        </div>
+        <div id="countries-grid"></div>
+      </div>
+      <div id="panel-repetidas" style="display:none">
+        <div class="section-header">
+          <div class="section-title" style="color:var(--warning)">🔄 Repetidas para Troca</div>
+          <button class="btn btn-yellow" id="btn-copy-all-dups" style="font-size:11px;padding:5px 11px">📋 Copiar lista</button>
+        </div>
+        <div id="dup-panel-full"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- SOCIAL TAB -->
+  <div id="social-tab" style="display:none">
+    <main>
+      <div class="social-header">
+        <h2>👥 Progresso dos Amigos</h2>
+        <p>Veja quem está na frente e quais figurinhas estão disponíveis para troca</p>
+      </div>
+      <div id="users-progress-grid" class="users-grid"></div>
+      <div class="section-header" style="margin-top:10px">
+        <div class="section-title" style="color:var(--warning)">🔄 Repetidas disponíveis para troca</div>
+      </div>
+      <div id="all-dups-panel"></div>
+    </main>
+  </div>
+</div>
 
 <!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay">
@@ -263,18 +370,41 @@
 </div>
 
 <script>
-// ===== FLAG URLs (flagcdn.com — precisa de internet) =====
-function flagUrl(iso) {
-  return `https://flagcdn.com/w80/${iso}.png`;
-}
-function flagImgEl(iso, w, h) {
-  if(!iso) return `<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.55)}px">⭐</div>`;
-  return `<img src="${flagUrl(iso)}" width="${w}" height="${h}" style="border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#1e2d45" onerror="this.outerHTML='<div style=width:${w}px;height:${h}px;background:#1e2d45;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.7)}px></div>'">`;
+// ===== CONFIG =====
+const USERS_DB_ID  = '3503748f-e421-8175-9e7f-d8eb9ba41b21';
+const PARENT_PAGE  = '0d99b6c8-bc91-4b82-b0f9-a00fbae82092';
+const NOTION_API   = 'https://api.notion.com/v1';
+const GRAND_TOTAL_STICKERS = 987; // 48×20 + 1 + 8 + 11 + 14
+
+// ===== NOTION HELPERS =====
+async function notionRequest(method, path, body) {
+  const res = await fetch(`https://notion-proxy.glitch.me/${NOTION_API}${path}`, {
+    method,
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Notion-Version': '2022-06-28',
+      'Content-Type': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return res.json();
 }
 
-function getStickerLabel(c, i) {
-  if(c.stickerLabels) return c.stickerLabels[i];
-  return c.id.toUpperCase() + String(i+1).padStart(2,'0');
+// Notion API não aceita CORS direto do browser — usamos um proxy público simples
+// Como alternativa, usamos fetch com mode no-cors workaround via allorigins
+async function notionFetch(method, path, body) {
+  try {
+    const url = `https://copa-notion-proxy.g-oli-baltazar.workers.dev/proxy${path}`;
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return await res.json();
+  } catch(e) {
+    console.error('Notion fetch error:', e);
+    throw e;
+  }
 }
 
 // ===== DATA =====
@@ -354,9 +484,7 @@ const GROUPS = [
 ];
 
 const NAMES = ['Escudo','Estádio','Treinador','Capitão','GK1','GK2','DF1','DF2','DF3','DF4','DF5','MF1','MF2','MF3','MF4','MF5','FW1','FW2','FW3','FW4'];
-const SPECIALS = [0,1];
 
-// Seções especiais
 const SPECIAL_SECTIONS = [
   { id:'intro',  name:'Contra-Capa',           iso:'', group:'⭐ Especiais', stickers:1,  stickerLabels:['00'] },
   { id:'fwc_a',  name:'FIFA World Cup (1–8)',   iso:'', group:'⭐ Especiais', stickers:8,  stickerLabels:['FWC01','FWC02','FWC03','FWC04','FWC05','FWC06','FWC07','FWC08'] },
@@ -366,41 +494,231 @@ const SPECIAL_SECTIONS = [
 
 const SELECOES = GROUPS.flatMap(g => g.countries.map(c => ({...c, group:g.name})));
 const ALL_COUNTRIES = [
-  SPECIAL_SECTIONS[0], // intro (00)
-  SPECIAL_SECTIONS[1], // FWC01-08
+  SPECIAL_SECTIONS[0],
+  SPECIAL_SECTIONS[1],
   ...SELECOES,
-  SPECIAL_SECTIONS[2], // FWC09-19
-  SPECIAL_SECTIONS[3], // CC01-14
+  SPECIAL_SECTIONS[2],
+  SPECIAL_SECTIONS[3],
 ];
 const COUNTRY_MAP = {};
 ALL_COUNTRIES.forEach(c => COUNTRY_MAP[c.id] = c);
 const GRAND_TOTAL = ALL_COUNTRIES.reduce((s,c)=>s+c.stickers,0);
 
-// ===== STATE =====
+function getStickerLabel(c, i) {
+  if(c.stickerLabels) return c.stickerLabels[i];
+  return c.id.toUpperCase() + String(i+1).padStart(2,'0');
+}
+
+function flagUrl(iso) { return `https://flagcdn.com/w80/${iso}.png`; }
+function flagImgEl(iso, w, h) {
+  if(!iso) return `<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.55)}px">⭐</div>`;
+  return `<img src="${flagUrl(iso)}" width="${w}" height="${h}" style="border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#1e2d45" onerror="this.style.display='none'">`;
+}
+
+// ===== SESSION =====
+let currentUser = null; // { name, pageId, dbId }
 let state = {};
 let currentCountry = null;
 let currentFilter = 'all';
 let currentSearch = '';
 let ctxTarget = null;
+let saveTimeout = null;
 
-const Storage = (() => {
-  let mem={}, ok=false;
-  try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); ok=true; } catch(e){}
-  return {
-    get(k){ try{ return ok?localStorage.getItem(k):(mem[k]||null); }catch(e){ return mem[k]||null; } },
-    set(k,v){ try{ if(ok) localStorage.setItem(k,v); else mem[k]=v; }catch(e){ mem[k]=v; } }
-  };
-})();
+function setLoading(show, text='Carregando...') {
+  document.getElementById('loading-overlay').classList.toggle('hidden', !show);
+  document.getElementById('loading-text').textContent = text;
+}
 
-function loadState() {
-  try { const s=Storage.get('album2026'); if(s) state=JSON.parse(s); } catch(e){ state={}; }
+function showAuthMsg(msg, isError=true) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = msg;
+  el.className = 'auth-msg ' + (isError ? 'error' : 'success');
+}
+
+function switchTab(tab) {
+  document.getElementById('login-form').style.display = tab==='login' ? '' : 'none';
+  document.getElementById('register-form').style.display = tab==='register' ? '' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-register').classList.toggle('active', tab==='register');
+  showAuthMsg('');
+}
+
+// ===== AUTH =====
+async function findUser(name) {
+  const res = await notionFetch('POST', `/databases/${USERS_DB_ID}/query`, {
+    filter: { property: 'Nome', title: { equals: name } }
+  });
+  if(res.results && res.results.length > 0) return res.results[0];
+  return null;
+}
+
+async function doLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if(!name || !pass) { showAuthMsg('Preencha todos os campos'); return; }
+
+  setLoading(true, 'Verificando usuário...');
+  try {
+    const user = await findUser(name);
+    if(!user) { setLoading(false); showAuthMsg('Usuário não encontrado'); return; }
+
+    const storedPass = user.properties['Senha'].rich_text[0]?.plain_text || '';
+    if(storedPass !== pass) { setLoading(false); showAuthMsg('Senha incorreta'); return; }
+
+    const dbId = user.properties['DB ID'].rich_text[0]?.plain_text || '';
+    currentUser = { name, pageId: user.id, dbId };
+    sessionStorage.setItem('copa_user', JSON.stringify(currentUser));
+
+    await loadUserState();
+    enterApp();
+  } catch(e) {
+    setLoading(false);
+    showAuthMsg('Erro de conexão. Tente novamente.');
+    console.error(e);
+  }
+}
+
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+
+  if(!name || !pass || !pass2) { showAuthMsg('Preencha todos os campos'); return; }
+  if(pass !== pass2) { showAuthMsg('As senhas não coincidem'); return; }
+  if(name.length < 2) { showAuthMsg('Nome muito curto'); return; }
+  if(pass.length < 3) { showAuthMsg('Senha muito curta (mín. 3 caracteres)'); return; }
+
+  setLoading(true, 'Criando conta...');
+  try {
+    const existing = await findUser(name);
+    if(existing) { setLoading(false); showAuthMsg('Esse nome já está em uso'); return; }
+
+    // Cria database de figurinhas para o usuário
+    setLoading(true, 'Criando seu álbum...');
+    const dbRes = await notionFetch('POST', '/databases', {
+      parent: { type: 'page_id', page_id: PARENT_PAGE },
+      title: [{ type: 'text', text: { content: `📖 Álbum de ${name}` } }],
+      properties: {
+        'ID': { title: {} },
+        'Dados': { rich_text: {} },
+      }
+    });
+
+    if(!dbRes.id) throw new Error('Falha ao criar álbum: ' + JSON.stringify(dbRes));
+
+    // Cria registro do usuário
+    const userRes = await notionFetch('POST', '/pages', {
+      parent: { database_id: USERS_DB_ID },
+      properties: {
+        'Nome': { title: [{ text: { content: name } }] },
+        'Senha': { rich_text: [{ text: { content: pass } }] },
+        'DB ID': { rich_text: [{ text: { content: dbRes.id } }] },
+      }
+    });
+
+    if(!userRes.id) throw new Error('Falha ao criar usuário');
+
+    // Salva estado inicial vazio
+    currentUser = { name, pageId: userRes.id, dbId: dbRes.id };
+    initState();
+    await saveStateToNotion();
+    sessionStorage.setItem('copa_user', JSON.stringify(currentUser));
+
+    enterApp();
+  } catch(e) {
+    setLoading(false);
+    showAuthMsg('Erro ao criar conta. Tente novamente.');
+    console.error(e);
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('copa_user');
+  currentUser = null;
+  state = {};
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-pass').value = '';
+  showAuthMsg('');
+}
+
+// ===== STATE =====
+function initState() {
+  state = {};
   ALL_COUNTRIES.forEach(c => {
-    if(!state[c.id]){ state[c.id]={}; for(let i=0;i<c.stickers;i++) state[c.id][i]=0; }
-    else { for(let i=0;i<c.stickers;i++) if(state[c.id][i]===undefined) state[c.id][i]=0; }
+    state[c.id] = {};
+    for(let i=0; i<c.stickers; i++) state[c.id][i] = 0;
   });
 }
-function saveState() { try{ Storage.set('album2026',JSON.stringify(state)); }catch(e){} }
-function cycleStickerState(cid,idx){ state[cid][idx]=(state[cid][idx]||0)+1; }
+
+async function loadUserState() {
+  setLoading(true, 'Carregando figurinhas...');
+  try {
+    const res = await notionFetch('POST', `/databases/${currentUser.dbId}/query`, {
+      filter: { property: 'ID', title: { equals: 'state' } }
+    });
+    if(res.results && res.results.length > 0) {
+      const raw = res.results[0].properties['Dados'].rich_text[0]?.plain_text || '{}';
+      const saved = JSON.parse(raw);
+      initState();
+      // Merge saved data
+      for(const cid in saved) {
+        if(state[cid]) {
+          for(const idx in saved[cid]) {
+            if(state[cid][idx] !== undefined) state[cid][idx] = saved[cid][idx];
+          }
+        }
+      }
+      currentUser._statePageId = res.results[0].id;
+    } else {
+      initState();
+    }
+  } catch(e) {
+    initState();
+    console.error('loadUserState error:', e);
+  }
+}
+
+async function saveStateToNotion() {
+  const data = JSON.stringify(state);
+  try {
+    if(currentUser._statePageId) {
+      await notionFetch('PATCH', `/pages/${currentUser._statePageId}`, {
+        properties: {
+          'Dados': { rich_text: [{ text: { content: data.substring(0, 2000) } }] }
+        }
+      });
+    } else {
+      const res = await notionFetch('POST', '/pages', {
+        parent: { database_id: currentUser.dbId },
+        properties: {
+          'ID': { title: [{ text: { content: 'state' } }] },
+          'Dados': { rich_text: [{ text: { content: data.substring(0, 2000) } }] },
+        }
+      });
+      currentUser._statePageId = res.id;
+    }
+  } catch(e) {
+    console.error('saveState error:', e);
+  }
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(saveStateToNotion, 2000);
+}
+
+// ===== ENTER APP =====
+function enterApp() {
+  setLoading(false);
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('user-name-display').textContent = currentUser.name;
+  document.getElementById('user-avatar').textContent = currentUser.name[0].toUpperCase();
+  renderGrid();
+  updateHeader();
+}
 
 // ===== COMPUTED =====
 function getCountryStats(id) {
@@ -418,7 +736,6 @@ function getGlobalStats() {
   return {have,dup,need:GRAND_TOTAL-have};
 }
 
-// ===== HEADER =====
 function updateHeader() {
   const g=getGlobalStats();
   document.getElementById('stat-total').textContent=g.have;
@@ -443,13 +760,12 @@ function renderGrid() {
     return true;
   });
   document.getElementById('section-label').textContent=`${filtered.length} Itens`;
-  if(filtered.length===0){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🔍</div>Nenhuma seleção encontrada</div>`; return; }
+  if(!filtered.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🔍</div>Nenhum resultado</div>`; return; }
 
   grid.innerHTML=filtered.map(c=>{
     const st=getCountryStats(c.id);
     const pct=Math.round((st.have/st.total)*100);
     const s=state[c.id];
-    const isSpecial = !!c.stickerLabels;
     let mini='';
     for(let i=0;i<c.stickers;i++){
       const v=s[i];
@@ -458,16 +774,15 @@ function renderGrid() {
       const lbl=getStickerLabel(c,i);
       mini+=`<div class="sticker${cls}" title="${lbl}">${db}${lbl}</div>`;
     }
-    return `
-    <div class="country-card ${st.have===st.total?'complete':''} ${isSpecial?'special-card':''}" data-id="${c.id}">
-      <div class="card-header" style="${isSpecial?'background:linear-gradient(135deg,#1a2235,#0f1e35);border-bottom-color:#2a3f5f':''}">
+    return `<div class="country-card ${st.have===st.total?'complete':''}" data-id="${c.id}">
+      <div class="card-header">
         <div class="country-info">
-          <div class="country-name">${isSpecial?'⭐ ':''}${c.name}</div>
+          <div class="country-name">${c.stickerLabels?'⭐ ':''}${c.name}</div>
           <div class="country-group">${c.group}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           ${st.have===st.total?'<div class="complete-badge">✓ OK</div>':''}
-          ${flagImgEl(c.iso,48,32)}
+          ${flagImgEl(c.iso,44,30)}
         </div>
       </div>
       <div class="card-progress">
@@ -485,21 +800,22 @@ function renderGrid() {
   grid.querySelectorAll('.sticker').forEach(el=>{
     el.addEventListener('click', e=>{
       e.stopPropagation();
-      const card=el.closest('.country-card'); const cid=card.dataset.id;
+      const cid=el.closest('.country-card').dataset.id;
       const c=COUNTRY_MAP[cid];
-      const idx=c.stickerLabels ? c.stickerLabels.indexOf(el.title) : parseInt(el.title.replace(cid.toUpperCase(),''))-1;
-      cycleStickerState(cid,idx); refreshCard(cid); updateHeader(); saveState();
+      const idx=c.stickerLabels?c.stickerLabels.indexOf(el.title):parseInt(el.title.replace(cid.toUpperCase(),''))-1;
+      state[cid][idx]=(state[cid][idx]||0)+1;
+      refreshCard(cid); updateHeader(); scheduleSave();
     });
     el.addEventListener('contextmenu', e=>{
       e.preventDefault(); e.stopPropagation();
-      const card=el.closest('.country-card'); const cid=card.dataset.id;
+      const cid=el.closest('.country-card').dataset.id;
       const c=COUNTRY_MAP[cid];
-      const idx=c.stickerLabels ? c.stickerLabels.indexOf(el.title) : parseInt(el.title.replace(cid.toUpperCase(),''))-1;
+      const idx=c.stickerLabels?c.stickerLabels.indexOf(el.title):parseInt(el.title.replace(cid.toUpperCase(),''))-1;
       showCtxMenu(e,cid,idx);
     });
   });
-  grid.querySelectorAll('.country-card').forEach(card=>{
-    card.querySelector('.card-header').addEventListener('click',()=>openModal(card.dataset.id));
+  grid.querySelectorAll('.card-header').forEach(h=>{
+    h.addEventListener('click',()=>openModal(h.closest('.country-card').dataset.id));
   });
 }
 
@@ -525,56 +841,46 @@ function refreshCard(cid) {
 function openModal(cid) {
   currentCountry=cid;
   const c=COUNTRY_MAP[cid];
-  document.getElementById('modal-flag').innerHTML=flagImgEl(c.iso,60,40);
+  document.getElementById('modal-flag').innerHTML=flagImgEl(c.iso,56,37);
   document.getElementById('modal-country-name').textContent=c.name;
   updateModalSub(cid);
   renderModalGrid(cid);
   document.getElementById('modal-overlay').classList.add('open');
 }
-
 function updateModalSub(cid){
   const c=COUNTRY_MAP[cid], st=getCountryStats(cid);
   document.getElementById('modal-country-sub').textContent=`${c.group} · ${st.have}/${st.total} coladas`;
 }
-
 function renderModalGrid(cid) {
   const c=COUNTRY_MAP[cid], s=state[cid];
   const grid=document.getElementById('modal-sticker-grid');
   grid.innerHTML='';
   for(let i=0;i<c.stickers;i++){
-    const v=s[i]||0, lbl=getStickerLabel(c,i), name=c.stickerLabels ? lbl : (NAMES[i]||`J${i+1}`);
+    const v=s[i]||0, lbl=getStickerLabel(c,i), name=c.stickerLabels?lbl:(NAMES[i]||`J${i+1}`);
     const cls=v===1?'have':v>=2?'have duplicate':'';
     const div=document.createElement('div');
     div.className=`modal-sticker ${cls}`;
     div.dataset.idx=i;
-
-    // Quantity editor (shown when v >= 1)
-    const qtyHtml = v>=1 ? `
-      <div class="qty-editor" onclick="event.stopPropagation()">
-        <button class="qty-btn qty-minus" data-idx="${i}">−</button>
-        <input class="qty-input" type="number" min="0" max="99" value="${v}" data-idx="${i}">
-        <button class="qty-btn qty-plus" data-idx="${i}">+</button>
-      </div>` : '';
-
-    div.innerHTML=`${v>=2?`<div class="ms-dup">${v}</div>`:''}<div class="ms-num">${lbl}</div><div class="ms-name">${name}</div><div class="ms-status">${v===1?'tenho (1)':v>=2?`×${v}`:''}</div>${qtyHtml}`;
-
-    // Click on card (not on qty editor) = add one
+    const qtyHtml=v>=1?`<div class="qty-editor" onclick="event.stopPropagation()">
+      <button class="qty-btn qty-minus" data-idx="${i}">−</button>
+      <input class="qty-input" type="number" min="0" max="99" value="${v}" data-idx="${i}">
+      <button class="qty-btn qty-plus" data-idx="${i}">+</button>
+    </div>`:'';
+    div.innerHTML=`${v>=2?`<div class="ms-dup">${v}</div>`:''}<div class="ms-num">${lbl}</div><div class="ms-name">${name}</div><div class="ms-status">${v===1?'tenho':v>=2?`×${v}`:''}</div>${qtyHtml}`;
     div.addEventListener('click', e=>{
       if(e.target.closest('.qty-editor')) return;
-      cycleStickerState(cid,i); renderModalGrid(cid); refreshCard(cid); updateHeader(); saveState();
-      updateModalSub(cid);
+      state[cid][i]=(state[cid][i]||0)+1;
+      renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
     });
     div.addEventListener('contextmenu',e=>{ e.preventDefault(); showCtxMenu(e,cid,i,true); });
     grid.appendChild(div);
   }
-
-  // Qty editor events — use event delegation on grid
   grid.querySelectorAll('.qty-minus').forEach(btn=>{
     btn.addEventListener('click', e=>{
       e.stopPropagation();
       const idx=parseInt(btn.dataset.idx);
       state[cid][idx]=Math.max(0,(state[cid][idx]||0)-1);
-      renderModalGrid(cid); refreshCard(cid); updateHeader(); saveState(); updateModalSub(cid);
+      renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
     });
   });
   grid.querySelectorAll('.qty-plus').forEach(btn=>{
@@ -582,7 +888,7 @@ function renderModalGrid(cid) {
       e.stopPropagation();
       const idx=parseInt(btn.dataset.idx);
       state[cid][idx]=(state[cid][idx]||0)+1;
-      renderModalGrid(cid); refreshCard(cid); updateHeader(); saveState(); updateModalSub(cid);
+      renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
     });
   });
   grid.querySelectorAll('.qty-input').forEach(inp=>{
@@ -590,32 +896,25 @@ function renderModalGrid(cid) {
     inp.addEventListener('change', e=>{
       e.stopPropagation();
       const idx=parseInt(inp.dataset.idx);
-      const val=Math.max(0,Math.min(99,parseInt(inp.value)||0));
-      state[cid][idx]=val;
-      renderModalGrid(cid); refreshCard(cid); updateHeader(); saveState(); updateModalSub(cid);
+      state[cid][idx]=Math.max(0,Math.min(99,parseInt(inp.value)||0));
+      renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
     });
-    inp.addEventListener('keydown', e=>{
-      if(e.key==='Enter'){ inp.blur(); }
-      e.stopPropagation();
-    });
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter') inp.blur(); e.stopPropagation(); });
   });
 }
 
 function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); currentCountry=null; }
 document.getElementById('modal-close').addEventListener('click',closeModal);
 document.getElementById('modal-overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modal-overlay')) closeModal(); });
-
 document.getElementById('btn-mark-all').addEventListener('click',()=>{
   const c=COUNTRY_MAP[currentCountry];
   for(let i=0;i<c.stickers;i++) state[currentCountry][i]=1;
-  renderModalGrid(currentCountry); refreshCard(currentCountry); updateHeader(); saveState();
-  updateModalSub(currentCountry);
+  renderModalGrid(currentCountry); refreshCard(currentCountry); updateHeader(); scheduleSave(); updateModalSub(currentCountry);
 });
 document.getElementById('btn-clear-all').addEventListener('click',()=>{
   const c=COUNTRY_MAP[currentCountry];
   for(let i=0;i<c.stickers;i++) state[currentCountry][i]=0;
-  renderModalGrid(currentCountry); refreshCard(currentCountry); updateHeader(); saveState();
-  updateModalSub(currentCountry);
+  renderModalGrid(currentCountry); refreshCard(currentCountry); updateHeader(); scheduleSave(); updateModalSub(currentCountry);
 });
 document.getElementById('btn-export-missing').addEventListener('click',()=>{
   const c=COUNTRY_MAP[currentCountry], s=state[currentCountry];
@@ -636,7 +935,7 @@ function showCtxMenu(e,cid,idx,inModal=false){
 }
 function afterCtx(){
   if(ctxTarget.inModal&&currentCountry){ renderModalGrid(currentCountry); updateModalSub(currentCountry); }
-  refreshCard(ctxTarget.cid); updateHeader(); saveState();
+  refreshCard(ctxTarget.cid); updateHeader(); scheduleSave();
   document.getElementById('ctx-menu').style.display='none'; ctxTarget=null;
 }
 document.getElementById('ctx-have').addEventListener('click',()=>{ if(!ctxTarget)return; state[ctxTarget.cid][ctxTarget.idx]=1; afterCtx(); });
@@ -646,7 +945,6 @@ document.addEventListener('click',()=>document.getElementById('ctx-menu').style.
 document.addEventListener('contextmenu',e=>{ if(!e.target.closest('.sticker,.modal-sticker')) document.getElementById('ctx-menu').style.display='none'; });
 
 // ===== DUP PANEL =====
-function updateDupPanel(){}
 function renderDupPanel(){
   const container=document.getElementById('dup-panel-full');
   let totalDups=0, html='';
@@ -660,21 +958,15 @@ function renderDupPanel(){
     if(!labels.length) return;
     totalDups+=countryDups;
     html+=`<div class="dup-section">
-      <div class="dup-section-header">
-        ${flagImgEl(c.iso,40,27)}
-        <div>
-          <div style="font-weight:700;font-size:14px">${c.name}</div>
-          <div style="font-size:11px;color:var(--muted)">${countryDups} repetida${countryDups>1?'s':''}</div>
-        </div>
+      <div class="dup-section-header">${flagImgEl(c.iso,36,24)}
+        <div><div style="font-weight:700;font-size:14px">${c.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${countryDups} repetida${countryDups>1?'s':''}</div></div>
       </div>
       <div class="dup-list">${labels.map(({lbl,qty})=>`<div class="dup-tag">${lbl}${qty>1?` <strong>×${qty}</strong>`:''}</div>`).join('')}</div>
     </div>`;
   });
-  if(!totalDups){
-    container.innerHTML=`<div class="empty-state"><div class="emoji">✨</div>Nenhuma repetida ainda.<br><span style="font-size:12px">Clique 2× numa figurinha para marcar como repetida.</span></div>`;
-  } else {
-    container.innerHTML=`<p style="color:var(--muted);font-size:12px;margin-bottom:14px">${totalDups} figurinha${totalDups>1?'s':''} repetida${totalDups>1?'s':''} para troca</p>`+html;
-  }
+  container.innerHTML=totalDups?`<p style="color:var(--muted);font-size:12px;margin-bottom:14px">${totalDups} repetida${totalDups>1?'s':''} para troca</p>`+html
+    :`<div class="empty-state"><div class="emoji">✨</div>Nenhuma repetida ainda.</div>`;
 }
 
 document.getElementById('btn-copy-all-dups').addEventListener('click',()=>{
@@ -690,60 +982,6 @@ document.getElementById('btn-copy-all-dups').addEventListener('click',()=>{
   navigator.clipboard.writeText(lines.join('\n')).catch(()=>{});
   const btn=document.getElementById('btn-copy-all-dups'), orig=btn.textContent;
   btn.textContent='✓ Copiado!'; setTimeout(()=>btn.textContent=orig,2000);
-});
-
-// ===== EXPORT PDF =====
-document.getElementById('btn-export-pdf').addEventListener('click',()=>{
-  // Monta o conteúdo do PDF como página de impressão
-  const lines=[];
-  lines.push(`<h2 style="font-family:Impact,Arial;letter-spacing:2px;margin-bottom:4px">🏆 COPA DO MUNDO 2026 — ÁLBUM PANINI</h2>`);
-  lines.push(`<p style="color:#666;font-size:12px;margin-bottom:20px">Gerado em ${new Date().toLocaleDateString('pt-BR')}</p>`);
-
-  // Seção: faltantes
-  lines.push(`<h3 style="font-family:Impact,Arial;letter-spacing:1px;color:#c0392b;margin-bottom:12px;border-bottom:2px solid #c0392b;padding-bottom:4px">✗ FIGURINHAS FALTANDO</h3>`);
-  let hasMissing=false;
-  ALL_COUNTRIES.forEach(c=>{
-    const s=state[c.id], missing=[];
-    for(let i=0;i<c.stickers;i++) if(s[i]===0) missing.push(getStickerLabel(c,i));
-    if(!missing.length) return;
-    hasMissing=true;
-    lines.push(`<div style="margin-bottom:10px;break-inside:avoid">
-      <div style="font-weight:700;margin-bottom:3px">${c.name} <span style="color:#999;font-size:11px">(${missing.length} faltando)</span></div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">${missing.map(l=>`<span style="background:#fde8e8;border:1px solid #c0392b;border-radius:4px;padding:2px 7px;font-size:11px;color:#c0392b">${l}</span>`).join('')}</div>
-    </div>`);
-  });
-  if(!hasMissing) lines.push(`<p style="color:#27ae60">✓ Álbum completo! Parabéns!</p>`);
-
-  // Seção: repetidas
-  lines.push(`<h3 style="font-family:Impact,Arial;letter-spacing:1px;color:#f59e0b;margin-top:24px;margin-bottom:12px;border-bottom:2px solid #f59e0b;padding-bottom:4px">🔄 FIGURINHAS REPETIDAS PARA TROCA</h3>`);
-  let hasDups=false;
-  ALL_COUNTRIES.forEach(c=>{
-    const s=state[c.id], dups=[];
-    for(let i=0;i<c.stickers;i++){
-      const v=s[i]||0;
-      if(v>=2){ const qty=v-1; dups.push(qty>1?`${getStickerLabel(c,i)}×${qty}`:getStickerLabel(c,i)); }
-    }
-    if(!dups.length) return;
-    hasDups=true;
-    lines.push(`<div style="margin-bottom:10px;break-inside:avoid">
-      <div style="font-weight:700;margin-bottom:3px">${c.name} <span style="color:#999;font-size:11px">(${dups.length} repetida${dups.length>1?'s':''})</span></div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">${dups.map(l=>`<span style="background:#fff3cd;border:1px solid #f59e0b;border-radius:4px;padding:2px 7px;font-size:11px;color:#a67000">${l}</span>`).join('')}</div>
-    </div>`);
-  });
-  if(!hasDups) lines.push(`<p style="color:#999">Nenhuma repetida registrada.</p>`);
-
-  const win=window.open('','_blank','width=800,height=900');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Álbum Copa 2026</title>
-  <style>
-    body{font-family:Arial,sans-serif;padding:32px;color:#000;max-width:900px;margin:0 auto}
-    @media print{body{padding:16px}}
-    @page{margin:2cm}
-  </style>
-  </head><body>${lines.join('\n')}<br><br>
-  <button onclick="window.print()" style="background:#003087;color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:14px;cursor:pointer;margin-right:10px">🖨️ Imprimir / Salvar PDF</button>
-  <button onclick="window.close()" style="background:#eee;color:#000;border:none;padding:10px 24px;border-radius:6px;font-size:14px;cursor:pointer">Fechar</button>
-  </body></html>`);
-  win.document.close();
 });
 
 // ===== PANELS =====
@@ -764,16 +1002,139 @@ document.querySelectorAll('.filter-btn').forEach(btn=>{
     else { showPanel('selecoes'); renderGrid(); }
   });
 });
-
 document.getElementById('search-input').addEventListener('input',e=>{ currentSearch=e.target.value; renderGrid(); });
 document.getElementById('grid-view').addEventListener('click',()=>{ document.getElementById('countries-grid').classList.remove('list-view'); document.getElementById('grid-view').classList.add('active'); document.getElementById('list-view-btn').classList.remove('active'); });
 document.getElementById('list-view-btn').addEventListener('click',()=>{ document.getElementById('countries-grid').classList.add('list-view'); document.getElementById('list-view-btn').classList.add('active'); document.getElementById('grid-view').classList.remove('active'); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
 
-// ===== INIT =====
-try { loadState(); renderGrid(); updateHeader(); } catch(e) {
-  document.getElementById('countries-grid').innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="emoji">⚠️</div>Erro ao carregar.</div>';
+// ===== NAV TABS =====
+function showTab(tab) {
+  document.getElementById('album-tab').style.display = tab==='album' ? '' : 'none';
+  document.getElementById('social-tab').style.display = tab==='social' ? '' : 'none';
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&tab==='album')||(i===1&&tab==='social')));
+  if(tab==='social') loadSocialTab();
 }
+
+// ===== SOCIAL TAB =====
+async function loadSocialTab() {
+  const progressEl = document.getElementById('users-progress-grid');
+  const dupsEl = document.getElementById('all-dups-panel');
+  progressEl.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div>`;
+  dupsEl.innerHTML = '';
+
+  try {
+    // Busca todos os usuários
+    const usersRes = await notionFetch('POST', `/databases/${USERS_DB_ID}/query`, {});
+    const users = usersRes.results || [];
+
+    // Para cada usuário, carrega o estado
+    const allUserData = await Promise.all(users.map(async u => {
+      const name = u.properties['Nome'].title[0]?.plain_text || '?';
+      const dbId = u.properties['DB ID'].rich_text[0]?.plain_text || '';
+      if(!dbId) return { name, state: null };
+      try {
+        const stateRes = await notionFetch('POST', `/databases/${dbId}/query`, {
+          filter: { property: 'ID', title: { equals: 'state' } }
+        });
+        if(stateRes.results && stateRes.results.length > 0) {
+          const raw = stateRes.results[0].properties['Dados'].rich_text[0]?.plain_text || '{}';
+          return { name, state: JSON.parse(raw) };
+        }
+      } catch(e) {}
+      return { name, state: null };
+    }));
+
+    // Render progresso
+    progressEl.innerHTML = allUserData.map(u => {
+      if(!u.state) return `<div class="user-card"><div class="user-card-header">
+        <div class="user-card-avatar">${u.name[0].toUpperCase()}</div>
+        <div><div class="user-card-name">${u.name}</div><div class="user-card-sub">Sem dados ainda</div></div>
+      </div></div>`;
+
+      let have=0, dup=0;
+      ALL_COUNTRIES.forEach(c=>{
+        for(let i=0;i<c.stickers;i++){
+          const v=(u.state[c.id]||{})[i]||0;
+          if(v>=1){ have++; dup+=v-1; }
+        }
+      });
+      const pct = Math.round(have/GRAND_TOTAL*100);
+      const isMe = u.name === currentUser.name;
+      return `<div class="user-card" style="${isMe?'border-color:rgba(255,215,0,.4)':''}">
+        <div class="user-card-header">
+          <div class="user-card-avatar">${u.name[0].toUpperCase()}</div>
+          <div>
+            <div class="user-card-name">${u.name}${isMe?' <span style="font-size:11px;color:var(--amarelo)">(você)</span>':''}</div>
+            <div class="user-card-sub">${pct}% completo</div>
+          </div>
+        </div>
+        <div class="user-card-bar"><div class="user-card-fill" style="width:${pct}%"></div></div>
+        <div class="user-card-stats">
+          <span class="s-have">✓ ${have} coladas</span>
+          <span>·</span>
+          <span class="s-dup">🔄 ${dup} repetidas</span>
+          <span>·</span>
+          <span>${GRAND_TOTAL-have} faltam</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Render repetidas de todos
+    let dupsHtml = '';
+    allUserData.forEach(u => {
+      if(!u.state) return;
+      let countriesHtml = '';
+      let totalUserDups = 0;
+      ALL_COUNTRIES.forEach(c => {
+        const labels = [];
+        for(let i=0;i<c.stickers;i++){
+          const v=(u.state[c.id]||{})[i]||0;
+          if(v>=2){ const qty=v-1; totalUserDups+=qty; labels.push({lbl:getStickerLabel(c,i),qty}); }
+        }
+        if(!labels.length) return;
+        countriesHtml += `<div class="troca-country">
+          ${flagImgEl(c.iso,32,22)}
+          <div class="troca-country-name">${c.name}</div>
+          <div class="troca-tags">${labels.map(({lbl,qty})=>`<div class="dup-tag">${lbl}${qty>1?` ×${qty}`:''}</div>`).join('')}</div>
+        </div>`;
+      });
+      if(!totalUserDups) return;
+      dupsHtml += `<div class="troca-section">
+        <div class="troca-header">
+          <div class="troca-avatar">${u.name[0].toUpperCase()}</div>
+          <div>
+            <div class="troca-name">${u.name}</div>
+            <div class="troca-sub">${totalUserDups} figurinha${totalUserDups>1?'s':''} para troca</div>
+          </div>
+        </div>
+        <div class="troca-countries">${countriesHtml}</div>
+      </div>`;
+    });
+    dupsEl.innerHTML = dupsHtml || `<div class="empty-state"><div class="emoji">✨</div>Ninguém tem repetidas ainda.</div>`;
+
+  } catch(e) {
+    progressEl.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">⚠️</div>Erro ao carregar dados.</div>`;
+    console.error(e);
+  }
+}
+
+// ===== INIT =====
+(function init() {
+  const saved = sessionStorage.getItem('copa_user');
+  if(saved) {
+    try {
+      currentUser = JSON.parse(saved);
+      setLoading(true, 'Reconectando...');
+      loadUserState().then(() => enterApp());
+      return;
+    } catch(e) {}
+  }
+  setLoading(false);
+})();
+
+// Enter key no login
+document.getElementById('login-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('reg-pass2').addEventListener('keydown', e=>{ if(e.key==='Enter') doRegister(); });
 </script>
 </body>
 </html>
