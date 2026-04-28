@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Álbum Copa do Mundo 2026</title>
+<style>
+  :root {
+    --verde: #006847; --amarelo: #FFD700; --azul: #003087;
+    --bg: #0a0f1e; --card: #111827; --card2: #1a2235;
+    --border: #1e2d45; --text: #e8edf5; --muted: #7a8ba0;
+    --success: #22c55e; --warning: #f59e0b; --danger: #ef4444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+
+  header { background:linear-gradient(135deg,#003087,#006847,#c8a800); padding:0; position:relative; overflow:hidden; }
+  header::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,.03) 20px,rgba(255,255,255,.03) 40px); }
+  .header-inner { position:relative; padding:24px 28px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  .trophy { font-size:48px; animation:glow 2.5s ease-in-out infinite alternate; }
+  @keyframes glow { from{filter:drop-shadow(0 0 8px rgba(255,215,0,.4))} to{filter:drop-shadow(0 0 24px rgba(255,215,0,.9))} }
+  .header-text h1 { font-family:Impact,'Arial Narrow',sans-serif; font-size:clamp(22px,4vw,42px); letter-spacing:2px; text-shadow:2px 2px 8px rgba(0,0,0,.5); }
+  .header-text p { font-size:12px; letter-spacing:3px; text-transform:uppercase; opacity:.8; margin-top:3px; }
+  .header-stats { margin-left:auto; display:flex; gap:12px; flex-wrap:wrap; }
+  .hstat { background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.15); border-radius:10px; padding:10px 16px; text-align:center; }
+  .hstat-num { font-family:Impact,'Arial Narrow',sans-serif; font-size:26px; color:var(--amarelo); line-height:1; }
+  .hstat-label { font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:.75; }
+
+  .progress-section { background:var(--card); border-bottom:1px solid var(--border); padding:14px 28px; }
+  .progress-label { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:7px; }
+  .progress-label span:last-child { color:var(--amarelo); font-weight:600; }
+  .progress-bar { height:9px; background:var(--border); border-radius:99px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--verde),var(--amarelo)); border-radius:99px; transition:width .5s; width:0; }
+
+  .controls { background:var(--card); border-bottom:1px solid var(--border); padding:12px 28px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .search-box { flex:1; min-width:180px; position:relative; }
+  .search-box input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px 8px 36px; color:var(--text); font-size:13px; outline:none; transition:border-color .2s; font-family:inherit; }
+  .search-box input:focus { border-color:var(--amarelo); }
+  .search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:15px; }
+  .filter-btns { display:flex; gap:5px; flex-wrap:wrap; }
+  .filter-btn { padding:7px 13px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); font-size:12px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; cursor:pointer; transition:all .2s; font-family:inherit; }
+  .filter-btn:hover { border-color:var(--amarelo); color:var(--amarelo); }
+  .filter-btn.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); }
+  .filter-btn.dup-btn { border-color:#f59e0b; color:#f59e0b; }
+  .filter-btn.dup-btn.active { background:#f59e0b; color:#000; }
+  .view-btns { display:flex; gap:5px; }
+  .view-btn { width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; transition:all .2s; }
+  .view-btn:hover,.view-btn.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); }
+
+  /* EXPORT BTN */
+  .export-btn { padding:7px 14px; border-radius:8px; border:1px solid #a855f7; background:rgba(168,85,247,.1); color:#a855f7; font-size:12px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; cursor:pointer; transition:all .2s; font-family:inherit; }
+  .export-btn:hover { background:#a855f7; color:#fff; }
+
+  main { padding:20px 28px; max-width:1400px; margin:0 auto; }
+  .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .section-title { font-family:Impact,'Arial Narrow',sans-serif; font-size:20px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; }
+
+  #countries-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; }
+  #countries-grid.list-view { grid-template-columns:1fr; }
+
+  .country-card { background:var(--card); border:1px solid var(--border); border-radius:13px; overflow:hidden; cursor:pointer; transition:transform .2s,border-color .2s,box-shadow .2s; }
+  .country-card:hover { transform:translateY(-3px); border-color:rgba(255,215,0,.3); box-shadow:0 8px 28px rgba(0,0,0,.3); }
+  .country-card.complete { border-color:rgba(34,197,94,.4); }
+
+  .card-header { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; background:var(--card2); border-bottom:1px solid var(--border); }
+  .country-info .country-name { font-weight:700; font-size:15px; }
+  .country-info .country-group { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+  .card-flag { width:48px; height:32px; border-radius:4px; object-fit:cover; border:1px solid rgba(255,255,255,.1); flex-shrink:0; }
+  .card-flag-placeholder { width:48px; height:32px; border-radius:4px; background:var(--border); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .complete-badge { background:var(--success); color:#000; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 7px; border-radius:5px; }
+
+  .card-progress { padding:10px 14px; }
+  .mini-bar { height:5px; background:var(--border); border-radius:99px; overflow:hidden; margin-bottom:7px; }
+  .mini-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--azul),var(--verde)); transition:width .4s; }
+  .country-card.complete .mini-fill { background:var(--success); }
+  .sticker-counts { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); }
+  .sticker-counts .have { color:var(--success); font-weight:600; }
+  .sticker-counts .need { color:var(--danger); font-weight:600; }
+  .sticker-counts .dup  { color:var(--warning); font-weight:600; }
+
+  .stickers-grid { padding:0 14px 14px; display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
+  .sticker { aspect-ratio:1; border-radius:5px; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:600; cursor:pointer; transition:all .15s; background:var(--bg); color:var(--muted); position:relative; user-select:none; }
+  .sticker:hover { border-color:var(--amarelo); }
+  .sticker.have { background:var(--verde); border-color:var(--verde); color:#fff; }
+  .sticker.duplicate { background:var(--warning); border-color:var(--warning); color:#000; }
+  .dup-count { position:absolute; top:-5px; right:-5px; background:var(--danger); color:#fff; font-size:7px; font-weight:700; width:13px; height:13px; border-radius:99px; display:flex; align-items:center; justify-content:center; border:1px solid var(--bg); }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(4px); z-index:100; display:flex; align-items:center; justify-content:center; padding:16px; opacity:0; pointer-events:none; transition:opacity .25s; }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .modal { background:var(--card); border:1px solid var(--border); border-radius:16px; width:100%; max-width:600px; max-height:90vh; overflow-y:auto; transform:scale(.95); transition:transform .25s; }
+  .modal-overlay.open .modal { transform:scale(1); }
+  .modal-header { padding:20px 22px 14px; display:flex; align-items:center; gap:14px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--card); z-index:2; }
+  .modal-flag img { width:60px; height:40px; border-radius:5px; object-fit:cover; border:1px solid rgba(255,255,255,.15); }
+  .modal-title { flex:1; }
+  .modal-title h2 { font-family:Impact,'Arial Narrow',sans-serif; font-size:26px; letter-spacing:2px; }
+  .modal-title p { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:3px; }
+  .modal-close { width:34px; height:34px; border-radius:99px; border:1px solid var(--border); background:none; color:var(--muted); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+  .modal-close:hover { background:var(--danger); color:#fff; border-color:var(--danger); }
+  .modal-body { padding:18px 22px 22px; }
+  .modal-actions { display:flex; gap:7px; margin-bottom:18px; flex-wrap:wrap; }
+  .btn { padding:8px 14px; border-radius:8px; border:1px solid; font-size:12px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; cursor:pointer; transition:all .2s; font-family:inherit; }
+  .btn-green  { background:var(--verde);   border-color:var(--verde);   color:#fff; }
+  .btn-yellow { background:var(--amarelo); border-color:var(--amarelo); color:#000; }
+  .btn-red    { background:transparent;    border-color:var(--danger);  color:var(--danger); }
+  .btn-red:hover { background:var(--danger); color:#fff; }
+  .legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; font-size:11px; color:var(--muted); }
+  .leg-item { display:flex; align-items:center; gap:4px; }
+  .leg-dot { width:9px; height:9px; border-radius:2px; }
+
+  .modal-sticker-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(58px,1fr)); gap:7px; }
+  .modal-sticker { border-radius:9px; border:2px solid var(--border); background:var(--bg); padding:7px 4px 5px; text-align:center; cursor:pointer; transition:all .15s; position:relative; user-select:none; }
+  .modal-sticker:hover { border-color:var(--amarelo); transform:scale(1.05); }
+  .modal-sticker.have { background:rgba(0,104,71,.3); border-color:var(--verde); }
+  .modal-sticker.duplicate { background:rgba(245,158,11,.25); border-color:var(--warning); }
+  .ms-num { font-family:Impact,'Arial Narrow',sans-serif; font-size:14px; line-height:1; color:var(--text); }
+  .ms-name { font-size:8px; color:var(--muted); margin-top:2px; line-height:1.2; height:18px; overflow:hidden; }
+  .ms-status { font-size:7px; font-weight:700; text-transform:uppercase; margin-top:2px; height:9px; }
+  .modal-sticker.have .ms-status { color:var(--success); }
+  .modal-sticker.duplicate .ms-status { color:var(--warning); }
+  .ms-dup { position:absolute; top:-6px; right:-6px; background:var(--danger); color:#fff; font-size:8px; font-weight:700; min-width:16px; height:16px; border-radius:99px; display:flex; align-items:center; justify-content:center; border:2px solid var(--card); padding:0 2px; }
+
+  /* Quantity editor shown when sticker has duplicates */
+  .qty-editor { display:flex; align-items:center; justify-content:center; gap:3px; margin-top:5px; }
+  .qty-btn { width:20px; height:20px; border-radius:5px; border:1px solid var(--warning); background:rgba(245,158,11,.15); color:var(--warning); font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; transition:all .15s; flex-shrink:0; }
+  .qty-btn:hover { background:var(--warning); color:#000; }
+  .qty-input { width:32px; height:20px; border-radius:5px; border:1px solid var(--warning); background:var(--bg); color:var(--text); font-size:12px; font-weight:700; text-align:center; outline:none; padding:0; font-family:inherit; }
+  .qty-input:focus { border-color:var(--amarelo); }
+
+  /* DUP PANEL */
+  .dup-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:10px; }
+  .dup-section-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .dup-list { display:flex; flex-wrap:wrap; gap:5px; }
+  .dup-tag { background:rgba(245,158,11,.15); border:1px solid var(--warning); border-radius:5px; padding:3px 9px; font-size:11px; font-weight:600; color:var(--warning); }
+
+  /* CTX MENU */
+  .ctx-menu { position:fixed; background:var(--card); border:1px solid var(--border); border-radius:9px; padding:5px; z-index:200; box-shadow:0 8px 28px rgba(0,0,0,.5); display:none; min-width:150px; }
+  .ctx-item { padding:7px 12px; border-radius:5px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:7px; transition:background .15s; }
+  .ctx-item:hover { background:var(--card2); }
+
+  .empty-state { text-align:center; padding:50px 20px; color:var(--muted); }
+  .empty-state .emoji { font-size:44px; margin-bottom:10px; }
+
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px; }
+
+  /* PRINT / PDF STYLES */
+  @media print {
+    body { background:#fff; color:#000; font-family:Arial,sans-serif; }
+    header, .controls, .progress-section, .modal-overlay, .ctx-menu { display:none !important; }
+    main { padding:10px; }
+    #panel-selecoes { display:none !important; }
+    #panel-repetidas { display:block !important; }
+    .dup-section { border:1px solid #ccc; border-radius:6px; padding:10px; margin-bottom:8px; break-inside:avoid; background:#fff; }
+    .dup-section-header { margin-bottom:6px; }
+    .dup-tag { background:#fff3cd; border:1px solid #f59e0b; color:#000; font-size:10px; padding:2px 7px; }
+    .section-title { color:#000; font-size:18px; }
+    .section-header { margin-bottom:10px; }
+    #btn-copy-all-dups, .export-btn, .view-btns { display:none !important; }
+    .print-header { display:block !important; text-align:center; margin-bottom:16px; font-family:Impact,Arial; font-size:22px; letter-spacing:2px; }
+    .card-flag { display:none; }
+  }
+
+  @media (max-width:600px) {
+    .header-inner { padding:16px; }
+    main { padding:14px; }
+    .controls { padding:10px 14px; }
+    #countries-grid { grid-template-columns:1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="trophy">🏆</div>
+    <div class="header-text">
+      <h1>FIFA WORLD CUP 2026™</h1>
+      <p>Gerenciador de Figurinhas · Panini</p>
+    </div>
+    <div class="header-stats">
+      <div class="hstat"><div class="hstat-num" id="stat-total">0</div><div class="hstat-label">Coladas</div></div>
+      <div class="hstat"><div class="hstat-num" id="stat-need" style="color:#ef4444">0</div><div class="hstat-label">Faltam</div></div>
+      <div class="hstat"><div class="hstat-num" id="stat-dup" style="color:#f59e0b">0</div><div class="hstat-label">Repetidas</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="progress-section">
+  <div class="progress-label"><span>Progresso do álbum</span><span id="progress-pct">0% completo</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<div class="controls">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="Buscar seleção...">
+  </div>
+  <div class="filter-btns">
+    <button class="filter-btn active" data-filter="all">Todas</button>
+    <button class="filter-btn" data-filter="incomplete">Incompletas</button>
+    <button class="filter-btn" data-filter="complete">Completas</button>
+    <button class="filter-btn" data-filter="started">Iniciadas</button>
+    <button class="filter-btn dup-btn" data-filter="duplicates">🔄 Repetidas</button>
+  </div>
+  <button class="export-btn" id="btn-export-pdf">📄 Exportar PDF</button>
+  <div class="view-btns">
+    <button class="view-btn active" id="grid-view" title="Grade">⊞</button>
+    <button class="view-btn" id="list-view-btn" title="Lista">☰</button>
+  </div>
+</div>
+
+<main>
+  <div id="panel-selecoes">
+    <div class="section-header">
+      <div class="section-title" id="section-label">48 Seleções</div>
+      <div style="font-size:11px;color:var(--muted)">Clique na figurinha para adicionar · Botão direito para remover</div>
+    </div>
+    <div id="countries-grid"></div>
+  </div>
+
+  <div id="panel-repetidas" style="display:none">
+    <div class="section-header">
+      <div class="section-title" style="color:var(--warning)">🔄 Repetidas para Troca</div>
+      <button class="btn btn-yellow" id="btn-copy-all-dups" style="font-size:11px;padding:5px 11px">📋 Copiar lista</button>
+    </div>
+    <div id="dup-panel-full"></div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-flag" id="modal-flag"></div>
+      <div class="modal-title">
+        <h2 id="modal-country-name"></h2>
+        <p id="modal-country-sub"></p>
+      </div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-actions">
+        <button class="btn btn-green" id="btn-mark-all">✓ Marcar todas</button>
+        <button class="btn btn-red" id="btn-clear-all">✕ Limpar todas</button>
+        <button class="btn btn-yellow" id="btn-export-missing">📋 Copiar faltantes</button>
+      </div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:var(--border)"></div> Falta</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--verde)"></div> Tenho</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--warning)"></div> Repetida</div>
+      </div>
+      <div class="modal-sticker-grid" id="modal-sticker-grid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-item" id="ctx-have">✅ Marcar como tenho</div>
+  <div class="ctx-item" id="ctx-dup">➕ Adicionar repetida</div>
+  <div class="ctx-item" id="ctx-remove">➖ Remover uma</div>
+</div>
+
+<script>
+// ===== FLAG URLs (flagcdn.com — precisa de internet) =====
+function flagUrl(iso) {
+  return `https://flagcdn.com/w80/${iso}.png`;
+}
+function flagImgEl(iso, w, h) {
+  if(!iso) return `<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.55)}px">⭐</div>`;
+  return `<img src="${flagUrl(iso)}" width="${w}" height="${h}" style="border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#1e2d45" onerror="this.outerHTML='<div style=width:${w}px;height:${h}px;background:#1e2d45;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.7)}px></div>'">`;
+}
+
+function getStickerLabel(c, i) {
+  if(c.stickerLabels) return c.stickerLabels[i];
+  return c.id.toUpperCase() + String(i+1).padStart(2,'0');
+}
+
+// ===== DATA =====
+const GROUPS = [
+  { name:'Grupo A', countries:[
+    {id:'mex',name:'México',iso:'mx',stickers:20},
+    {id:'rsa',name:'África do Sul',iso:'za',stickers:20},
+    {id:'kor',name:'Coreia do Sul',iso:'kr',stickers:20},
+    {id:'cze',name:'República Tcheca',iso:'cz',stickers:20},
+  ]},
+  { name:'Grupo B', countries:[
+    {id:'can',name:'Canadá',iso:'ca',stickers:20},
+    {id:'bih',name:'Bósnia e Herzegovina',iso:'ba',stickers:20},
+    {id:'qat',name:'Catar',iso:'qa',stickers:20},
+    {id:'sui',name:'Suíça',iso:'ch',stickers:20},
+  ]},
+  { name:'Grupo C', countries:[
+    {id:'bra',name:'Brasil',iso:'br',stickers:20},
+    {id:'mar',name:'Marrocos',iso:'ma',stickers:20},
+    {id:'hai',name:'Haiti',iso:'ht',stickers:20},
+    {id:'sco',name:'Escócia',iso:'gb-sct',stickers:20},
+  ]},
+  { name:'Grupo D', countries:[
+    {id:'usa',name:'Estados Unidos',iso:'us',stickers:20},
+    {id:'par',name:'Paraguai',iso:'py',stickers:20},
+    {id:'aus',name:'Austrália',iso:'au',stickers:20},
+    {id:'tur',name:'Turquia',iso:'tr',stickers:20},
+  ]},
+  { name:'Grupo E', countries:[
+    {id:'ale',name:'Alemanha',iso:'de',stickers:20},
+    {id:'cur',name:'Curaçao',iso:'cw',stickers:20},
+    {id:'civ',name:'Costa do Marfim',iso:'ci',stickers:20},
+    {id:'ecu',name:'Equador',iso:'ec',stickers:20},
+  ]},
+  { name:'Grupo F', countries:[
+    {id:'hol',name:'Holanda',iso:'nl',stickers:20},
+    {id:'jap',name:'Japão',iso:'jp',stickers:20},
+    {id:'sue',name:'Suécia',iso:'se',stickers:20},
+    {id:'tun',name:'Tunísia',iso:'tn',stickers:20},
+  ]},
+  { name:'Grupo G', countries:[
+    {id:'bel',name:'Bélgica',iso:'be',stickers:20},
+    {id:'egi',name:'Egito',iso:'eg',stickers:20},
+    {id:'ira',name:'Irã',iso:'ir',stickers:20},
+    {id:'nze',name:'Nova Zelândia',iso:'nz',stickers:20},
+  ]},
+  { name:'Grupo H', countries:[
+    {id:'esp',name:'Espanha',iso:'es',stickers:20},
+    {id:'cpv',name:'Cabo Verde',iso:'cv',stickers:20},
+    {id:'ksa',name:'Arábia Saudita',iso:'sa',stickers:20},
+    {id:'uru',name:'Uruguai',iso:'uy',stickers:20},
+  ]},
+  { name:'Grupo I', countries:[
+    {id:'fra',name:'França',iso:'fr',stickers:20},
+    {id:'sen',name:'Senegal',iso:'sn',stickers:20},
+    {id:'irq',name:'Iraque',iso:'iq',stickers:20},
+    {id:'nor',name:'Noruega',iso:'no',stickers:20},
+  ]},
+  { name:'Grupo J', countries:[
+    {id:'arg',name:'Argentina',iso:'ar',stickers:20},
+    {id:'alg',name:'Argélia',iso:'dz',stickers:20},
+    {id:'aut',name:'Áustria',iso:'at',stickers:20},
+    {id:'jor',name:'Jordânia',iso:'jo',stickers:20},
+  ]},
+  { name:'Grupo K', countries:[
+    {id:'por',name:'Portugal',iso:'pt',stickers:20},
+    {id:'cod',name:'RD Congo',iso:'cd',stickers:20},
+    {id:'uzb',name:'Uzbequistão',iso:'uz',stickers:20},
+    {id:'col',name:'Colômbia',iso:'co',stickers:20},
+  ]},
+  { name:'Grupo L', countries:[
+    {id:'ing',name:'Inglaterra',iso:'gb-eng',stickers:20},
+    {id:'cro',name:'Croácia',iso:'hr',stickers:20},
+    {id:'gha',name:'Gana',iso:'gh',stickers:20},
+    {id:'pan',name:'Panamá',iso:'pa',stickers:20},
+  ]},
+];
+
+const NAMES = ['Escudo','Estádio','Treinador','Capitão','GK1','GK2','DF1','DF2','DF3','DF4','DF5','MF1','MF2','MF3','MF4','MF5','FW1','FW2','FW3','FW4'];
+const SPECIALS = [0,1];
+
+// Seções especiais
+const SPECIAL_SECTIONS = [
+  { id:'intro',  name:'Contra-Capa',           iso:'', group:'⭐ Especiais', stickers:1,  stickerLabels:['00'] },
+  { id:'fwc_a',  name:'FIFA World Cup (1–8)',   iso:'', group:'⭐ Especiais', stickers:8,  stickerLabels:['FWC01','FWC02','FWC03','FWC04','FWC05','FWC06','FWC07','FWC08'] },
+  { id:'fwc_b',  name:'FIFA World Cup (9–19)',  iso:'', group:'⭐ Especiais', stickers:11, stickerLabels:['FWC09','FWC10','FWC11','FWC12','FWC13','FWC14','FWC15','FWC16','FWC17','FWC18','FWC19'] },
+  { id:'cc',     name:'Coca-Cola',              iso:'', group:'⭐ Especiais', stickers:14, stickerLabels:['CC01','CC02','CC03','CC04','CC05','CC06','CC07','CC08','CC09','CC10','CC11','CC12','CC13','CC14'] },
+];
+
+const SELECOES = GROUPS.flatMap(g => g.countries.map(c => ({...c, group:g.name})));
+const ALL_COUNTRIES = [
+  SPECIAL_SECTIONS[0], // intro (00)
+  SPECIAL_SECTIONS[1], // FWC01-08
+  ...SELECOES,
+  SPECIAL_SECTIONS[2], // FWC09-19
+  SPECIAL_SECTIONS[3], // CC01-14
+];
+const COUNTRY_MAP = {};
+ALL_COUNTRIES.forEach(c => COUNTRY_MAP[c.id] = c);
+const GRAND_TOTAL = ALL_COUNTRIES.reduce((s,c)=>s+c.stickers,0);
+
+// ===== STATE =====
+let state = {};
+let currentCountry = null;
+let currentFilter = 'all';
+let currentSearch = '';
+let ctxTarget = null;
+
+const Storage = (() => {
+  let mem={}, ok=false;
+  try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); ok=true; } catch(e){}
+  return {
+    get(k){ try{ return ok?localStorage.getItem(k):(mem[k]||null); }catch(e){ return mem[k]||null; } },
+    set(k,v){ try{ if(ok) localStorage.setItem(k,v); else mem[k]=v; }catch(e){ mem[k]=v; } }
+  };
+})();
+
+function loadState() {
+  try { const s=Storage.get('album2026'); if(s) state=JSON.parse(s); } catch(e){ state={}; }
+  ALL_COUNTRIES.forEach(c => {
+    if(!state[c.id]){ state[c.id]={}; for(let i=0;i<c.stickers;i++) state[c.id][i]=0; }
+    else { for(let i=0;i<c.stickers;i++) if(state[c.id][i]===undefined) state[c.id][i]=0; }
+  });
+}
+function saveState() { try{ Storage.set('album2026',JSON.stringify(state)); }catch(e){} }
+function cycleStickerState(cid,idx){ state[cid][idx]=(state[cid][idx]||0)+1; }
+
+// ===== COMPUTED =====
+function getCountryStats(id) {
+  const s=state[id]||{}, total=COUNTRY_MAP[id].stickers;
+  let have=0,dup=0;
+  for(let i=0;i<total;i++){
+    const v=s[i]||0;
+    if(v>=1){ have++; dup+=v-1; }
+  }
+  return {total,have,need:total-have,dup};
+}
+function getGlobalStats() {
+  let have=0,dup=0;
+  ALL_COUNTRIES.forEach(c=>{ const st=getCountryStats(c.id); have+=st.have; dup+=st.dup; });
+  return {have,dup,need:GRAND_TOTAL-have};
+}
+
+// ===== HEADER =====
+function updateHeader() {
+  const g=getGlobalStats();
+  document.getElementById('stat-total').textContent=g.have;
+  document.getElementById('stat-need').textContent=g.need;
+  document.getElementById('stat-dup').textContent=g.dup;
+  const pct=Math.round((g.have/GRAND_TOTAL)*100);
+  document.getElementById('progress-pct').textContent=`${pct}% completo`;
+  document.getElementById('progress-fill').style.width=pct+'%';
+}
+
+// ===== GRID =====
+function renderGrid() {
+  const grid=document.getElementById('countries-grid');
+  const search=currentSearch.toLowerCase();
+  let filtered=ALL_COUNTRIES.filter(c=>{
+    if(search && !c.name.toLowerCase().includes(search)) return false;
+    if(currentFilter==='all') return true;
+    const st=getCountryStats(c.id);
+    if(currentFilter==='complete') return st.have===st.total;
+    if(currentFilter==='incomplete') return st.have<st.total;
+    if(currentFilter==='started') return st.have>0&&st.have<st.total;
+    return true;
+  });
+  document.getElementById('section-label').textContent=`${filtered.length} Itens`;
+  if(filtered.length===0){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🔍</div>Nenhuma seleção encontrada</div>`; return; }
+
+  grid.innerHTML=filtered.map(c=>{
+    const st=getCountryStats(c.id);
+    const pct=Math.round((st.have/st.total)*100);
+    const s=state[c.id];
+    const isSpecial = !!c.stickerLabels;
+    let mini='';
+    for(let i=0;i<c.stickers;i++){
+      const v=s[i];
+      const cls=v===1?' have':v>=2?' have duplicate':'';
+      const db=v>=2?`<span class="dup-count">${v}</span>`:'';
+      const lbl=getStickerLabel(c,i);
+      mini+=`<div class="sticker${cls}" title="${lbl}">${db}${lbl}</div>`;
+    }
+    return `
+    <div class="country-card ${st.have===st.total?'complete':''} ${isSpecial?'special-card':''}" data-id="${c.id}">
+      <div class="card-header" style="${isSpecial?'background:linear-gradient(135deg,#1a2235,#0f1e35);border-bottom-color:#2a3f5f':''}">
+        <div class="country-info">
+          <div class="country-name">${isSpecial?'⭐ ':''}${c.name}</div>
+          <div class="country-group">${c.group}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${st.have===st.total?'<div class="complete-badge">✓ OK</div>':''}
+          ${flagImgEl(c.iso,48,32)}
+        </div>
+      </div>
+      <div class="card-progress">
+        <div class="mini-bar"><div class="mini-fill" style="width:${pct}%"></div></div>
+        <div class="sticker-counts">
+          <span class="have">✓ ${st.have}</span>
+          <span class="need">✗ ${st.need}</span>
+          ${st.dup>0?`<span class="dup">🔄 ${st.dup}</span>`:''}
+        </div>
+      </div>
+      <div class="stickers-grid">${mini}</div>
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.sticker').forEach(el=>{
+    el.addEventListener('click', e=>{
+      e.stopPropagation();
+      const card=el.closest('.country-card'); const cid=card.dataset.id;
+      const c=COUNTRY_MAP[cid];
+      const idx=c.stickerLabels ? c.stickerLabels.indexOf(el.title) : parseInt(el.title.replace(cid.toUpperCase(),''))-1;
+      cycleStickerState(cid,idx); refreshCard(cid); updateHeader(); saveState();
+    });
+    el.addEventListener('contextmenu', e=>{
+      e.preventDefault(); e.stopPropagation();
+      const card=el.closest('.country-card'); const cid=card.dataset.id;
+      const c=COUNTRY_MAP[cid];
+      const idx=c.stickerLabels ? c.stickerLabels.indexOf(el.title) : parseInt(el.title.replace(cid.toUpperCase(),''))-1;
+      showCtxMenu(e,cid,idx);
+    });
+  });
+  grid.querySelectorAll('.country-card').forEach(card=>{
+    card.querySelector('.card-header').addEventListener('click',()=>openModal(card.dataset.id));
+  });
+}
+
+function refreshCard(cid) {
+  const card=document.querySelector(`.country-card[data-id="${cid}"]`);
+  if(!card) return;
+  const c=COUNTRY_MAP[cid], st=getCountryStats(cid), pct=Math.round((st.have/st.total)*100);
+  card.classList.toggle('complete',st.have===st.total);
+  card.querySelector('.mini-fill').style.width=pct+'%';
+  card.querySelector('.sticker-counts').innerHTML=`
+    <span class="have">✓ ${st.have}</span>
+    <span class="need">✗ ${st.need}</span>
+    ${st.dup>0?`<span class="dup">🔄 ${st.dup}</span>`:''}`;
+  const s=state[cid];
+  card.querySelectorAll('.sticker').forEach((el,i)=>{
+    const v=s[i], lbl=getStickerLabel(c,i);
+    el.className='sticker'+(v===1?' have':v>=2?' have duplicate':'');
+    el.title=lbl; el.innerHTML=(v>=2?`<span class="dup-count">${v}</span>`:'')+lbl;
+  });
+}
+
+// ===== MODAL =====
+function openModal(cid) {
+  currentCountry=cid;
+  const c=COUNTRY_MAP[cid];
+  document.getElementById('modal-flag').innerHTML=flagImgEl(c.iso,60,40);
+  document.getElementById('modal-country-name').textContent=c.name;
+  updateModalSub(cid);
+  renderModalGrid(cid);
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function updateModalSub(cid){
+  const c=COUNTRY_MAP[cid], st=getCountryStats(cid);
+  document.getElementById('modal-country-sub').textContent=`${c.group} · ${st.have}/${st.total} coladas`;
+}
+
+function renderModalGrid(cid) {
+  const c=COUNTRY_MAP[cid], s=state[cid];
+  const grid=document.getElementById('modal-sticker-grid');
+  grid.innerHTML='';
+  for(let i=0;i<c.stickers;i++){
+    const v=s[i]||0, lbl=getStickerLabel(c,i), name=c.stickerLabels ? lbl : (NAMES[i]||`J${i+1}`);
+    const cls=v===1?'have':v>=2?'have duplicate':'';
+    const div=document.createElement('div');
+    div.className=`modal-sticker ${cls}`;
+    div.dataset.idx=i;
+
+    // Quantity editor (shown when v >= 1)
+    const qtyHtml = v>=1 ? `
+      <div class="qty-editor" onclick="event.stopPropagation()">
+        <button class="qty-btn qty-minus" data-idx="${i}">−</button>
+        <input class="qty-input" type="number" min="0" max="99" value="${v}" data-idx="${i}">
+        <button class="qty-btn qty-plus" data-idx="${i}">+</button>
+      </div>` : '';
+
+    div.innerHTML=`${v>=2?`<div class="ms-dup">${v}</div>`:''}<div class="ms-num">${lbl}</div><div class="ms-name">${name}</div><div class="ms-status">${v===1?'tenho (1)':v>=2?`×${v}`:''}</div>${qtyHtml}`;
+
+    // Click on card (not on qty editor) = add one
+    div.addEventListener('click', e=>{
+      if(e.target.closest('.qty-editor')) return;
+      cycleStickerState(cid,i); renderModalGrid(cid); refreshCard(cid); updateHeader(); saveState();
+      updateModalSub(cid);
+    });
+    div.addEventListener('contextmenu',e=>{ e.preventDefault(); showCtxMenu(e,cid,i,true); });
+    grid.appendChild(div);
+  }
+
+  // Qty editor events — use event delegation on grid
+  grid.querySelectorAll('.qty-minus').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const idx=parseInt(btn.dataset.idx);
+      state[cid][idx]=Math.max(0,(state[cid][idx]||0)-1);
+      renderModalGrid(cid); refreshCard(cid); updateHeader(); saveState(); updateModalSub(cid);
+    });
+  });
+  grid.querySelectorAll('.qty-plus').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const idx=parseInt(btn.dataset.idx);
+      state[cid][idx]=(state[cid][idx]||0)+1;
+      renderModalGrid(cid); refreshCard(cid); updateHeader(); saveState(); updateModalSub(cid);
+    });
+  });
+  grid.querySelectorAll('.qty-input').forEach(inp=>{
+    inp.addEventListener('click', e=>e.stopPropagation());
+    inp.addEventListener('change', e=>{
+      e.stopPropagation();
+      const idx=parseInt(inp.dataset.idx);
+      const val=Math.max(0,Math.min(99,parseInt(inp.value)||0));
+      state[cid][idx]=val;
+      renderModalGrid(cid); refreshCard(cid); updateHeader(); saveState(); updateModalSub(cid);
+    });
+    inp.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){ inp.blur(); }
+      e.stopPropagation();
+    });
+  });
+}
+
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); currentCountry=null; }
+document.getElementById('modal-close').addEventListener('click',closeModal);
+document.getElementById('modal-overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modal-overlay')) closeModal(); });
+
+document.getElementById('btn-mark-all').addEventListener('click',()=>{
+  const c=COUNTRY_MAP[currentCountry];
+  for(let i=0;i<c.stickers;i++) state[currentCountry][i]=1;
+  renderModalGrid(currentCountry); refreshCard(currentCountry); updateHeader(); saveState();
+  updateModalSub(currentCountry);
+});
+document.getElementById('btn-clear-all').addEventListener('click',()=>{
+  const c=COUNTRY_MAP[currentCountry];
+  for(let i=0;i<c.stickers;i++) state[currentCountry][i]=0;
+  renderModalGrid(currentCountry); refreshCard(currentCountry); updateHeader(); saveState();
+  updateModalSub(currentCountry);
+});
+document.getElementById('btn-export-missing').addEventListener('click',()=>{
+  const c=COUNTRY_MAP[currentCountry], s=state[currentCountry];
+  const missing=[];
+  for(let i=0;i<c.stickers;i++) if(s[i]===0) missing.push(getStickerLabel(c,i));
+  navigator.clipboard.writeText(`${c.name} - Faltando:\n${missing.join(', ')}`).catch(()=>{});
+  const btn=document.getElementById('btn-export-missing'), orig=btn.textContent;
+  btn.textContent='✓ Copiado!'; setTimeout(()=>btn.textContent=orig,2000);
+});
+
+// ===== CTX MENU =====
+function showCtxMenu(e,cid,idx,inModal=false){
+  ctxTarget={cid,idx,inModal};
+  const m=document.getElementById('ctx-menu');
+  m.style.display='block';
+  m.style.left=Math.min(e.clientX,window.innerWidth-160)+'px';
+  m.style.top=Math.min(e.clientY,window.innerHeight-120)+'px';
+}
+function afterCtx(){
+  if(ctxTarget.inModal&&currentCountry){ renderModalGrid(currentCountry); updateModalSub(currentCountry); }
+  refreshCard(ctxTarget.cid); updateHeader(); saveState();
+  document.getElementById('ctx-menu').style.display='none'; ctxTarget=null;
+}
+document.getElementById('ctx-have').addEventListener('click',()=>{ if(!ctxTarget)return; state[ctxTarget.cid][ctxTarget.idx]=1; afterCtx(); });
+document.getElementById('ctx-dup').addEventListener('click',()=>{ if(!ctxTarget)return; const v=state[ctxTarget.cid][ctxTarget.idx]||0; state[ctxTarget.cid][ctxTarget.idx]=Math.max(2,v+1); afterCtx(); });
+document.getElementById('ctx-remove').addEventListener('click',()=>{ if(!ctxTarget)return; const v=state[ctxTarget.cid][ctxTarget.idx]||0; state[ctxTarget.cid][ctxTarget.idx]=Math.max(0,v-1); afterCtx(); });
+document.addEventListener('click',()=>document.getElementById('ctx-menu').style.display='none');
+document.addEventListener('contextmenu',e=>{ if(!e.target.closest('.sticker,.modal-sticker')) document.getElementById('ctx-menu').style.display='none'; });
+
+// ===== DUP PANEL =====
+function updateDupPanel(){}
+function renderDupPanel(){
+  const container=document.getElementById('dup-panel-full');
+  let totalDups=0, html='';
+  ALL_COUNTRIES.forEach(c=>{
+    const s=state[c.id], labels=[];
+    let countryDups=0;
+    for(let i=0;i<c.stickers;i++){
+      const v=s[i]||0;
+      if(v>=2){ const qty=v-1; countryDups+=qty; labels.push({lbl:getStickerLabel(c,i),qty}); }
+    }
+    if(!labels.length) return;
+    totalDups+=countryDups;
+    html+=`<div class="dup-section">
+      <div class="dup-section-header">
+        ${flagImgEl(c.iso,40,27)}
+        <div>
+          <div style="font-weight:700;font-size:14px">${c.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${countryDups} repetida${countryDups>1?'s':''}</div>
+        </div>
+      </div>
+      <div class="dup-list">${labels.map(({lbl,qty})=>`<div class="dup-tag">${lbl}${qty>1?` <strong>×${qty}</strong>`:''}</div>`).join('')}</div>
+    </div>`;
+  });
+  if(!totalDups){
+    container.innerHTML=`<div class="empty-state"><div class="emoji">✨</div>Nenhuma repetida ainda.<br><span style="font-size:12px">Clique 2× numa figurinha para marcar como repetida.</span></div>`;
+  } else {
+    container.innerHTML=`<p style="color:var(--muted);font-size:12px;margin-bottom:14px">${totalDups} figurinha${totalDups>1?'s':''} repetida${totalDups>1?'s':''} para troca</p>`+html;
+  }
+}
+
+document.getElementById('btn-copy-all-dups').addEventListener('click',()=>{
+  let lines=['🔄 Repetidas para Troca - Copa 2026\n'];
+  ALL_COUNTRIES.forEach(c=>{
+    const s=state[c.id], labels=[];
+    for(let i=0;i<c.stickers;i++){
+      const v=s[i]||0;
+      if(v>=2){ const qty=v-1; labels.push(qty>1?`${getStickerLabel(c,i)}×${qty}`:getStickerLabel(c,i)); }
+    }
+    if(labels.length) lines.push(`${c.name}: ${labels.join(', ')}`);
+  });
+  navigator.clipboard.writeText(lines.join('\n')).catch(()=>{});
+  const btn=document.getElementById('btn-copy-all-dups'), orig=btn.textContent;
+  btn.textContent='✓ Copiado!'; setTimeout(()=>btn.textContent=orig,2000);
+});
+
+// ===== EXPORT PDF =====
+document.getElementById('btn-export-pdf').addEventListener('click',()=>{
+  // Monta o conteúdo do PDF como página de impressão
+  const lines=[];
+  lines.push(`<h2 style="font-family:Impact,Arial;letter-spacing:2px;margin-bottom:4px">🏆 COPA DO MUNDO 2026 — ÁLBUM PANINI</h2>`);
+  lines.push(`<p style="color:#666;font-size:12px;margin-bottom:20px">Gerado em ${new Date().toLocaleDateString('pt-BR')}</p>`);
+
+  // Seção: faltantes
+  lines.push(`<h3 style="font-family:Impact,Arial;letter-spacing:1px;color:#c0392b;margin-bottom:12px;border-bottom:2px solid #c0392b;padding-bottom:4px">✗ FIGURINHAS FALTANDO</h3>`);
+  let hasMissing=false;
+  ALL_COUNTRIES.forEach(c=>{
+    const s=state[c.id], missing=[];
+    for(let i=0;i<c.stickers;i++) if(s[i]===0) missing.push(getStickerLabel(c,i));
+    if(!missing.length) return;
+    hasMissing=true;
+    lines.push(`<div style="margin-bottom:10px;break-inside:avoid">
+      <div style="font-weight:700;margin-bottom:3px">${c.name} <span style="color:#999;font-size:11px">(${missing.length} faltando)</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${missing.map(l=>`<span style="background:#fde8e8;border:1px solid #c0392b;border-radius:4px;padding:2px 7px;font-size:11px;color:#c0392b">${l}</span>`).join('')}</div>
+    </div>`);
+  });
+  if(!hasMissing) lines.push(`<p style="color:#27ae60">✓ Álbum completo! Parabéns!</p>`);
+
+  // Seção: repetidas
+  lines.push(`<h3 style="font-family:Impact,Arial;letter-spacing:1px;color:#f59e0b;margin-top:24px;margin-bottom:12px;border-bottom:2px solid #f59e0b;padding-bottom:4px">🔄 FIGURINHAS REPETIDAS PARA TROCA</h3>`);
+  let hasDups=false;
+  ALL_COUNTRIES.forEach(c=>{
+    const s=state[c.id], dups=[];
+    for(let i=0;i<c.stickers;i++){
+      const v=s[i]||0;
+      if(v>=2){ const qty=v-1; dups.push(qty>1?`${getStickerLabel(c,i)}×${qty}`:getStickerLabel(c,i)); }
+    }
+    if(!dups.length) return;
+    hasDups=true;
+    lines.push(`<div style="margin-bottom:10px;break-inside:avoid">
+      <div style="font-weight:700;margin-bottom:3px">${c.name} <span style="color:#999;font-size:11px">(${dups.length} repetida${dups.length>1?'s':''})</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${dups.map(l=>`<span style="background:#fff3cd;border:1px solid #f59e0b;border-radius:4px;padding:2px 7px;font-size:11px;color:#a67000">${l}</span>`).join('')}</div>
+    </div>`);
+  });
+  if(!hasDups) lines.push(`<p style="color:#999">Nenhuma repetida registrada.</p>`);
+
+  const win=window.open('','_blank','width=800,height=900');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Álbum Copa 2026</title>
+  <style>
+    body{font-family:Arial,sans-serif;padding:32px;color:#000;max-width:900px;margin:0 auto}
+    @media print{body{padding:16px}}
+    @page{margin:2cm}
+  </style>
+  </head><body>${lines.join('\n')}<br><br>
+  <button onclick="window.print()" style="background:#003087;color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:14px;cursor:pointer;margin-right:10px">🖨️ Imprimir / Salvar PDF</button>
+  <button onclick="window.close()" style="background:#eee;color:#000;border:none;padding:10px 24px;border-radius:6px;font-size:14px;cursor:pointer">Fechar</button>
+  </body></html>`);
+  win.document.close();
+});
+
+// ===== PANELS =====
+function showPanel(p){
+  document.getElementById('panel-selecoes').style.display=p==='selecoes'?'':'none';
+  document.getElementById('panel-repetidas').style.display=p==='repetidas'?'':'none';
+  document.getElementById('search-input').closest('.search-box').style.display=p==='selecoes'?'':'none';
+  document.querySelector('.view-btns').style.display=p==='selecoes'?'':'none';
+}
+
+// ===== FILTERS =====
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter=btn.dataset.filter;
+    if(currentFilter==='duplicates'){ showPanel('repetidas'); renderDupPanel(); }
+    else { showPanel('selecoes'); renderGrid(); }
+  });
+});
+
+document.getElementById('search-input').addEventListener('input',e=>{ currentSearch=e.target.value; renderGrid(); });
+document.getElementById('grid-view').addEventListener('click',()=>{ document.getElementById('countries-grid').classList.remove('list-view'); document.getElementById('grid-view').classList.add('active'); document.getElementById('list-view-btn').classList.remove('active'); });
+document.getElementById('list-view-btn').addEventListener('click',()=>{ document.getElementById('countries-grid').classList.add('list-view'); document.getElementById('list-view-btn').classList.add('active'); document.getElementById('grid-view').classList.remove('active'); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+
+// ===== INIT =====
+try { loadState(); renderGrid(); updateHeader(); } catch(e) {
+  document.getElementById('countries-grid').innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="emoji">⚠️</div>Erro ao carregar.</div>';
+}
+</script>
+</body>
+</html>
