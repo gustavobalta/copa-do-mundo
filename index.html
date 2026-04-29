@@ -1703,7 +1703,22 @@ function startRealtimeNotifs() {
 
 // ===== COPA TAB =====
 const FDORG_KEY = '1fd25edc87ff4d5cae3cc607216fceeb';
-const FDORG_URL = 'https://api.football-data.org/v4/competitions/WC/matches';
+const FDORG_BASE = 'https://api.football-data.org/v4/competitions/WC/matches';
+
+async function fdorgFetch(url) {
+  // tenta direto primeiro (funciona em localhost), cai no proxy se der CORS
+  try {
+    const res = await fetch(url, { headers: { 'X-Auth-Token': FDORG_KEY } });
+    if (res.ok) return res.json();
+    throw new Error(res.status);
+  } catch(e) {
+    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const res2 = await fetch(proxy, { headers: { 'X-Auth-Token': FDORG_KEY } });
+    if (!res2.ok) throw new Error(res2.status);
+    const wrap = await res2.json();
+    return JSON.parse(wrap.contents);
+  }
+}
 
 let _copaJogos = [];
 let _copaFiltroAtivo = 'todos';
@@ -1713,9 +1728,7 @@ async function loadCopaTab() {
   if (_copaJogos.length) { renderCopaJogos(); return; }
   document.getElementById('copa-content').innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando jogos...</div>`;
   try {
-    const res = await fetch(FDORG_URL, { headers: { 'X-Auth-Token': FDORG_KEY } });
-    if (!res.ok) throw new Error(res.status);
-    const json = await res.json();
+    const json = await fdorgFetch(FDORG_BASE);
     _copaJogos = json.matches || [];
     renderCopaFiltros();
     renderCopaJogos();
@@ -1730,8 +1743,7 @@ async function refreshCopaAoVivo() {
   const temAoVivo = _copaJogos.some(m => m.status === 'IN_PLAY' || m.status === 'PAUSED');
   if (!temAoVivo) return;
   try {
-    const res = await fetch(FDORG_URL + '?status=LIVE', { headers: { 'X-Auth-Token': FDORG_KEY } });
-    const json = await res.json();
+    const json = await fdorgFetch(FDORG_BASE + '?status=LIVE');
     (json.matches||[]).forEach(live => {
       const idx = _copaJogos.findIndex(m => m.id === live.id);
       if (idx >= 0) _copaJogos[idx] = live;
