@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Álbum Copa do Mundo 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --verde: #006847; --amarelo: #FFD700; --azul: #003087;
@@ -14,7 +15,7 @@
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
 
-  /* ===== AUTH ===== */
+  /* AUTH */
   #auth-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
   .auth-box { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:40px 36px; width:100%; max-width:420px; }
   .auth-logo { text-align:center; margin-bottom:28px; }
@@ -35,9 +36,8 @@
   .auth-msg.error { color:var(--danger); }
   .auth-msg.success { color:var(--success); }
 
-  /* ===== APP ===== */
+  /* APP */
   #app-screen { display:none; }
-
   header { background:linear-gradient(135deg,#003087,#006847,#c8a800); padding:0; position:relative; overflow:hidden; }
   header::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,.03) 20px,rgba(255,255,255,.03) 40px); }
   .header-inner { position:relative; padding:18px 28px 16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
@@ -61,8 +61,13 @@
   .progress-bar { height:8px; background:var(--border); border-radius:99px; overflow:hidden; }
   .progress-fill { height:100%; background:linear-gradient(90deg,var(--verde),var(--amarelo)); border-radius:99px; transition:width .5s; width:0; }
 
-  /* NAV TABS */
-  .nav-tabs { background:var(--card); border-bottom:1px solid var(--border); padding:0 28px; display:flex; gap:0; }
+  /* SAVE INDICATOR */
+  .save-indicator { position:fixed; bottom:16px; right:16px; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:8px 14px; font-size:12px; color:var(--muted); display:none; gap:8px; align-items:center; z-index:99; box-shadow:0 4px 16px rgba(0,0,0,.3); }
+  .save-indicator.show { display:flex; }
+  .save-indicator.saved { color:var(--success); border-color:var(--success); }
+  .save-indicator.error { color:var(--danger); border-color:var(--danger); }
+
+  .nav-tabs { background:var(--card); border-bottom:1px solid var(--border); padding:0 28px; display:flex; }
   .nav-tab { padding:13px 18px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:all .2s; border-top:none; border-left:none; border-right:none; background:none; font-family:inherit; }
   .nav-tab:hover { color:var(--text); }
   .nav-tab.active { color:var(--amarelo); border-bottom-color:var(--amarelo); }
@@ -161,8 +166,7 @@
   .ctx-item { padding:7px 12px; border-radius:5px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:7px; transition:background .15s; }
   .ctx-item:hover { background:var(--card2); }
 
-  /* ===== SOCIAL ===== */
-  #social-panel { display:none; }
+  /* SOCIAL */
   .social-header { margin-bottom:20px; }
   .social-header h2 { font-family:Impact,'Arial Narrow',sans-serif; font-size:22px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:4px; }
   .social-header p { font-size:12px; color:var(--muted); }
@@ -174,19 +178,16 @@
   .user-card-sub { font-size:11px; color:var(--muted); margin-top:2px; }
   .user-card-bar { height:8px; background:var(--border); border-radius:99px; overflow:hidden; margin-bottom:8px; }
   .user-card-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--azul),var(--verde)); transition:width .5s; }
-  .user-card-stats { display:flex; gap:14px; font-size:12px; }
-  .user-card-stats span { color:var(--muted); }
+  .user-card-stats { display:flex; gap:14px; font-size:12px; flex-wrap:wrap; }
   .user-card-stats .s-have { color:var(--success); font-weight:600; }
   .user-card-stats .s-dup  { color:var(--warning); font-weight:600; }
-
   .troca-section { background:var(--card); border:1px solid var(--border); border-radius:13px; padding:18px; margin-bottom:14px; }
   .troca-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
   .troca-avatar { width:34px; height:34px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .troca-name { font-weight:700; font-size:14px; }
   .troca-sub { font-size:11px; color:var(--warning); margin-top:1px; }
   .troca-countries { display:flex; flex-direction:column; gap:8px; }
-  .troca-country { display:flex; align-items:center; gap:10px; }
-  .troca-flag { width:32px; height:22px; border-radius:3px; object-fit:cover; border:1px solid rgba(255,255,255,.1); flex-shrink:0; }
+  .troca-country { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .troca-country-name { font-size:12px; font-weight:600; min-width:120px; }
   .troca-tags { display:flex; flex-wrap:wrap; gap:4px; }
 
@@ -215,10 +216,13 @@
 </head>
 <body>
 
-<!-- LOADING -->
 <div class="loading-overlay" id="loading-overlay">
   <div class="spinner"></div>
   <div class="loading-text" id="loading-text">Carregando...</div>
+</div>
+
+<div class="save-indicator" id="save-indicator">
+  <span id="save-text">Salvando...</span>
 </div>
 
 <!-- AUTH -->
@@ -236,14 +240,14 @@
     <div id="login-form">
       <div class="form-group"><label>Nome de usuário</label><input type="text" id="login-name" placeholder="seu nome" autocomplete="username"></div>
       <div class="form-group"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••" autocomplete="current-password"></div>
-      <button class="auth-btn" id="btn-login" onclick="doLogin()">Entrar</button>
+      <button class="auth-btn" onclick="doLogin()">Entrar</button>
     </div>
     <div id="register-form" style="display:none">
       <div class="form-group"><label>Nome de usuário</label><input type="text" id="reg-name" placeholder="escolha um nome" autocomplete="username"></div>
       <div class="form-group"><label>Senha</label><input type="password" id="reg-pass" placeholder="crie uma senha" autocomplete="new-password"></div>
       <div class="form-group"><label>Confirmar senha</label><input type="password" id="reg-pass2" placeholder="repita a senha" autocomplete="new-password"></div>
       <div class="form-group"><label>Senha de convite</label><input type="password" id="reg-invite" placeholder="••••••"></div>
-      <button class="auth-btn" id="btn-register" onclick="doRegister()">Criar conta</button>
+      <button class="auth-btn" onclick="doRegister()">Criar conta</button>
     </div>
     <div class="auth-msg" id="auth-msg"></div>
   </div>
@@ -283,7 +287,6 @@
     <button class="nav-tab" onclick="showTab('social')">👥 Amigos</button>
   </div>
 
-  <!-- ALBUM TAB -->
   <div id="album-tab">
     <div class="controls">
       <div class="search-box">
@@ -302,11 +305,10 @@
         <button class="view-btn" id="list-view-btn" title="Lista">☰</button>
       </div>
     </div>
-
     <main>
       <div id="panel-selecoes">
         <div class="section-header">
-          <div class="section-title" id="section-label">48 Seleções</div>
+          <div class="section-title" id="section-label">52 Itens</div>
           <div style="font-size:11px;color:var(--muted)">Clique para adicionar · Botão direito para remover</div>
         </div>
         <div id="countries-grid"></div>
@@ -321,7 +323,6 @@
     </main>
   </div>
 
-  <!-- SOCIAL TAB -->
   <div id="social-tab" style="display:none">
     <main>
       <div class="social-header">
@@ -371,42 +372,10 @@
 </div>
 
 <script>
-// ===== CONFIG =====
-const USERS_DB_ID  = '3503748f-e421-8175-9e7f-d8eb9ba41b21';
-const PARENT_PAGE  = '0d99b6c8-bc91-4b82-b0f9-a00fbae82092';
-const NOTION_API   = 'https://api.notion.com/v1';
-const GRAND_TOTAL_STICKERS = 987; // 48×20 + 1 + 8 + 11 + 14
-
-// ===== NOTION HELPERS =====
-async function notionRequest(method, path, body) {
-  const res = await fetch(`https://notion-proxy.glitch.me/${NOTION_API}${path}`, {
-    method,
-    headers: {
-      'Authorization': `Bearer ${NOTION_TOKEN}`,
-      'Notion-Version': '2022-06-28',
-      'Content-Type': 'application/json',
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  return res.json();
-}
-
-// Notion API não aceita CORS direto do browser — usamos um proxy público simples
-// Como alternativa, usamos fetch com mode no-cors workaround via allorigins
-async function notionFetch(method, path, body) {
-  try {
-    const url = `https://copa-notion-proxy.g-oli-baltazar.workers.dev/proxy${path}`;
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch(e) {
-    console.error('Notion fetch error:', e);
-    throw e;
-  }
-}
+// ===== SUPABASE =====
+const SUPA_URL = 'https://tawhxgqodyxdanjlparg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhd2h4Z3FvZHl4ZGFuamxwYXJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTI5NDQsImV4cCI6MjA5Mjk4ODk0NH0.uxtntS0OB6pim9cso4WVIDCmMlpR28prxNGyqIqF8gU';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // ===== DATA =====
 const GROUPS = [
@@ -483,41 +452,29 @@ const GROUPS = [
     {id:'pan',name:'Panamá',iso:'pa',stickers:20},
   ]},
 ];
-
 const NAMES = ['Escudo','Estádio','Treinador','Capitão','GK1','GK2','DF1','DF2','DF3','DF4','DF5','MF1','MF2','MF3','MF4','MF5','FW1','FW2','FW3','FW4'];
-
 const SPECIAL_SECTIONS = [
-  { id:'intro',  name:'Contra-Capa',           iso:'', group:'⭐ Especiais', stickers:1,  stickerLabels:['00'] },
-  { id:'fwc_a',  name:'FIFA World Cup (1–8)',   iso:'', group:'⭐ Especiais', stickers:8,  stickerLabels:['FWC01','FWC02','FWC03','FWC04','FWC05','FWC06','FWC07','FWC08'] },
-  { id:'fwc_b',  name:'FIFA World Cup (9–19)',  iso:'', group:'⭐ Especiais', stickers:11, stickerLabels:['FWC09','FWC10','FWC11','FWC12','FWC13','FWC14','FWC15','FWC16','FWC17','FWC18','FWC19'] },
-  { id:'cc',     name:'Coca-Cola',              iso:'', group:'⭐ Especiais', stickers:14, stickerLabels:['CC01','CC02','CC03','CC04','CC05','CC06','CC07','CC08','CC09','CC10','CC11','CC12','CC13','CC14'] },
+  { id:'intro',  name:'Contra-Capa',          iso:'', group:'⭐ Especiais', stickers:1,  stickerLabels:['00'] },
+  { id:'fwc_a',  name:'FIFA World Cup (1–8)',  iso:'', group:'⭐ Especiais', stickers:8,  stickerLabels:['FWC01','FWC02','FWC03','FWC04','FWC05','FWC06','FWC07','FWC08'] },
+  { id:'fwc_b',  name:'FIFA World Cup (9–19)', iso:'', group:'⭐ Especiais', stickers:11, stickerLabels:['FWC09','FWC10','FWC11','FWC12','FWC13','FWC14','FWC15','FWC16','FWC17','FWC18','FWC19'] },
+  { id:'cc',     name:'Coca-Cola',             iso:'', group:'⭐ Especiais', stickers:14, stickerLabels:['CC01','CC02','CC03','CC04','CC05','CC06','CC07','CC08','CC09','CC10','CC11','CC12','CC13','CC14'] },
 ];
-
 const SELECOES = GROUPS.flatMap(g => g.countries.map(c => ({...c, group:g.name})));
-const ALL_COUNTRIES = [
-  SPECIAL_SECTIONS[0],
-  SPECIAL_SECTIONS[1],
-  ...SELECOES,
-  SPECIAL_SECTIONS[2],
-  SPECIAL_SECTIONS[3],
-];
+const ALL_COUNTRIES = [SPECIAL_SECTIONS[0], SPECIAL_SECTIONS[1], ...SELECOES, SPECIAL_SECTIONS[2], SPECIAL_SECTIONS[3]];
 const COUNTRY_MAP = {};
 ALL_COUNTRIES.forEach(c => COUNTRY_MAP[c.id] = c);
-const GRAND_TOTAL = ALL_COUNTRIES.reduce((s,c)=>s+c.stickers,0);
+const GRAND_TOTAL = ALL_COUNTRIES.reduce((s,c) => s+c.stickers, 0);
 
 function getStickerLabel(c, i) {
-  if(c.stickerLabels) return c.stickerLabels[i];
-  return c.id.toUpperCase() + String(i+1).padStart(2,'0');
+  return c.stickerLabels ? c.stickerLabels[i] : c.id.toUpperCase() + String(i+1).padStart(2,'0');
 }
-
-function flagUrl(iso) { return `https://flagcdn.com/w80/${iso}.png`; }
 function flagImgEl(iso, w, h) {
   if(!iso) return `<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.55)}px">⭐</div>`;
-  return `<img src="${flagUrl(iso)}" width="${w}" height="${h}" style="border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#1e2d45" onerror="this.style.display='none'">`;
+  return `<img src="https://flagcdn.com/w80/${iso}.png" width="${w}" height="${h}" style="border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#1e2d45" onerror="this.style.display='none'">`;
 }
 
-// ===== SESSION =====
-let currentUser = null; // { name, pageId, dbId }
+// ===== STATE =====
+let currentUser = null;
 let state = {};
 let currentCountry = null;
 let currentFilter = 'all';
@@ -525,128 +482,6 @@ let currentSearch = '';
 let ctxTarget = null;
 let saveTimeout = null;
 
-function setLoading(show, text='Carregando...') {
-  document.getElementById('loading-overlay').classList.toggle('hidden', !show);
-  document.getElementById('loading-text').textContent = text;
-}
-
-function showAuthMsg(msg, isError=true) {
-  const el = document.getElementById('auth-msg');
-  el.textContent = msg;
-  el.className = 'auth-msg ' + (isError ? 'error' : 'success');
-}
-
-function switchTab(tab) {
-  document.getElementById('login-form').style.display = tab==='login' ? '' : 'none';
-  document.getElementById('register-form').style.display = tab==='register' ? '' : 'none';
-  document.getElementById('tab-login').classList.toggle('active', tab==='login');
-  document.getElementById('tab-register').classList.toggle('active', tab==='register');
-  showAuthMsg('');
-}
-
-// ===== AUTH =====
-async function findUser(name) {
-  const res = await notionFetch('POST', `/databases/${USERS_DB_ID}/query`, {
-    filter: { property: 'Nome', title: { equals: name } }
-  });
-  if(res.results && res.results.length > 0) return res.results[0];
-  return null;
-}
-
-async function doLogin() {
-  const name = document.getElementById('login-name').value.trim();
-  const pass = document.getElementById('login-pass').value;
-  if(!name || !pass) { showAuthMsg('Preencha todos os campos'); return; }
-
-  setLoading(true, 'Verificando usuário...');
-  try {
-    const user = await findUser(name);
-    if(!user) { setLoading(false); showAuthMsg('Usuário não encontrado'); return; }
-
-    const storedPass = user.properties['Senha'].rich_text[0]?.plain_text || '';
-    if(storedPass !== pass) { setLoading(false); showAuthMsg('Senha incorreta'); return; }
-
-    const dbId = user.properties['DB ID'].rich_text[0]?.plain_text || '';
-    currentUser = { name, pageId: user.id, dbId };
-    localStorage.setItem('copa_user', JSON.stringify(currentUser));
-
-    await loadUserState();
-    enterApp();
-  } catch(e) {
-    setLoading(false);
-    showAuthMsg('Erro de conexão. Tente novamente.');
-    console.error(e);
-  }
-}
-
-async function doRegister() {
-  const name = document.getElementById('reg-name').value.trim();
-  const pass = document.getElementById('reg-pass').value;
-  const pass2 = document.getElementById('reg-pass2').value;
-  const invite = document.getElementById('reg-invite').value;
-
-  if(!name || !pass || !pass2 || !invite) { showAuthMsg('Preencha todos os campos'); return; }
-  if(invite !== 'neymarnacopa2018') { showAuthMsg('Senha de convite incorreta'); return; }
-  if(pass !== pass2) { showAuthMsg('As senhas não coincidem'); return; }
-  if(name.length < 2) { showAuthMsg('Nome muito curto'); return; }
-  if(pass.length < 3) { showAuthMsg('Senha muito curta (mín. 3 caracteres)'); return; }
-
-  setLoading(true, 'Criando conta...');
-  try {
-    const existing = await findUser(name);
-    if(existing) { setLoading(false); showAuthMsg('Esse nome já está em uso'); return; }
-
-    // Cria database de figurinhas para o usuário
-    setLoading(true, 'Criando seu álbum...');
-    const dbRes = await notionFetch('POST', '/databases', {
-      parent: { type: 'page_id', page_id: PARENT_PAGE },
-      title: [{ type: 'text', text: { content: `📖 Álbum de ${name}` } }],
-      properties: {
-        'ID': { title: {} },
-        'Dados': { rich_text: {} },
-      }
-    });
-
-    if(!dbRes.id) throw new Error('Falha ao criar álbum: ' + JSON.stringify(dbRes));
-
-    // Cria registro do usuário
-    const userRes = await notionFetch('POST', '/pages', {
-      parent: { database_id: USERS_DB_ID },
-      properties: {
-        'Nome': { title: [{ text: { content: name } }] },
-        'Senha': { rich_text: [{ text: { content: pass } }] },
-        'DB ID': { rich_text: [{ text: { content: dbRes.id } }] },
-      }
-    });
-
-    if(!userRes.id) throw new Error('Falha ao criar usuário');
-
-    // Salva estado inicial vazio
-    currentUser = { name, pageId: userRes.id, dbId: dbRes.id };
-    initState();
-    await saveStateToNotion();
-    localStorage.setItem('copa_user', JSON.stringify(currentUser));
-
-    enterApp();
-  } catch(e) {
-    setLoading(false);
-    showAuthMsg('Erro ao criar conta. Tente novamente.');
-    console.error(e);
-  }
-}
-
-function doLogout() {
-  localStorage.removeItem('copa_user');
-  currentUser = null;
-  state = {};
-  document.getElementById('app-screen').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
-  document.getElementById('login-name').value = '';
-  document.getElementById('login-pass').value = '';
-  showAuthMsg('');
-}
-
-// ===== STATE =====
 function initState() {
   state = {};
   ALL_COUNTRIES.forEach(c => {
@@ -664,11 +499,12 @@ function compactState() {
     }
     if(Object.keys(entries).length) compact[cid] = entries;
   }
-  return JSON.stringify(compact);
+  return compact;
 }
 
 function expandState(compact) {
   initState();
+  if(!compact) return;
   for(const cid in compact) {
     if(state[cid]) {
       for(const idx in compact[cid]) {
@@ -678,79 +514,112 @@ function expandState(compact) {
   }
 }
 
-// Salva o JSON no corpo da página (blocks de código — sem limite prático de tamanho)
-async function saveStateToNotion() {
-  const data = compactState();
-  try {
-    if(!currentUser._statePageId) {
-      // Cria a página no database
-      const res = await notionFetch('POST', '/pages', {
-        parent: { database_id: currentUser.dbId },
-        properties: {
-          'ID': { title: [{ text: { content: 'state' } }] },
-          'Dados': { rich_text: [] },
-        }
-      });
-      currentUser._statePageId = res.id;
-      localStorage.setItem('copa_user', JSON.stringify(currentUser));
-    }
+// ===== LOADING / SAVE UI =====
+function setLoading(show, text='Carregando...') {
+  document.getElementById('loading-overlay').classList.toggle('hidden', !show);
+  document.getElementById('loading-text').textContent = text;
+}
 
-    // Apaga todos os blocks existentes e reescreve com o JSON atual
-    const blocksRes = await notionFetch('GET', `/blocks/${currentUser._statePageId}/children`);
-    if(blocksRes.results && blocksRes.results.length > 0) {
-      await Promise.all(blocksRes.results.map(b => notionFetch('DELETE', `/blocks/${b.id}`)));
-    }
-
-    // Divide em chunks de 1990 chars para caber num bloco de código cada
-    const chunks = [];
-    for(let i = 0; i < data.length; i += 1990) chunks.push(data.slice(i, i + 1990));
-
-    await notionFetch('PATCH', `/blocks/${currentUser._statePageId}/children`, {
-      children: chunks.map(chunk => ({
-        object: 'block',
-        type: 'code',
-        code: { rich_text: [{ type: 'text', text: { content: chunk } }], language: 'json' }
-      }))
-    });
-  } catch(e) {
-    console.error('saveState error:', e);
+function showSaveIndicator(status) {
+  const el = document.getElementById('save-indicator');
+  const txt = document.getElementById('save-text');
+  el.className = 'save-indicator show ' + status;
+  txt.textContent = status === 'saved' ? '✓ Salvo' : status === 'error' ? '✗ Erro ao salvar' : 'Salvando...';
+  if(status !== '') clearTimeout(el._timer);
+  if(status === 'saved' || status === 'error') {
+    el._timer = setTimeout(() => el.classList.remove('show'), 2000);
   }
 }
 
+function showAuthMsg(msg, isError=true) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = msg;
+  el.className = 'auth-msg ' + (isError ? 'error' : 'success');
+}
+
+function switchTab(tab) {
+  document.getElementById('login-form').style.display = tab==='login' ? '' : 'none';
+  document.getElementById('register-form').style.display = tab==='register' ? '' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-register').classList.toggle('active', tab==='register');
+  showAuthMsg('');
+}
+
+// ===== AUTH =====
+async function doLogin() {
+  const nome = document.getElementById('login-name').value.trim();
+  const senha = document.getElementById('login-pass').value;
+  if(!nome || !senha) { showAuthMsg('Preencha todos os campos'); return; }
+
+  setLoading(true, 'Verificando...');
+  const { data, error } = await sb.from('usuarios').select('*').eq('nome', nome).single();
+  if(error || !data) { setLoading(false); showAuthMsg('Usuário não encontrado'); return; }
+  if(data.senha !== senha) { setLoading(false); showAuthMsg('Senha incorreta'); return; }
+
+  currentUser = data;
+  localStorage.setItem('copa_user_id', data.id);
+  await loadUserState();
+  enterApp();
+}
+
+async function doRegister() {
+  const nome = document.getElementById('reg-name').value.trim();
+  const senha = document.getElementById('reg-pass').value;
+  const senha2 = document.getElementById('reg-pass2').value;
+  const invite = document.getElementById('reg-invite').value;
+
+  if(!nome || !senha || !senha2 || !invite) { showAuthMsg('Preencha todos os campos'); return; }
+  if(invite !== 'neymarnacopa2018') { showAuthMsg('Senha de convite incorreta'); return; }
+  if(senha !== senha2) { showAuthMsg('As senhas não coincidem'); return; }
+  if(nome.length < 2) { showAuthMsg('Nome muito curto'); return; }
+  if(senha.length < 3) { showAuthMsg('Senha muito curta (mín. 3 caracteres)'); return; }
+
+  setLoading(true, 'Criando conta...');
+  const { data: existing } = await sb.from('usuarios').select('id').eq('nome', nome).single();
+  if(existing) { setLoading(false); showAuthMsg('Esse nome já está em uso'); return; }
+
+  const { data, error } = await sb.from('usuarios').insert({ nome, senha }).select().single();
+  if(error || !data) { setLoading(false); showAuthMsg('Erro ao criar conta'); return; }
+
+  currentUser = data;
+  localStorage.setItem('copa_user_id', data.id);
+  initState();
+  await saveStateToSupabase();
+  enterApp();
+}
+
+function doLogout() {
+  localStorage.removeItem('copa_user_id');
+  currentUser = null;
+  state = {};
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-pass').value = '';
+  showAuthMsg('');
+}
+
+// ===== SUPABASE STATE =====
 async function loadUserState() {
   setLoading(true, 'Carregando figurinhas...');
-  try {
-    const res = await notionFetch('POST', `/databases/${currentUser.dbId}/query`, {
-      filter: { property: 'ID', title: { equals: 'state' } }
-    });
-    if(res.results && res.results.length > 0) {
-      const page = res.results[0];
-      currentUser._statePageId = page.id;
-      localStorage.setItem('copa_user', JSON.stringify(currentUser));
+  const { data } = await sb.from('figurinhas').select('dados').eq('usuario_id', currentUser.id).single();
+  expandState(data?.dados || null);
+}
 
-      // Lê o JSON do corpo da página (blocks)
-      const blocksRes = await notionFetch('GET', `/blocks/${page.id}/children`);
-      if(blocksRes.results && blocksRes.results.length > 0) {
-        const raw = blocksRes.results
-          .filter(b => b.type === 'code')
-          .map(b => (b.code.rich_text || []).map(r => r.plain_text).join(''))
-          .join('');
-        expandState(raw ? JSON.parse(raw) : {});
-      } else {
-        initState();
-      }
-    } else {
-      initState();
-    }
-  } catch(e) {
-    initState();
-    console.error('loadUserState error:', e);
-  }
+async function saveStateToSupabase() {
+  showSaveIndicator('saving');
+  const compact = compactState();
+  const { error } = await sb.from('figurinhas').upsert(
+    { usuario_id: currentUser.id, dados: compact, atualizado_em: new Date().toISOString() },
+    { onConflict: 'usuario_id' }
+  );
+  showSaveIndicator(error ? 'error' : 'saved');
 }
 
 function scheduleSave() {
   clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(saveStateToNotion, 2000);
+  showSaveIndicator('saving');
+  saveTimeout = setTimeout(saveStateToSupabase, 1500);
 }
 
 // ===== ENTER APP =====
@@ -758,8 +627,8 @@ function enterApp() {
   setLoading(false);
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
-  document.getElementById('user-name-display').textContent = currentUser.name;
-  document.getElementById('user-avatar').textContent = currentUser.name[0].toUpperCase();
+  document.getElementById('user-name-display').textContent = currentUser.nome;
+  document.getElementById('user-avatar').textContent = currentUser.nome[0].toUpperCase();
   renderGrid();
   updateHeader();
 }
@@ -767,36 +636,33 @@ function enterApp() {
 // ===== COMPUTED =====
 function getCountryStats(id) {
   const s=state[id]||{}, total=COUNTRY_MAP[id].stickers;
-  let have=0,dup=0;
-  for(let i=0;i<total;i++){
-    const v=s[i]||0;
-    if(v>=1){ have++; dup+=v-1; }
-  }
+  let have=0, dup=0;
+  for(let i=0;i<total;i++) { const v=s[i]||0; if(v>=1){ have++; dup+=v-1; } }
   return {total,have,need:total-have,dup};
 }
 function getGlobalStats() {
-  let have=0,dup=0;
-  ALL_COUNTRIES.forEach(c=>{ const st=getCountryStats(c.id); have+=st.have; dup+=st.dup; });
+  let have=0, dup=0;
+  ALL_COUNTRIES.forEach(c => { const st=getCountryStats(c.id); have+=st.have; dup+=st.dup; });
   return {have,dup,need:GRAND_TOTAL-have};
 }
-
 function updateHeader() {
   const g=getGlobalStats();
   document.getElementById('stat-total').textContent=g.have;
   document.getElementById('stat-need').textContent=g.need;
   document.getElementById('stat-dup').textContent=g.dup;
-  const pct=Math.round((g.have/GRAND_TOTAL)*100);
+  const pct=Math.round(g.have/GRAND_TOTAL*100);
   document.getElementById('progress-pct').textContent=`${pct}% completo`;
   document.getElementById('progress-fill').style.width=pct+'%';
 }
 
 // ===== GRID =====
+const normalize = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+
 function renderGrid() {
   const grid=document.getElementById('countries-grid');
-  const search=currentSearch.toLowerCase();
-  const normalize = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-  let filtered=ALL_COUNTRIES.filter(c=>{
-    if(search && !normalize(c.name).includes(normalize(search))) return false;
+  const search=normalize(currentSearch);
+  let filtered=ALL_COUNTRIES.filter(c => {
+    if(search && !normalize(c.name).includes(search)) return false;
     if(currentFilter==='all') return true;
     const st=getCountryStats(c.id);
     if(currentFilter==='complete') return st.have===st.total;
@@ -807,19 +673,14 @@ function renderGrid() {
   document.getElementById('section-label').textContent=`${filtered.length} Itens`;
   if(!filtered.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🔍</div>Nenhum resultado</div>`; return; }
 
-  grid.innerHTML=filtered.map(c=>{
-    const st=getCountryStats(c.id);
-    const pct=Math.round((st.have/st.total)*100);
-    const s=state[c.id];
+  grid.innerHTML=filtered.map(c => {
+    const st=getCountryStats(c.id), pct=Math.round(st.have/st.total*100), s=state[c.id];
     let mini='';
     for(let i=0;i<c.stickers;i++){
-      const v=s[i];
-      const cls=v===1?' have':v>=2?' have duplicate':'';
-      const db=v>=2?`<span class="dup-count">${v}</span>`:'';
-      const lbl=getStickerLabel(c,i);
-      mini+=`<div class="sticker${cls}" title="${lbl}">${db}${lbl}</div>`;
+      const v=s[i], lbl=getStickerLabel(c,i);
+      mini+=`<div class="sticker${v===1?' have':v>=2?' have duplicate':''}" title="${lbl}">${v>=2?`<span class="dup-count">${v}</span>`:''}${lbl}</div>`;
     }
-    return `<div class="country-card ${st.have===st.total?'complete':''}" data-id="${c.id}">
+    return `<div class="country-card${st.have===st.total?' complete':''}" data-id="${c.id}">
       <div class="card-header">
         <div class="country-info">
           <div class="country-name">${c.stickerLabels?'⭐ ':''}${c.name}</div>
@@ -842,40 +703,37 @@ function renderGrid() {
     </div>`;
   }).join('');
 
-  grid.querySelectorAll('.sticker').forEach(el=>{
-    el.addEventListener('click', e=>{
+  grid.querySelectorAll('.sticker').forEach(el => {
+    el.addEventListener('click', e => {
       e.stopPropagation();
-      const cid=el.closest('.country-card').dataset.id;
-      const c=COUNTRY_MAP[cid];
+      const cid=el.closest('.country-card').dataset.id, c=COUNTRY_MAP[cid];
       const idx=c.stickerLabels?c.stickerLabels.indexOf(el.title):parseInt(el.title.replace(cid.toUpperCase(),''))-1;
       state[cid][idx]=(state[cid][idx]||0)+1;
       refreshCard(cid); updateHeader(); scheduleSave();
     });
-    el.addEventListener('contextmenu', e=>{
+    el.addEventListener('contextmenu', e => {
       e.preventDefault(); e.stopPropagation();
-      const cid=el.closest('.country-card').dataset.id;
-      const c=COUNTRY_MAP[cid];
+      const cid=el.closest('.country-card').dataset.id, c=COUNTRY_MAP[cid];
       const idx=c.stickerLabels?c.stickerLabels.indexOf(el.title):parseInt(el.title.replace(cid.toUpperCase(),''))-1;
       showCtxMenu(e,cid,idx);
     });
   });
-  grid.querySelectorAll('.card-header').forEach(h=>{
-    h.addEventListener('click',()=>openModal(h.closest('.country-card').dataset.id));
+  grid.querySelectorAll('.card-header').forEach(h => {
+    h.addEventListener('click', () => openModal(h.closest('.country-card').dataset.id));
   });
 }
 
 function refreshCard(cid) {
   const card=document.querySelector(`.country-card[data-id="${cid}"]`);
   if(!card) return;
-  const c=COUNTRY_MAP[cid], st=getCountryStats(cid), pct=Math.round((st.have/st.total)*100);
-  card.classList.toggle('complete',st.have===st.total);
+  const c=COUNTRY_MAP[cid], st=getCountryStats(cid), pct=Math.round(st.have/st.total*100);
+  card.classList.toggle('complete', st.have===st.total);
   card.querySelector('.mini-fill').style.width=pct+'%';
   card.querySelector('.sticker-counts').innerHTML=`
-    <span class="have">✓ ${st.have}</span>
-    <span class="need">✗ ${st.need}</span>
+    <span class="have">✓ ${st.have}</span><span class="need">✗ ${st.need}</span>
     ${st.dup>0?`<span class="dup">🔄 ${st.dup}</span>`:''}`;
   const s=state[cid];
-  card.querySelectorAll('.sticker').forEach((el,i)=>{
+  card.querySelectorAll('.sticker').forEach((el,i) => {
     const v=s[i], lbl=getStickerLabel(c,i);
     el.className='sticker'+(v===1?' have':v>=2?' have duplicate':'');
     el.title=lbl; el.innerHTML=(v>=2?`<span class="dup-count">${v}</span>`:'')+lbl;
@@ -888,8 +746,7 @@ function openModal(cid) {
   const c=COUNTRY_MAP[cid];
   document.getElementById('modal-flag').innerHTML=flagImgEl(c.iso,56,37);
   document.getElementById('modal-country-name').textContent=c.name;
-  updateModalSub(cid);
-  renderModalGrid(cid);
+  updateModalSub(cid); renderModalGrid(cid);
   document.getElementById('modal-overlay').classList.add('open');
 }
 function updateModalSub(cid){
@@ -897,14 +754,12 @@ function updateModalSub(cid){
   document.getElementById('modal-country-sub').textContent=`${c.group} · ${st.have}/${st.total} coladas`;
 }
 function renderModalGrid(cid) {
-  const c=COUNTRY_MAP[cid], s=state[cid];
-  const grid=document.getElementById('modal-sticker-grid');
+  const c=COUNTRY_MAP[cid], s=state[cid], grid=document.getElementById('modal-sticker-grid');
   grid.innerHTML='';
   for(let i=0;i<c.stickers;i++){
     const v=s[i]||0, lbl=getStickerLabel(c,i), name=c.stickerLabels?lbl:(NAMES[i]||`J${i+1}`);
-    const cls=v===1?'have':v>=2?'have duplicate':'';
     const div=document.createElement('div');
-    div.className=`modal-sticker ${cls}`;
+    div.className=`modal-sticker${v===1?' have':v>=2?' have duplicate':''}`;
     div.dataset.idx=i;
     const qtyHtml=v>=1?`<div class="qty-editor" onclick="event.stopPropagation()">
       <button class="qty-btn qty-minus" data-idx="${i}">−</button>
@@ -912,58 +767,57 @@ function renderModalGrid(cid) {
       <button class="qty-btn qty-plus" data-idx="${i}">+</button>
     </div>`:'';
     div.innerHTML=`${v>=2?`<div class="ms-dup">${v}</div>`:''}<div class="ms-num">${lbl}</div><div class="ms-name">${name}</div><div class="ms-status">${v===1?'tenho':v>=2?`×${v}`:''}</div>${qtyHtml}`;
-    div.addEventListener('click', e=>{
+    div.addEventListener('click', e => {
       if(e.target.closest('.qty-editor')) return;
       state[cid][i]=(state[cid][i]||0)+1;
       renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
     });
-    div.addEventListener('contextmenu',e=>{ e.preventDefault(); showCtxMenu(e,cid,i,true); });
+    div.addEventListener('contextmenu', e => { e.preventDefault(); showCtxMenu(e,cid,i,true); });
     grid.appendChild(div);
   }
-  grid.querySelectorAll('.qty-minus').forEach(btn=>{
-    btn.addEventListener('click', e=>{
+  grid.querySelectorAll('.qty-minus').forEach(btn => {
+    btn.addEventListener('click', e => {
       e.stopPropagation();
       const idx=parseInt(btn.dataset.idx);
       state[cid][idx]=Math.max(0,(state[cid][idx]||0)-1);
       renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
     });
   });
-  grid.querySelectorAll('.qty-plus').forEach(btn=>{
-    btn.addEventListener('click', e=>{
+  grid.querySelectorAll('.qty-plus').forEach(btn => {
+    btn.addEventListener('click', e => {
       e.stopPropagation();
       const idx=parseInt(btn.dataset.idx);
       state[cid][idx]=(state[cid][idx]||0)+1;
       renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
     });
   });
-  grid.querySelectorAll('.qty-input').forEach(inp=>{
-    inp.addEventListener('click', e=>e.stopPropagation());
-    inp.addEventListener('change', e=>{
+  grid.querySelectorAll('.qty-input').forEach(inp => {
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('change', e => {
       e.stopPropagation();
       const idx=parseInt(inp.dataset.idx);
       state[cid][idx]=Math.max(0,Math.min(99,parseInt(inp.value)||0));
       renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
     });
-    inp.addEventListener('keydown', e=>{ if(e.key==='Enter') inp.blur(); e.stopPropagation(); });
+    inp.addEventListener('keydown', e => { if(e.key==='Enter') inp.blur(); e.stopPropagation(); });
   });
 }
 
 function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); currentCountry=null; }
-document.getElementById('modal-close').addEventListener('click',closeModal);
-document.getElementById('modal-overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modal-overlay')) closeModal(); });
-document.getElementById('btn-mark-all').addEventListener('click',()=>{
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-overlay').addEventListener('click', e => { if(e.target===document.getElementById('modal-overlay')) closeModal(); });
+document.getElementById('btn-mark-all').addEventListener('click', () => {
   const c=COUNTRY_MAP[currentCountry];
   for(let i=0;i<c.stickers;i++) state[currentCountry][i]=1;
   renderModalGrid(currentCountry); refreshCard(currentCountry); updateHeader(); scheduleSave(); updateModalSub(currentCountry);
 });
-document.getElementById('btn-clear-all').addEventListener('click',()=>{
+document.getElementById('btn-clear-all').addEventListener('click', () => {
   const c=COUNTRY_MAP[currentCountry];
   for(let i=0;i<c.stickers;i++) state[currentCountry][i]=0;
   renderModalGrid(currentCountry); refreshCard(currentCountry); updateHeader(); scheduleSave(); updateModalSub(currentCountry);
 });
-document.getElementById('btn-export-missing').addEventListener('click',()=>{
-  const c=COUNTRY_MAP[currentCountry], s=state[currentCountry];
-  const missing=[];
+document.getElementById('btn-export-missing').addEventListener('click', () => {
+  const c=COUNTRY_MAP[currentCountry], s=state[currentCountry], missing=[];
   for(let i=0;i<c.stickers;i++) if(s[i]===0) missing.push(getStickerLabel(c,i));
   navigator.clipboard.writeText(`${c.name} - Faltando:\n${missing.join(', ')}`).catch(()=>{});
   const btn=document.getElementById('btn-export-missing'), orig=btn.textContent;
@@ -983,40 +837,41 @@ function afterCtx(){
   refreshCard(ctxTarget.cid); updateHeader(); scheduleSave();
   document.getElementById('ctx-menu').style.display='none'; ctxTarget=null;
 }
-document.getElementById('ctx-have').addEventListener('click',()=>{ if(!ctxTarget)return; state[ctxTarget.cid][ctxTarget.idx]=1; afterCtx(); });
-document.getElementById('ctx-dup').addEventListener('click',()=>{ if(!ctxTarget)return; const v=state[ctxTarget.cid][ctxTarget.idx]||0; state[ctxTarget.cid][ctxTarget.idx]=Math.max(2,v+1); afterCtx(); });
-document.getElementById('ctx-remove').addEventListener('click',()=>{ if(!ctxTarget)return; const v=state[ctxTarget.cid][ctxTarget.idx]||0; state[ctxTarget.cid][ctxTarget.idx]=Math.max(0,v-1); afterCtx(); });
-document.addEventListener('click',()=>document.getElementById('ctx-menu').style.display='none');
-document.addEventListener('contextmenu',e=>{ if(!e.target.closest('.sticker,.modal-sticker')) document.getElementById('ctx-menu').style.display='none'; });
+document.getElementById('ctx-have').addEventListener('click', () => { if(!ctxTarget)return; state[ctxTarget.cid][ctxTarget.idx]=1; afterCtx(); });
+document.getElementById('ctx-dup').addEventListener('click', () => { if(!ctxTarget)return; const v=state[ctxTarget.cid][ctxTarget.idx]||0; state[ctxTarget.cid][ctxTarget.idx]=Math.max(2,v+1); afterCtx(); });
+document.getElementById('ctx-remove').addEventListener('click', () => { if(!ctxTarget)return; const v=state[ctxTarget.cid][ctxTarget.idx]||0; state[ctxTarget.cid][ctxTarget.idx]=Math.max(0,v-1); afterCtx(); });
+document.addEventListener('click', () => document.getElementById('ctx-menu').style.display='none');
+document.addEventListener('contextmenu', e => { if(!e.target.closest('.sticker,.modal-sticker')) document.getElementById('ctx-menu').style.display='none'; });
 
 // ===== DUP PANEL =====
 function renderDupPanel(){
   const container=document.getElementById('dup-panel-full');
   let totalDups=0, html='';
-  ALL_COUNTRIES.forEach(c=>{
+  ALL_COUNTRIES.forEach(c => {
     const s=state[c.id], labels=[];
-    let countryDups=0;
+    let cd=0;
     for(let i=0;i<c.stickers;i++){
       const v=s[i]||0;
-      if(v>=2){ const qty=v-1; countryDups+=qty; labels.push({lbl:getStickerLabel(c,i),qty}); }
+      if(v>=2){ const qty=v-1; cd+=qty; labels.push({lbl:getStickerLabel(c,i),qty}); }
     }
     if(!labels.length) return;
-    totalDups+=countryDups;
+    totalDups+=cd;
     html+=`<div class="dup-section">
       <div class="dup-section-header">${flagImgEl(c.iso,36,24)}
         <div><div style="font-weight:700;font-size:14px">${c.name}</div>
-        <div style="font-size:11px;color:var(--muted)">${countryDups} repetida${countryDups>1?'s':''}</div></div>
+        <div style="font-size:11px;color:var(--muted)">${cd} repetida${cd>1?'s':''}</div></div>
       </div>
       <div class="dup-list">${labels.map(({lbl,qty})=>`<div class="dup-tag">${lbl}${qty>1?` <strong>×${qty}</strong>`:''}</div>`).join('')}</div>
     </div>`;
   });
-  container.innerHTML=totalDups?`<p style="color:var(--muted);font-size:12px;margin-bottom:14px">${totalDups} repetida${totalDups>1?'s':''} para troca</p>`+html
+  container.innerHTML=totalDups
+    ?`<p style="color:var(--muted);font-size:12px;margin-bottom:14px">${totalDups} repetida${totalDups>1?'s':''} para troca</p>`+html
     :`<div class="empty-state"><div class="emoji">✨</div>Nenhuma repetida ainda.</div>`;
 }
 
-document.getElementById('btn-copy-all-dups').addEventListener('click',()=>{
+document.getElementById('btn-copy-all-dups').addEventListener('click', () => {
   let lines=['🔄 Repetidas para Troca - Copa 2026\n'];
-  ALL_COUNTRIES.forEach(c=>{
+  ALL_COUNTRIES.forEach(c => {
     const s=state[c.id], labels=[];
     for(let i=0;i<c.stickers;i++){
       const v=s[i]||0;
@@ -1029,17 +884,15 @@ document.getElementById('btn-copy-all-dups').addEventListener('click',()=>{
   btn.textContent='✓ Copiado!'; setTimeout(()=>btn.textContent=orig,2000);
 });
 
-// ===== PANELS =====
+// ===== PANELS / FILTERS =====
 function showPanel(p){
   document.getElementById('panel-selecoes').style.display=p==='selecoes'?'':'none';
   document.getElementById('panel-repetidas').style.display=p==='repetidas'?'':'none';
   document.getElementById('search-input').closest('.search-box').style.display=p==='selecoes'?'':'none';
   document.querySelector('.view-btns').style.display=p==='selecoes'?'':'none';
 }
-
-// ===== FILTERS =====
-document.querySelectorAll('.filter-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     currentFilter=btn.dataset.filter;
@@ -1047,150 +900,111 @@ document.querySelectorAll('.filter-btn').forEach(btn=>{
     else { showPanel('selecoes'); renderGrid(); }
   });
 });
-document.getElementById('search-input').addEventListener('input',e=>{ currentSearch=e.target.value; renderGrid(); });
-document.getElementById('grid-view').addEventListener('click',()=>{ document.getElementById('countries-grid').classList.remove('list-view'); document.getElementById('grid-view').classList.add('active'); document.getElementById('list-view-btn').classList.remove('active'); });
-document.getElementById('list-view-btn').addEventListener('click',()=>{ document.getElementById('countries-grid').classList.add('list-view'); document.getElementById('list-view-btn').classList.add('active'); document.getElementById('grid-view').classList.remove('active'); });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+document.getElementById('search-input').addEventListener('input', e => { currentSearch=e.target.value; renderGrid(); });
+document.getElementById('grid-view').addEventListener('click', () => { document.getElementById('countries-grid').classList.remove('list-view'); document.getElementById('grid-view').classList.add('active'); document.getElementById('list-view-btn').classList.remove('active'); });
+document.getElementById('list-view-btn').addEventListener('click', () => { document.getElementById('countries-grid').classList.add('list-view'); document.getElementById('list-view-btn').classList.add('active'); document.getElementById('grid-view').classList.remove('active'); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 
 // ===== NAV TABS =====
 function showTab(tab) {
-  document.getElementById('album-tab').style.display = tab==='album' ? '' : 'none';
-  document.getElementById('social-tab').style.display = tab==='social' ? '' : 'none';
-  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&tab==='album')||(i===1&&tab==='social')));
+  document.getElementById('album-tab').style.display=tab==='album'?'':'none';
+  document.getElementById('social-tab').style.display=tab==='social'?'':'none';
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='album')||(i===1&&tab==='social')));
   if(tab==='social') loadSocialTab();
 }
 
 // ===== SOCIAL TAB =====
 async function loadSocialTab() {
-  const progressEl = document.getElementById('users-progress-grid');
-  const dupsEl = document.getElementById('all-dups-panel');
-  progressEl.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div>`;
-  dupsEl.innerHTML = '';
+  const progressEl=document.getElementById('users-progress-grid');
+  const dupsEl=document.getElementById('all-dups-panel');
+  progressEl.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div>`;
+  dupsEl.innerHTML='';
 
-  try {
-    // Busca todos os usuários
-    const usersRes = await notionFetch('POST', `/databases/${USERS_DB_ID}/query`, {});
-    const users = usersRes.results || [];
+  const { data: users } = await sb.from('usuarios').select('id,nome');
+  const { data: allFigs } = await sb.from('figurinhas').select('usuario_id,dados');
 
-    // Para cada usuário, carrega o estado
-    const allUserData = await Promise.all(users.map(async u => {
-      const name = u.properties['Nome'].title[0]?.plain_text || '?';
-      const dbId = u.properties['DB ID'].rich_text[0]?.plain_text || '';
-      if(!dbId) return { name, state: null };
-      try {
-        const stateRes = await notionFetch('POST', `/databases/${dbId}/query`, {
-          filter: { property: 'ID', title: { equals: 'state' } }
-        });
-        if(stateRes.results && stateRes.results.length > 0) {
-          const pageId = stateRes.results[0].id;
-          const blocksRes = await notionFetch('GET', `/blocks/${pageId}/children`);
-          const raw = (blocksRes.results || [])
-            .filter(b => b.type === 'code')
-            .map(b => (b.code.rich_text || []).map(r => r.plain_text).join(''))
-            .join('');
-          const compact = raw ? JSON.parse(raw) : {};
-          const expanded = {};
-          ALL_COUNTRIES.forEach(c => {
-            expanded[c.id] = {};
-            for(let i=0;i<c.stickers;i++) expanded[c.id][i] = (compact[c.id]||{})[i] || 0;
-          });
-          return { name, state: expanded };
-        }
-      } catch(e) {}
-      return { name, state: null };
-    }));
+  const figsMap = {};
+  (allFigs||[]).forEach(f => figsMap[f.usuario_id] = f.dados);
 
-    // Render progresso
-    progressEl.innerHTML = allUserData.map(u => {
-      if(!u.state) return `<div class="user-card"><div class="user-card-header">
-        <div class="user-card-avatar">${u.name[0].toUpperCase()}</div>
-        <div><div class="user-card-name">${u.name}</div><div class="user-card-sub">Sem dados ainda</div></div>
-      </div></div>`;
-
-      let have=0, dup=0;
-      ALL_COUNTRIES.forEach(c=>{
-        for(let i=0;i<c.stickers;i++){
-          const v=(u.state[c.id]||{})[i]||0;
-          if(v>=1){ have++; dup+=v-1; }
-        }
-      });
-      const pct = Math.round(have/GRAND_TOTAL*100);
-      const isMe = u.name === currentUser.name;
-      return `<div class="user-card" style="${isMe?'border-color:rgba(255,215,0,.4)':''}">
-        <div class="user-card-header">
-          <div class="user-card-avatar">${u.name[0].toUpperCase()}</div>
-          <div>
-            <div class="user-card-name">${u.name}${isMe?' <span style="font-size:11px;color:var(--amarelo)">(você)</span>':''}</div>
-            <div class="user-card-sub">${pct}% completo</div>
-          </div>
+  progressEl.innerHTML=(users||[]).map(u => {
+    const compact=figsMap[u.id]||{};
+    let have=0, dup=0;
+    ALL_COUNTRIES.forEach(c => {
+      for(let i=0;i<c.stickers;i++){
+        const v=(compact[c.id]||{})[i]||0;
+        if(v>=1){ have++; dup+=v-1; }
+      }
+    });
+    const pct=Math.round(have/GRAND_TOTAL*100);
+    const isMe=u.id===currentUser.id;
+    return `<div class="user-card" style="${isMe?'border-color:rgba(255,215,0,.4)':''}">
+      <div class="user-card-header">
+        <div class="user-card-avatar">${u.nome[0].toUpperCase()}</div>
+        <div>
+          <div class="user-card-name">${u.nome}${isMe?' <span style="font-size:11px;color:var(--amarelo)">(você)</span>':''}</div>
+          <div class="user-card-sub">${pct}% completo</div>
         </div>
-        <div class="user-card-bar"><div class="user-card-fill" style="width:${pct}%"></div></div>
-        <div class="user-card-stats">
-          <span class="s-have">✓ ${have} coladas</span>
-          <span>·</span>
-          <span class="s-dup">🔄 ${dup} repetidas</span>
-          <span>·</span>
-          <span>${GRAND_TOTAL-have} faltam</span>
-        </div>
-      </div>`;
-    }).join('');
+      </div>
+      <div class="user-card-bar"><div class="user-card-fill" style="width:${pct}%"></div></div>
+      <div class="user-card-stats">
+        <span class="s-have">✓ ${have} coladas</span>
+        <span style="color:var(--muted)">·</span>
+        <span class="s-dup">🔄 ${dup} repetidas</span>
+        <span style="color:var(--muted)">·</span>
+        <span style="color:var(--muted)">${GRAND_TOTAL-have} faltam</span>
+      </div>
+    </div>`;
+  }).join('');
 
-    // Render repetidas de todos
-    let dupsHtml = '';
-    allUserData.forEach(u => {
-      if(!u.state) return;
-      let countriesHtml = '';
-      let totalUserDups = 0;
-      ALL_COUNTRIES.forEach(c => {
-        const labels = [];
-        for(let i=0;i<c.stickers;i++){
-          const v=(u.state[c.id]||{})[i]||0;
-          if(v>=2){ const qty=v-1; totalUserDups+=qty; labels.push({lbl:getStickerLabel(c,i),qty}); }
-        }
-        if(!labels.length) return;
-        countriesHtml += `<div class="troca-country">
-          ${flagImgEl(c.iso,32,22)}
-          <div class="troca-country-name">${c.name}</div>
-          <div class="troca-tags">${labels.map(({lbl,qty})=>`<div class="dup-tag">${lbl}${qty>1?` ×${qty}`:''}</div>`).join('')}</div>
-        </div>`;
-      });
-      if(!totalUserDups) return;
-      dupsHtml += `<div class="troca-section">
-        <div class="troca-header">
-          <div class="troca-avatar">${u.name[0].toUpperCase()}</div>
-          <div>
-            <div class="troca-name">${u.name}</div>
-            <div class="troca-sub">${totalUserDups} figurinha${totalUserDups>1?'s':''} para troca</div>
-          </div>
-        </div>
-        <div class="troca-countries">${countriesHtml}</div>
+  let dupsHtml='';
+  (users||[]).forEach(u => {
+    const compact=figsMap[u.id]||{};
+    let countriesHtml='', totalUserDups=0;
+    ALL_COUNTRIES.forEach(c => {
+      const labels=[];
+      for(let i=0;i<c.stickers;i++){
+        const v=(compact[c.id]||{})[i]||0;
+        if(v>=2){ const qty=v-1; totalUserDups+=qty; labels.push({lbl:getStickerLabel(c,i),qty}); }
+      }
+      if(!labels.length) return;
+      countriesHtml+=`<div class="troca-country">
+        ${flagImgEl(c.iso,32,22)}
+        <div class="troca-country-name">${c.name}</div>
+        <div class="troca-tags">${labels.map(({lbl,qty})=>`<div class="dup-tag">${lbl}${qty>1?` ×${qty}`:''}</div>`).join('')}</div>
       </div>`;
     });
-    dupsEl.innerHTML = dupsHtml || `<div class="empty-state"><div class="emoji">✨</div>Ninguém tem repetidas ainda.</div>`;
-
-  } catch(e) {
-    progressEl.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">⚠️</div>Erro ao carregar dados.</div>`;
-    console.error(e);
-  }
+    if(!totalUserDups) return;
+    dupsHtml+=`<div class="troca-section">
+      <div class="troca-header">
+        <div class="troca-avatar">${u.nome[0].toUpperCase()}</div>
+        <div><div class="troca-name">${u.nome}</div>
+        <div class="troca-sub">${totalUserDups} figurinha${totalUserDups>1?'s':''} para troca</div></div>
+      </div>
+      <div class="troca-countries">${countriesHtml}</div>
+    </div>`;
+  });
+  dupsEl.innerHTML=dupsHtml||`<div class="empty-state"><div class="emoji">✨</div>Ninguém tem repetidas ainda.</div>`;
 }
 
 // ===== INIT =====
-(function init() {
-  const saved = localStorage.getItem('copa_user');
-  if(saved) {
-    try {
-      currentUser = JSON.parse(saved);
-      setLoading(true, 'Reconectando...');
-      loadUserState().then(() => enterApp());
+(async function init() {
+  const savedId = localStorage.getItem('copa_user_id');
+  if(savedId) {
+    setLoading(true, 'Reconectando...');
+    const { data } = await sb.from('usuarios').select('*').eq('id', savedId).single();
+    if(data) {
+      currentUser = data;
+      await loadUserState();
+      enterApp();
       return;
-    } catch(e) {}
+    }
+    localStorage.removeItem('copa_user_id');
   }
   setLoading(false);
 })();
 
-// Enter key no login
-document.getElementById('login-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
-document.getElementById('reg-pass2').addEventListener('keydown', e=>{ if(e.key==='Enter') doRegister(); });
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('reg-pass2').addEventListener('keydown', e => { if(e.key==='Enter') doRegister(); });
 </script>
 </body>
 </html>
