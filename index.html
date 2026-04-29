@@ -199,14 +199,27 @@
   .quero-btn.mine { border-color:var(--muted); background:transparent; color:var(--muted); cursor:default; }
   .pedidos-section { background:var(--card); border:1px solid rgba(107,154,255,.3); border-radius:13px; padding:18px; margin-bottom:20px; }
   .pedidos-title { font-family:Impact,'Arial Narrow',sans-serif; font-size:18px; letter-spacing:2px; color:#6b9aff; text-transform:uppercase; margin-bottom:14px; }
-  .pedido-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .pedido-row { display:flex; align-items:center; gap:10px; padding:14px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
   .pedido-row:last-child { border-bottom:none; }
-  .pedido-avatar { width:28px; height:28px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .pedido-avatar { width:36px; height:36px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .pedido-info { flex:1; font-size:13px; }
   .pedido-info strong { color:var(--text); }
   .pedido-info span { color:var(--muted); font-size:11px; }
   .pedido-tags { display:flex; flex-wrap:wrap; gap:4px; }
   .pedido-tag { background:rgba(107,154,255,.15); border:1px solid rgba(107,154,255,.4); border-radius:5px; padding:2px 8px; font-size:11px; font-weight:600; color:#6b9aff; }
+  /* badge no nav */
+  .nav-tab .badge { display:inline-flex; align-items:center; justify-content:center; background:var(--danger); color:#fff; font-size:10px; font-weight:700; border-radius:99px; min-width:16px; height:16px; padding:0 4px; margin-left:5px; line-height:1; }
+  /* aba pedidos */
+  #pedidos-tab main { max-width:700px; margin:0 auto; padding:24px 28px; }
+  .pedidos-tab-header { margin-bottom:24px; }
+  .pedidos-tab-header h2 { font-family:Impact,'Arial Narrow',sans-serif; font-size:22px; letter-spacing:2px; color:#6b9aff; text-transform:uppercase; }
+  .pedidos-tab-header p { font-size:12px; color:var(--muted); margin-top:4px; }
+  .pedido-card { background:var(--card); border:1px solid rgba(107,154,255,.3); border-radius:13px; padding:16px 18px; margin-bottom:12px; display:flex; align-items:flex-start; gap:14px; }
+  .pedido-card-avatar { width:44px; height:44px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .pedido-card-body { flex:1; }
+  .pedido-card-name { font-weight:700; font-size:15px; margin-bottom:4px; }
+  .pedido-card-sub { font-size:12px; color:var(--muted); margin-bottom:10px; }
+  .pedido-card-stickers { display:flex; flex-wrap:wrap; gap:6px; }
 
   .empty-state { text-align:center; padding:50px 20px; color:var(--muted); }
   .empty-state .emoji { font-size:44px; margin-bottom:10px; }
@@ -217,6 +230,19 @@
   .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--amarelo); border-radius:99px; animation:spin .8s linear infinite; }
   @keyframes spin { to{transform:rotate(360deg)} }
   .loading-text { font-size:13px; color:var(--muted); letter-spacing:1px; }
+
+  /* NOTIFICACAO TOAST */
+  #notif-container { position:fixed; top:16px; right:16px; z-index:500; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+  .notif-toast { background:var(--card); border:1px solid rgba(107,154,255,.5); border-radius:12px; padding:12px 16px; min-width:240px; max-width:320px; box-shadow:0 8px 28px rgba(0,0,0,.5); pointer-events:all; animation:slideIn .3s ease; display:flex; align-items:flex-start; gap:10px; }
+  .notif-toast.hide { animation:slideOut .3s ease forwards; }
+  @keyframes slideIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+  @keyframes slideOut { from{transform:translateX(0);opacity:1} to{transform:translateX(120%);opacity:0} }
+  .notif-icon { font-size:22px; flex-shrink:0; line-height:1; }
+  .notif-body { flex:1; }
+  .notif-title { font-size:12px; font-weight:700; color:#6b9aff; text-transform:uppercase; letter-spacing:.5px; margin-bottom:2px; }
+  .notif-msg { font-size:13px; color:var(--text); line-height:1.4; }
+  .notif-close { background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; padding:0; line-height:1; flex-shrink:0; }
+  .notif-close:hover { color:var(--text); }
 
   ::-webkit-scrollbar { width:5px; }
   ::-webkit-scrollbar-track { background:var(--bg); }
@@ -241,6 +267,8 @@
 <div class="save-indicator" id="save-indicator">
   <span id="save-text">Salvando...</span>
 </div>
+
+<div id="notif-container"></div>
 
 <!-- AUTH -->
 <div id="auth-screen">
@@ -302,6 +330,7 @@
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showTab('album')">📖 Meu Álbum</button>
     <button class="nav-tab" onclick="showTab('social')">👥 Amigos</button>
+    <button class="nav-tab" id="nav-pedidos" onclick="showTab('pedidos')">✋ Pedidos</button>
   </div>
 
   <div id="album-tab">
@@ -352,6 +381,16 @@
         <div class="section-title" style="color:var(--warning)">🔄 Repetidas disponíveis para troca</div>
       </div>
       <div id="all-dups-panel"></div>
+    </main>
+  </div>
+
+  <div id="pedidos-tab" style="display:none">
+    <main>
+      <div class="pedidos-tab-header">
+        <h2>✋ Pedidos das suas repetidas</h2>
+        <p>Pessoas que querem figurinhas das suas repetidas</p>
+      </div>
+      <div id="pedidos-tab-content"></div>
     </main>
   </div>
 </div>
@@ -657,6 +696,8 @@ function enterApp() {
   document.getElementById('user-avatar').textContent = currentUser.nome[0].toUpperCase();
   renderGrid();
   updateHeader();
+  startRealtimeNotifs();
+  renderPedidosPanel();
 }
 
 // ===== COMPUTED =====
@@ -935,8 +976,11 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); }
 function showTab(tab) {
   document.getElementById('album-tab').style.display=tab==='album'?'':'none';
   document.getElementById('social-tab').style.display=tab==='social'?'':'none';
-  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='album')||(i===1&&tab==='social')));
+  document.getElementById('pedidos-tab').style.display=tab==='pedidos'?'':'none';
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',
+    (i===0&&tab==='album')||(i===1&&tab==='social')||(i===2&&tab==='pedidos')));
   if(tab==='social') loadSocialTab();
+  if(tab==='pedidos') renderPedidosTab();
 }
 
 // ===== SOCIAL TAB =====
@@ -1044,25 +1088,25 @@ async function togglePedido(btn, donoId, figurinha, paisId, paisNome) {
   btn.disabled=false;
 }
 
-async function renderPedidosPanel() {
-  const panel=document.getElementById('pedidos-panel');
-  if(!panel) return;
-
-  // Pedidos de outros nas minhas repetidas
-  const { data: pedidos } = await sb.from('pedidos')
+async function fetchMeusPedidos() {
+  const { data } = await sb.from('pedidos')
     .select('figurinha,pais_id,pais_nome,solicitante_id,usuarios(nome)')
     .eq('dono_id', currentUser.id);
+  return data || [];
+}
 
-  if(!pedidos || pedidos.length===0) { panel.innerHTML=''; return; }
-
-  // Agrupa por solicitante
+async function renderPedidosPanel() {
+  // mantém compatibilidade com o painel antigo nas repetidas (simplificado)
+  const panel=document.getElementById('pedidos-panel');
+  if(!panel) return;
+  const pedidos = await fetchMeusPedidos();
+  if(!pedidos.length) { panel.innerHTML=''; return; }
   const porPessoa={};
   pedidos.forEach(p => {
     const nome=p.usuarios?.nome||'?';
     if(!porPessoa[nome]) porPessoa[nome]=[];
     porPessoa[nome].push(p);
   });
-
   let html=`<div class="pedidos-section"><div class="pedidos-title">✋ Pedidos das suas repetidas</div>`;
   for(const nome in porPessoa) {
     const itens=porPessoa[nome];
@@ -1074,6 +1118,96 @@ async function renderPedidosPanel() {
   }
   html+=`</div>`;
   panel.innerHTML=html;
+  atualizarBadgePedidos(pedidos.length);
+}
+
+async function renderPedidosTab() {
+  const el=document.getElementById('pedidos-tab-content');
+  el.innerHTML=`<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando pedidos...</div>`;
+  const pedidos = await fetchMeusPedidos();
+  atualizarBadgePedidos(pedidos.length);
+  if(!pedidos.length) {
+    el.innerHTML=`<div class="empty-state"><div class="emoji">✨</div>Ninguém pediu suas repetidas ainda.<br><span style="font-size:12px">Quando alguém clicar em "+ Quero" nas suas cartas, vai aparecer aqui.</span></div>`;
+    return;
+  }
+  const porPessoa={};
+  pedidos.forEach(p => {
+    const nome=p.usuarios?.nome||'?';
+    if(!porPessoa[nome]) porPessoa[nome]={nome, itens:[]};
+    porPessoa[nome].itens.push(p);
+  });
+  let html='';
+  for(const nome in porPessoa) {
+    const { itens } = porPessoa[nome];
+    const total=itens.length;
+    html+=`<div class="pedido-card">
+      <div class="pedido-card-avatar">${nome[0].toUpperCase()}</div>
+      <div class="pedido-card-body">
+        <div class="pedido-card-name">${nome}</div>
+        <div class="pedido-card-sub">quer ${total} figurinha${total>1?'s':''} sua${total>1?'s':''}</div>
+        <div class="pedido-card-stickers">
+          ${itens.map(p=>`<div class="pedido-tag" title="${p.pais_nome}">${p.figurinha} <span style="opacity:.6;font-size:10px">${p.pais_nome}</span></div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  }
+  el.innerHTML=html;
+}
+
+function atualizarBadgePedidos(total) {
+  const btn=document.getElementById('nav-pedidos');
+  if(!btn) return;
+  const existente=btn.querySelector('.badge');
+  if(existente) existente.remove();
+  if(total>0) btn.insertAdjacentHTML('beforeend',`<span class="badge">${total}</span>`);
+}
+
+// ===== NOTIFICACOES =====
+function showNotif(titulo, msg) {
+  const container = document.getElementById('notif-container');
+  const toast = document.createElement('div');
+  toast.className = 'notif-toast';
+  toast.innerHTML = `<div class="notif-icon">🔔</div><div class="notif-body"><div class="notif-title">${titulo}</div><div class="notif-msg">${msg}</div></div><button class="notif-close" onclick="dismissNotif(this)">✕</button>`;
+  container.appendChild(toast);
+  setTimeout(() => dismissNotif(toast.querySelector('.notif-close')), 6000);
+}
+
+function dismissNotif(btn) {
+  const toast = btn.closest('.notif-toast');
+  if (!toast) return;
+  toast.classList.add('hide');
+  setTimeout(() => toast.remove(), 300);
+}
+
+let realtimeChannel = null;
+
+function startRealtimeNotifs() {
+  if (realtimeChannel) sb.removeChannel(realtimeChannel);
+  realtimeChannel = sb.channel(`pedidos-notif-${currentUser.id}`)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'pedidos',
+      filter: `dono_id=eq.${currentUser.id}`
+    }, payload => {
+      const p = payload.new;
+      sb.from('usuarios').select('nome').eq('id', p.solicitante_id).single().then(({ data }) => {
+        const nome = data?.nome || 'Alguém';
+        showNotif('Pedido de figurinha', `<strong>${nome}</strong> quer sua carta <strong>${p.figurinha}</strong> (${p.pais_nome})!`);
+        renderPedidosPanel();
+        if(document.getElementById('pedidos-tab').style.display !== 'none') renderPedidosTab();
+      });
+    })
+    .on('postgres_changes', {
+      event: 'DELETE',
+      schema: 'public',
+      table: 'pedidos',
+      filter: `dono_id=eq.${currentUser.id}`
+    }, () => {
+      renderPedidosPanel();
+      if(document.getElementById('pedidos-tab').style.display !== 'none') renderPedidosTab();
+    })
+    .subscribe();
 }
 
 // ===== INIT =====
