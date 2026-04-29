@@ -1183,6 +1183,47 @@ function temRepetida(paisId, figurinha) {
   return (s[idx] || 0) >= 2;
 }
 
+async function aceitarPedido(solicitanteId, paisId, figurinha, btnRow) {
+  btnRow.querySelectorAll('button').forEach(b => b.disabled = true);
+
+  // descobre o índice da figurinha no state
+  const c = COUNTRY_MAP[paisId];
+  if (!c) { btnRow.querySelectorAll('button').forEach(b => b.disabled = false); return; }
+  let idx;
+  if (c.stickerLabels) {
+    idx = c.stickerLabels.indexOf(figurinha);
+  } else {
+    const num = parseInt(figurinha.replace(paisId.toUpperCase(), ''));
+    idx = isNaN(num) ? -1 : num - 1;
+  }
+  if (idx < 0) { btnRow.querySelectorAll('button').forEach(b => b.disabled = false); return; }
+
+  // decrementa no state local
+  state[paisId][idx] = Math.max(0, (state[paisId][idx] || 0) - 1);
+
+  // salva no Supabase e deleta o pedido
+  await Promise.all([
+    saveStateToSupabase(),
+    sb.from('pedidos').delete()
+      .eq('dono_id', currentUser.id)
+      .eq('solicitante_id', solicitanteId)
+      .eq('figurinha', figurinha)
+      .eq('pais_id', paisId)
+  ]);
+
+  updateHeader();
+  renderGrid();
+
+  // remove da tela
+  const item = btnRow.closest('.pedido-item');
+  const card = item.closest('.pedido-card');
+  item.remove();
+  if (card.querySelectorAll('.pedido-item').length === 0) card.remove();
+  const restantes = document.querySelectorAll('#pedidos-tab-content .pedido-item').length;
+  atualizarBadgePedidos(restantes);
+  if (restantes === 0) renderPedidosTab();
+}
+
 async function recusarPedido(solicitanteId, paisId, figurinha, btnRow) {
   btnRow.querySelectorAll('button').forEach(b => b.disabled = true);
   await sb.from('pedidos')
@@ -1230,6 +1271,7 @@ async function renderPedidosTab() {
         <div class="pedido-item-tag ${tagClass}" title="${tagTitle}">${p.figurinha}</div>
         <div class="pedido-item-pais">${p.pais_nome}</div>
         <div class="pedido-item-actions">
+          ${tem ? `<button class="btn-aceitar" onclick="aceitarPedido('${solicitanteId}','${p.pais_id}','${p.figurinha}',this.parentElement)">✓ Aceitar</button>` : ''}
           <button class="btn-recusar" onclick="recusarPedido('${solicitanteId}','${p.pais_id}','${p.figurinha}',this.parentElement)">✕ Recusar</button>
         </div>
       </div>`;
