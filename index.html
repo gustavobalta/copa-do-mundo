@@ -568,7 +568,7 @@ async function doLogin() {
 
     const dbId = user.properties['DB ID'].rich_text[0]?.plain_text || '';
     currentUser = { name, pageId: user.id, dbId };
-    sessionStorage.setItem('copa_user', JSON.stringify(currentUser));
+    localStorage.setItem('copa_user', JSON.stringify(currentUser));
 
     await loadUserState();
     enterApp();
@@ -625,7 +625,7 @@ async function doRegister() {
     currentUser = { name, pageId: userRes.id, dbId: dbRes.id };
     initState();
     await saveStateToNotion();
-    sessionStorage.setItem('copa_user', JSON.stringify(currentUser));
+    localStorage.setItem('copa_user', JSON.stringify(currentUser));
 
     enterApp();
   } catch(e) {
@@ -636,7 +636,7 @@ async function doRegister() {
 }
 
 function doLogout() {
-  sessionStorage.removeItem('copa_user');
+  localStorage.removeItem('copa_user');
   currentUser = null;
   state = {};
   document.getElementById('app-screen').style.display = 'none';
@@ -720,6 +720,7 @@ async function saveStateToNotion() {
         }
       });
       currentUser._statePageId = res.id;
+      localStorage.setItem('copa_user', JSON.stringify(currentUser));
     }
   } catch(e) {
     console.error('saveState error:', e);
@@ -1150,7 +1151,7 @@ async function loadSocialTab() {
 
 // ===== INIT =====
 (function init() {
-  const saved = sessionStorage.getItem('copa_user');
+  const saved = localStorage.getItem('copa_user');
   if(saved) {
     try {
       currentUser = JSON.parse(saved);
