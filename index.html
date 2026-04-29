@@ -959,7 +959,7 @@ async function loadSocialTab() {
       <div class="user-card-stats">
         <span class="s-have">✓ ${have} coladas</span>
         <span style="color:var(--muted)">·</span>
-        <span class="s-dup">🔄 ${dup} repetidas</span>
+        <span class="s-dup">${dup} repetida${dup!==1?'s':''}</span>
         <span style="color:var(--muted)">·</span>
         <span style="color:var(--muted)">${GRAND_TOTAL-have} faltam</span>
       </div>
