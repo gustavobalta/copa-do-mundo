@@ -266,6 +266,27 @@
   .historico-tag.recusado { background:rgba(239,68,68,.1); border:1px solid var(--danger); color:var(--danger); }
   .historico-data { font-size:11px; color:var(--muted); margin-left:auto; white-space:nowrap; }
 
+  /* COPA TAB */
+  .nav-tab-copa { color:var(--amarelo) !important; font-weight:800 !important; letter-spacing:1px; }
+  .nav-tab-copa.active { border-bottom-color:var(--amarelo) !important; }
+  .copa-rodada { margin-bottom:28px; }
+  .copa-rodada-titulo { font-family:Impact,'Arial Narrow',sans-serif; font-size:14px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+  .copa-jogo { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; transition:border-color .2s; }
+  .copa-jogo:hover { border-color:rgba(255,215,0,.2); }
+  .copa-jogo.ao-vivo { border-color:var(--danger); box-shadow:0 0 0 1px rgba(239,68,68,.3); }
+  .copa-time { display:flex; align-items:center; gap:10px; }
+  .copa-time.away { flex-direction:row-reverse; text-align:right; }
+  .copa-time img { width:32px; height:32px; object-fit:contain; }
+  .copa-time-nome { font-weight:700; font-size:14px; }
+  .copa-placar { text-align:center; }
+  .copa-placar-nums { font-family:Impact,'Arial Narrow',sans-serif; font-size:26px; letter-spacing:4px; color:var(--amarelo); line-height:1; }
+  .copa-placar-info { font-size:10px; color:var(--muted); margin-top:3px; letter-spacing:.5px; text-transform:uppercase; }
+  .copa-placar-info.ao-vivo { color:var(--danger); font-weight:700; animation:pulse 1.5s ease infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .copa-filtro-btn { padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s; white-space:nowrap; }
+  .copa-filtro-btn:hover { border-color:var(--amarelo); color:var(--amarelo); }
+  .copa-filtro-btn.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); }
+
   /* NOTIFICACAO TOAST */
   #notif-container { position:fixed; top:16px; right:16px; z-index:500; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
   .notif-toast { background:var(--card); border:1px solid rgba(107,154,255,.5); border-radius:12px; padding:12px 16px; min-width:240px; max-width:320px; box-shadow:0 8px 28px rgba(0,0,0,.5); pointer-events:all; animation:slideIn .3s ease; display:flex; align-items:flex-start; gap:10px; }
@@ -451,6 +472,7 @@
     <button class="nav-tab" onclick="showTab('social')">👥 Amigos</button>
     <button class="nav-tab" id="nav-pedidos" onclick="showTab('pedidos')">✋ Pedidos</button>
     <button class="nav-tab" onclick="showTab('meuspedidos')">🙋 Meus Pedidos</button>
+    <button class="nav-tab nav-tab-copa" onclick="showTab('copa')">🏆 COPA</button>
   </div>
 
   <div id="album-tab">
@@ -526,6 +548,19 @@
       </div>
       <div id="meuspedidos-tab-content"></div>
       <div class="historico-section" id="historico-solicitante"></div>
+    </main>
+  </div>
+
+  <div id="copa-tab" style="display:none">
+    <main style="max-width:900px;margin:0 auto;padding:24px 28px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap">
+        <div>
+          <h2 style="font-family:Impact,'Arial Narrow',sans-serif;font-size:26px;letter-spacing:3px;color:var(--amarelo);text-transform:uppercase">🏆 Copa do Mundo 2026</h2>
+          <p style="font-size:12px;color:var(--muted);margin-top:4px">EUA · Canadá · México — 11 Jun a 19 Jul 2026</p>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap" id="copa-filtros"></div>
+      </div>
+      <div id="copa-content"><div class="empty-state"><div class="spinner" style="margin:0 auto"></div></div></div>
     </main>
   </div>
 </div>
@@ -1122,15 +1157,14 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); }
 
 // ===== NAV TABS =====
 function showTab(tab) {
-  document.getElementById('album-tab').style.display=tab==='album'?'':'none';
-  document.getElementById('social-tab').style.display=tab==='social'?'':'none';
-  document.getElementById('pedidos-tab').style.display=tab==='pedidos'?'':'none';
-  document.getElementById('meuspedidos-tab').style.display=tab==='meuspedidos'?'':'none';
+  ['album','social','pedidos','meuspedidos','copa'].forEach(t =>
+    document.getElementById(t+'-tab').style.display = tab===t ? '' : 'none');
   document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',
-    (i===0&&tab==='album')||(i===1&&tab==='social')||(i===2&&tab==='pedidos')||(i===3&&tab==='meuspedidos')));
+    (i===0&&tab==='album')||(i===1&&tab==='social')||(i===2&&tab==='pedidos')||(i===3&&tab==='meuspedidos')||(i===4&&tab==='copa')));
   if(tab==='social') loadSocialTab();
   if(tab==='pedidos') { renderPedidosTab(); renderHistorico('historico-dono','dono'); }
   if(tab==='meuspedidos') { renderMeusPedidosTab(); renderHistorico('historico-solicitante','solicitante'); }
+  if(tab==='copa') loadCopaTab();
   localStorage.setItem('copa_active_tab', tab);
 }
 
@@ -1665,6 +1699,141 @@ function startRealtimeNotifs() {
       if(document.getElementById('pedidos-tab').style.display !== 'none') renderPedidosTab();
     })
     .subscribe();
+}
+
+// ===== COPA TAB =====
+const FDORG_KEY = '1fd25edc87ff4d5cae3cc607216fceeb';
+const FDORG_URL = 'https://api.football-data.org/v4/competitions/WC/matches';
+
+let _copaJogos = [];
+let _copaFiltroAtivo = 'todos';
+let _copaAutoRefresh = null;
+
+async function loadCopaTab() {
+  if (_copaJogos.length) { renderCopaJogos(); return; }
+  document.getElementById('copa-content').innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando jogos...</div>`;
+  try {
+    const res = await fetch(FDORG_URL, { headers: { 'X-Auth-Token': FDORG_KEY } });
+    if (!res.ok) throw new Error(res.status);
+    const json = await res.json();
+    _copaJogos = json.matches || [];
+    renderCopaFiltros();
+    renderCopaJogos();
+    // auto-refresh a cada 60s se houver jogo ao vivo
+    _copaAutoRefresh = setInterval(refreshCopaAoVivo, 60000);
+  } catch(e) {
+    document.getElementById('copa-content').innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div>Erro ao carregar jogos.<br><span style="font-size:12px;color:var(--muted)">Verifique a chave de API nas configurações.</span></div>`;
+  }
+}
+
+async function refreshCopaAoVivo() {
+  const temAoVivo = _copaJogos.some(m => m.status === 'IN_PLAY' || m.status === 'PAUSED');
+  if (!temAoVivo) return;
+  try {
+    const res = await fetch(FDORG_URL + '?status=LIVE', { headers: { 'X-Auth-Token': FDORG_KEY } });
+    const json = await res.json();
+    (json.matches||[]).forEach(live => {
+      const idx = _copaJogos.findIndex(m => m.id === live.id);
+      if (idx >= 0) _copaJogos[idx] = live;
+    });
+    renderCopaJogos();
+  } catch {}
+}
+
+function renderCopaFiltros() {
+  const rodadas = [...new Set(_copaJogos.map(m => m.stage))];
+  const filtros = [{ key:'todos', label:'Todos' }, { key:'hoje', label:'Hoje' }, { key:'SCHEDULED', label:'Agendados' }, { key:'FINISHED', label:'Encerrados' }];
+  document.getElementById('copa-filtros').innerHTML = filtros.map(f =>
+    `<button class="copa-filtro-btn${f.key===_copaFiltroAtivo?' active':''}" onclick="setCopaFiltro('${f.key}')">${f.label}</button>`
+  ).join('');
+}
+
+function setCopaFiltro(filtro) {
+  _copaFiltroAtivo = filtro;
+  renderCopaFiltros();
+  renderCopaJogos();
+}
+
+function renderCopaJogos() {
+  const hoje = new Date().toISOString().slice(0,10);
+  let jogos = _copaJogos;
+
+  if (_copaFiltroAtivo === 'hoje') {
+    jogos = jogos.filter(m => m.utcDate.slice(0,10) === hoje);
+  } else if (_copaFiltroAtivo !== 'todos') {
+    jogos = jogos.filter(m => m.status === _copaFiltroAtivo);
+  }
+
+  if (!jogos.length) {
+    document.getElementById('copa-content').innerHTML = `<div class="empty-state"><div class="emoji">📅</div>Nenhum jogo neste filtro.</div>`;
+    return;
+  }
+
+  // agrupa por rodada/fase
+  const porFase = {};
+  jogos.forEach(m => {
+    const fase = traduzirFase(m.stage, m.group);
+    if (!porFase[fase]) porFase[fase] = [];
+    porFase[fase].push(m);
+  });
+
+  let html = '';
+  for (const fase in porFase) {
+    const jogosHtml = porFase[fase].map(m => montarJogo(m)).join('');
+    html += `<div class="copa-rodada"><div class="copa-rodada-titulo">${fase}</div>${jogosHtml}</div>`;
+  }
+  document.getElementById('copa-content').innerHTML = html;
+}
+
+function montarJogo(m) {
+  const aoVivo = m.status === 'IN_PLAY' || m.status === 'PAUSED';
+  const encerrado = m.status === 'FINISHED';
+  const homeGol = m.score?.fullTime?.home ?? (aoVivo ? m.score?.halfTime?.home : null);
+  const awayGol = m.score?.fullTime?.away ?? (aoVivo ? m.score?.halfTime?.away : null);
+
+  const placarNums = (homeGol !== null && awayGol !== null)
+    ? `${homeGol} — ${awayGol}`
+    : '— vs —';
+
+  let infoTxt = '';
+  if (aoVivo) infoTxt = `<div class="copa-placar-info ao-vivo">● AO VIVO${m.minute ? ' '+m.minute+"'" : ''}</div>`;
+  else if (encerrado) infoTxt = `<div class="copa-placar-info">Encerrado</div>`;
+  else {
+    const dt = new Date(m.utcDate);
+    const dataFmt = dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', timeZone:'America/Sao_Paulo' });
+    const horaFmt = dt.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo' });
+    infoTxt = `<div class="copa-placar-info">${dataFmt} ${horaFmt}</div>`;
+  }
+
+  const homeLogo = m.homeTeam?.crest ? `<img src="${m.homeTeam.crest}" onerror="this.style.display='none'">` : '';
+  const awayLogo = m.awayTeam?.crest ? `<img src="${m.awayTeam.crest}" onerror="this.style.display='none'">` : '';
+
+  return `<div class="copa-jogo${aoVivo?' ao-vivo':''}">
+    <div class="copa-time">
+      ${homeLogo}
+      <div class="copa-time-nome">${m.homeTeam?.shortName || m.homeTeam?.name || '?'}</div>
+    </div>
+    <div class="copa-placar">
+      <div class="copa-placar-nums">${placarNums}</div>
+      ${infoTxt}
+    </div>
+    <div class="copa-time away">
+      ${awayLogo}
+      <div class="copa-time-nome">${m.awayTeam?.shortName || m.awayTeam?.name || '?'}</div>
+    </div>
+  </div>`;
+}
+
+function traduzirFase(stage, group) {
+  const map = {
+    'GROUP_STAGE': group ? `Fase de Grupos · ${group}` : 'Fase de Grupos',
+    'LAST_16': 'Oitavas de Final',
+    'QUARTER_FINALS': 'Quartas de Final',
+    'SEMI_FINALS': 'Semifinais',
+    'THIRD_PLACE': 'Disputa de 3º Lugar',
+    'FINAL': 'Final',
+  };
+  return map[stage] || stage;
 }
 
 // ===== INIT =====
