@@ -509,7 +509,9 @@ function expandState(compact) {
   for(const cid in compact) {
     if(state[cid]) {
       for(const idx in compact[cid]) {
-        if(state[cid][idx] !== undefined) state[cid][idx] = compact[cid][idx];
+        // idx pode vir como string do JSON — converte para número
+        const i = parseInt(idx);
+        if(!isNaN(i) && state[cid][i] !== undefined) state[cid][i] = compact[cid][idx];
       }
     }
   }
@@ -932,7 +934,7 @@ async function loadSocialTab() {
     let have=0, dup=0;
     ALL_COUNTRIES.forEach(c => {
       for(let i=0;i<c.stickers;i++){
-        const v=(compact[c.id]||{})[i]||0;
+        const v=(compact[c.id]||{})[i]||(compact[c.id]||{})[String(i)]||0;
         if(v>=1){ have++; dup+=v-1; }
       }
     });
@@ -964,7 +966,7 @@ async function loadSocialTab() {
     ALL_COUNTRIES.forEach(c => {
       const labels=[];
       for(let i=0;i<c.stickers;i++){
-        const v=(compact[c.id]||{})[i]||0;
+        const v=(compact[c.id]||{})[i]||(compact[c.id]||{})[String(i)]||0;
         if(v>=2){ const qty=v-1; totalUserDups+=qty; labels.push({lbl:getStickerLabel(c,i),qty}); }
       }
       if(!labels.length) return;
