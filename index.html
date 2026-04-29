@@ -180,9 +180,10 @@
   .user-card-sub { font-size:11px; color:var(--muted); margin-top:2px; }
   .user-card-bar { height:8px; background:var(--border); border-radius:99px; overflow:hidden; margin-bottom:8px; }
   .user-card-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--azul),var(--verde)); transition:width .5s; }
-  .user-card-stats { display:flex; gap:14px; font-size:12px; flex-wrap:wrap; }
-  .user-card-stats .s-have { color:var(--success); font-weight:600; }
-  .user-card-stats .s-dup  { color:var(--warning); font-weight:600; }
+  .user-card-stats { display:flex; gap:8px; font-size:12px; flex-wrap:wrap; align-items:center; }
+  .user-card-stats .s-have { color:var(--success); font-weight:600; white-space:nowrap; }
+  .user-card-stats .s-dup  { color:var(--warning); font-weight:600; white-space:nowrap; }
+  .user-card-stats .s-need { color:var(--muted); white-space:nowrap; }
   .troca-section { background:var(--card); border:1px solid var(--border); border-radius:13px; padding:18px; margin-bottom:14px; }
   .troca-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
   .troca-avatar { width:34px; height:34px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -249,11 +250,17 @@
   .loading-text { font-size:13px; color:var(--muted); letter-spacing:1px; }
 
   /* HISTORICO */
-  .historico-section { margin-top:28px; }
-  .historico-titulo { font-family:Impact,'Arial Narrow',sans-serif; font-size:16px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:12px; border-top:1px solid var(--border); padding-top:18px; }
+  .historico-section { margin-top:28px; border-top:1px solid var(--border); padding-top:20px; }
+  .historico-titulo { font-family:Impact,'Arial Narrow',sans-serif; font-size:16px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:14px; }
+  .historico-tabs { display:flex; gap:0; margin-bottom:14px; background:var(--bg); border-radius:8px; padding:3px; }
+  .historico-tab { flex:1; padding:7px; text-align:center; border-radius:6px; cursor:pointer; font-size:12px; font-weight:700; color:var(--muted); border:none; background:none; font-family:inherit; transition:all .2s; letter-spacing:.5px; text-transform:uppercase; }
+  .historico-tab.active { background:var(--card2); color:var(--text); }
+  .historico-lista { min-height:40px; }
   .historico-item { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:13px; flex-wrap:wrap; }
   .historico-item:last-child { border-bottom:none; }
-  .historico-tag { background:rgba(34,197,94,.1); border:1px solid var(--success); color:var(--success); border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; flex-shrink:0; }
+  .historico-tag { border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; flex-shrink:0; }
+  .historico-tag.concluido { background:rgba(34,197,94,.1); border:1px solid var(--success); color:var(--success); }
+  .historico-tag.recusado { background:rgba(239,68,68,.1); border:1px solid var(--danger); color:var(--danger); }
   .historico-data { font-size:11px; color:var(--muted); margin-left:auto; white-space:nowrap; }
 
   /* NOTIFICACAO TOAST */
@@ -1156,11 +1163,14 @@ async function loadSocialTab() {
       </div>
       <div class="user-card-bar"><div class="user-card-fill" style="width:${pct}%"></div></div>
       <div class="user-card-stats">
-        <span class="s-have">✓ ${have} coladas</span>
-        <span style="color:var(--muted)">·</span>
-        <span class="s-dup">${dup} repetida${dup!==1?'s':''}</span>
-        <span style="color:var(--muted)">·</span>
-        <span style="color:var(--muted)">${GRAND_TOTAL-have} faltam</span>
+        <span class="s-have">✓ ${have}</span>
+        <span style="color:var(--muted);font-size:10px">coladas</span>
+        <span style="color:var(--border)">·</span>
+        <span class="s-dup">${dup}</span>
+        <span style="color:var(--muted);font-size:10px">repetidas</span>
+        <span style="color:var(--border)">·</span>
+        <span class="s-need">${GRAND_TOTAL-have}</span>
+        <span style="color:var(--muted);font-size:10px">faltam</span>
       </div>
     </div>`;
   }).join('');
@@ -1348,19 +1358,32 @@ async function concluirPedido(solicitanteId, paisId, figurinha, btnRow) {
 
 async function recusarPedido(solicitanteId, paisId, figurinha, btnRow) {
   btnRow.querySelectorAll('button').forEach(b => b.disabled = true);
-  await sb.from('pedidos')
-    .delete()
-    .eq('dono_id', currentUser.id)
-    .eq('solicitante_id', solicitanteId)
-    .eq('figurinha', figurinha)
-    .eq('pais_id', paisId);
-  btnRow.closest('.pedido-item').remove();
-  // se não sobrou nenhum item, remove o card inteiro
+  const item = btnRow.closest('.pedido-item');
+  const paisNome = item.querySelector('.pedido-item-pais')?.textContent?.trim() || paisId;
+
+  await Promise.all([
+    sb.from('pedidos').delete()
+      .eq('dono_id', currentUser.id)
+      .eq('solicitante_id', solicitanteId)
+      .eq('figurinha', figurinha)
+      .eq('pais_id', paisId),
+    sb.from('historico').insert({
+      dono_id: currentUser.id,
+      solicitante_id: solicitanteId,
+      figurinha,
+      pais_id: paisId,
+      pais_nome: paisNome,
+      tipo: 'recusado'
+    })
+  ]);
+
+  item.remove();
   const card = document.querySelector(`[data-solicitante="${solicitanteId}"]`);
   if (card && card.querySelectorAll('.pedido-item').length === 0) card.remove();
   const restantes = document.querySelectorAll('.pedido-item').length;
   atualizarBadgePedidos(restantes);
-  if (restantes === 0) renderPedidosTab();
+  renderPedidosTab();
+  renderHistorico('historico-dono', 'dono');
 }
 
 async function renderPedidosTab() {
@@ -1497,38 +1520,64 @@ async function renderHistorico(containerId, modo) {
   const el = document.getElementById(containerId);
   if (!el) return;
 
-  // modo 'dono' = cartas que eu dei | modo 'solicitante' = cartas que eu recebi
-  const filtro = modo === 'dono'
-    ? sb.from('historico').select('figurinha,pais_nome,solicitante_id,concluido_em').eq('dono_id', currentUser.id).order('concluido_em', { ascending: false })
-    : sb.from('historico').select('figurinha,pais_nome,dono_id,concluido_em').eq('solicitante_id', currentUser.id).order('concluido_em', { ascending: false });
+  const campoOutro = modo === 'dono' ? 'solicitante_id' : 'dono_id';
+  const { data: itens } = await sb.from('historico')
+    .select(`figurinha,pais_nome,${campoOutro},concluido_em,tipo`)
+    .eq(modo === 'dono' ? 'dono_id' : 'solicitante_id', currentUser.id)
+    .order('concluido_em', { ascending: false });
 
-  const { data: itens } = await filtro;
   if (!itens || !itens.length) {
-    el.innerHTML = `<div class="historico-titulo">📋 Histórico</div><div style="font-size:12px;color:var(--muted);padding:8px 0">Nenhuma troca concluída ainda.</div>`;
+    el.innerHTML = `<div class="historico-titulo">📋 Histórico</div><div style="font-size:12px;color:var(--muted);padding:8px 0">Nenhuma transação ainda.</div>`;
     return;
   }
 
-  // busca nomes
-  const ids = [...new Set(itens.map(p => modo === 'dono' ? p.solicitante_id : p.dono_id))];
+  const ids = [...new Set(itens.map(p => p[campoOutro]))];
   const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
   const nomeMap = {};
   (users||[]).forEach(u => nomeMap[u.id] = u.nome);
 
-  const linhas = itens.map(p => {
-    const outroId = modo === 'dono' ? p.solicitante_id : p.dono_id;
-    const outroNome = nomeMap[outroId] || '?';
-    const texto = modo === 'dono'
-      ? `Você deu <strong>${p.figurinha}</strong> (${p.pais_nome}) para <strong>${outroNome}</strong>`
-      : `<strong>${outroNome}</strong> te deu <strong>${p.figurinha}</strong> (${p.pais_nome})`;
-    const data = new Date(p.concluido_em).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-    return `<div class="historico-item">
-      <div class="historico-tag">✓</div>
-      <div style="flex:1">${texto}</div>
-      <div class="historico-data">${data}</div>
-    </div>`;
-  }).join('');
+  function montarLista(lista) {
+    if (!lista.length) return `<div style="font-size:12px;color:var(--muted);padding:8px 0">Nenhum registro.</div>`;
+    return lista.map(p => {
+      const outroNome = nomeMap[p[campoOutro]] || '?';
+      const concluido = p.tipo !== 'recusado';
+      const texto = concluido
+        ? (modo === 'dono'
+            ? `Você deu <strong>${p.figurinha}</strong> (${p.pais_nome}) para <strong>${outroNome}</strong>`
+            : `<strong>${outroNome}</strong> te deu <strong>${p.figurinha}</strong> (${p.pais_nome})`)
+        : (modo === 'dono'
+            ? `Você recusou o pedido de <strong>${outroNome}</strong>: <strong>${p.figurinha}</strong> (${p.pais_nome})`
+            : `<strong>${outroNome}</strong> recusou seu pedido de <strong>${p.figurinha}</strong> (${p.pais_nome})`);
+      const data = new Date(p.concluido_em).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      const tagClass = concluido ? 'concluido' : 'recusado';
+      const tagIcon = concluido ? '✓' : '✕';
+      return `<div class="historico-item">
+        <div class="historico-tag ${tagClass}">${tagIcon}</div>
+        <div style="flex:1">${texto}</div>
+        <div class="historico-data">${data}</div>
+      </div>`;
+    }).join('');
+  }
 
-  el.innerHTML = `<div class="historico-titulo">📋 Histórico de Trocas</div>${linhas}`;
+  const concluidos = itens.filter(p => p.tipo !== 'recusado');
+  const recusados  = itens.filter(p => p.tipo === 'recusado');
+
+  el.innerHTML = `
+    <div class="historico-titulo">📋 Histórico</div>
+    <div class="historico-tabs">
+      <button class="historico-tab active" onclick="switchHistoricoTab(this,'${containerId}-concluidos')">✓ Concluídos (${concluidos.length})</button>
+      <button class="historico-tab" onclick="switchHistoricoTab(this,'${containerId}-recusados')">✕ Recusados (${recusados.length})</button>
+    </div>
+    <div class="historico-lista" id="${containerId}-concluidos">${montarLista(concluidos)}</div>
+    <div class="historico-lista" id="${containerId}-recusados" style="display:none">${montarLista(recusados)}</div>`;
+}
+
+function switchHistoricoTab(btn, listaId) {
+  const section = btn.closest('.historico-section');
+  section.querySelectorAll('.historico-tab').forEach(t => t.classList.remove('active'));
+  section.querySelectorAll('.historico-lista').forEach(l => l.style.display = 'none');
+  btn.classList.add('active');
+  document.getElementById(listaId).style.display = '';
 }
 
 function atualizarBadgePedidos(total) {
