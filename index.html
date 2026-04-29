@@ -184,6 +184,9 @@
   .user-card-stats .s-have { color:var(--success); font-weight:600; white-space:nowrap; }
   .user-card-stats .s-dup  { color:var(--warning); font-weight:600; white-space:nowrap; }
   .user-card-stats .s-need { color:var(--muted); white-space:nowrap; }
+  .user-card { cursor:pointer; transition:transform .15s, border-color .15s; }
+  .user-card:hover { transform:translateY(-2px); border-color:rgba(245,158,11,.4); }
+  .user-card.selected { border-color:var(--warning); box-shadow:0 0 0 2px rgba(245,158,11,.2); }
   .troca-section { background:var(--card); border:1px solid var(--border); border-radius:13px; padding:18px; margin-bottom:14px; }
   .troca-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
   .troca-avatar { width:34px; height:34px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -491,11 +494,14 @@
     <main>
       <div class="social-header">
         <h2>👥 Progresso dos Amigos</h2>
-        <p>Veja quem está na frente e quais figurinhas estão disponíveis para troca</p>
+        <p>Clique em um amigo para ver as repetidas dele</p>
       </div>
       <div id="users-progress-grid" class="users-grid"></div>
-      <div class="section-header" style="margin-top:10px">
-        <div class="section-title" style="color:var(--warning)">🔄 Repetidas disponíveis para troca</div>
+      <div id="dups-filtro-header" style="display:none;margin-top:20px">
+        <div class="section-header">
+          <div class="section-title" style="color:var(--warning)" id="dups-filtro-titulo">🔄 Repetidas</div>
+          <button id="btn-ver-todos" style="font-size:12px;background:rgba(245,158,11,.1);border:1px solid var(--warning);color:var(--warning);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit;font-weight:700" onclick="mostrarTodosDups()">Ver todos</button>
+        </div>
       </div>
       <div id="all-dups-panel"></div>
     </main>
@@ -1129,20 +1135,27 @@ function showTab(tab) {
 }
 
 // ===== SOCIAL TAB =====
+let _socialUsers=[], _socialFigsMap={}, _socialPedidosFeitos=new Set();
+
 async function loadSocialTab() {
   const progressEl=document.getElementById('users-progress-grid');
   const dupsEl=document.getElementById('all-dups-panel');
   progressEl.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div>`;
   dupsEl.innerHTML='';
+  document.getElementById('dups-filtro-header').style.display='none';
 
   const { data: users } = await sb.from('usuarios').select('id,nome');
   const { data: allFigs } = await sb.from('figurinhas').select('usuario_id,dados');
+  const { data: meusPedidos } = await sb.from('pedidos').select('figurinha,dono_id').eq('solicitante_id', currentUser.id);
 
-  const figsMap = {};
-  (allFigs||[]).forEach(f => figsMap[f.usuario_id] = f.dados);
+  _socialFigsMap={};
+  (allFigs||[]).forEach(f => _socialFigsMap[f.usuario_id]=f.dados);
+  _socialPedidosFeitos=new Set((meusPedidos||[]).map(p=>`${p.dono_id}:${p.figurinha}`));
+  _socialUsers=(users||[]).filter(u=>u.id!==currentUser.id);
 
-  progressEl.innerHTML=(users||[]).map(u => {
-    const compact=figsMap[u.id]||{};
+  // cards dos amigos (sem o próprio usuário)
+  progressEl.innerHTML=_socialUsers.map(u => {
+    const compact=_socialFigsMap[u.id]||{};
     let have=0, dup=0;
     ALL_COUNTRIES.forEach(c => {
       const cdata=compact[c.id]||{};
@@ -1152,12 +1165,11 @@ async function loadSocialTab() {
       }
     });
     const pct=Math.round(have/GRAND_TOTAL*100);
-    const isMe=u.id===currentUser.id;
-    return `<div class="user-card" style="${isMe?'border-color:rgba(255,215,0,.4)':''}">
+    return `<div class="user-card" onclick="selecionarAmigo('${u.id}','${u.nome}')" data-uid="${u.id}">
       <div class="user-card-header">
         <div class="user-card-avatar">${u.nome[0].toUpperCase()}</div>
         <div>
-          <div class="user-card-name">${u.nome}${isMe?' <span style="font-size:11px;color:var(--amarelo)">(você)</span>':''}</div>
+          <div class="user-card-name">${u.nome}</div>
           <div class="user-card-sub">${pct}% completo</div>
         </div>
       </div>
@@ -1173,16 +1185,14 @@ async function loadSocialTab() {
         <span style="color:var(--muted);font-size:10px">faltam</span>
       </div>
     </div>`;
-  }).join('');
+  }).join('') || `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">👥</div>Nenhum amigo cadastrado ainda.</div>`;
+}
 
-  // Carrega pedidos já feitos pelo usuário atual
-  const { data: meusPedidos } = await sb.from('pedidos').select('figurinha,dono_id').eq('solicitante_id', currentUser.id);
-  const pedidosFeitos = new Set((meusPedidos||[]).map(p => `${p.dono_id}:${p.figurinha}`));
-
+function renderDupsDeUsuarios(usuariosFiltro) {
+  const dupsEl=document.getElementById('all-dups-panel');
   let dupsHtml='';
-  (users||[]).forEach(u => {
-    if(u.id === currentUser.id) return; // não mostra as próprias repetidas aqui
-    const compact=figsMap[u.id]||{};
+  usuariosFiltro.forEach(u => {
+    const compact=_socialFigsMap[u.id]||{};
     let countriesHtml='', totalUserDups=0;
     ALL_COUNTRIES.forEach(c => {
       const labels=[];
@@ -1194,7 +1204,7 @@ async function loadSocialTab() {
       }
       if(!labels.length) return;
       const tagsHtml=labels.map(({lbl,qty,cid,cname})=>{
-        const jaQuis=pedidosFeitos.has(`${u.id}:${lbl}`);
+        const jaQuis=_socialPedidosFeitos.has(`${u.id}:${lbl}`);
         return `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
           <div class="dup-tag">${lbl}${qty>1?` ×${qty}`:''}</div>
           <button class="quero-btn ${jaQuis?'active':''}"
@@ -1220,7 +1230,28 @@ async function loadSocialTab() {
       <div class="troca-countries">${countriesHtml}</div>
     </div>`;
   });
-  dupsEl.innerHTML=dupsHtml||`<div class="empty-state"><div class="emoji">✨</div>Ninguém tem repetidas ainda.</div>`;
+  dupsEl.innerHTML=dupsHtml||`<div class="empty-state"><div class="emoji">✨</div>Nenhuma repetida disponível.</div>`;
+}
+
+function selecionarAmigo(uid, nome) {
+  // highlight no card
+  document.querySelectorAll('.user-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelector(`.user-card[data-uid="${uid}"]`)?.classList.add('selected');
+
+  const header=document.getElementById('dups-filtro-header');
+  header.style.display='';
+  document.getElementById('dups-filtro-titulo').textContent=`🔄 Repetidas de ${nome}`;
+  document.getElementById('btn-ver-todos').style.display='';
+
+  const u=_socialUsers.find(u=>u.id===uid);
+  if(u) renderDupsDeUsuarios([u]);
+}
+
+function mostrarTodosDups() {
+  document.querySelectorAll('.user-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('dups-filtro-titulo').textContent='🔄 Repetidas de todos';
+  document.getElementById('btn-ver-todos').style.display='none';
+  renderDupsDeUsuarios(_socialUsers);
 }
 
 async function togglePedido(btn, donoId, figurinha, paisId, paisNome) {
