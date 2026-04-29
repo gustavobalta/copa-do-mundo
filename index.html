@@ -343,6 +343,7 @@
     <button class="nav-tab active" onclick="showTab('album')">📖 Meu Álbum</button>
     <button class="nav-tab" onclick="showTab('social')">👥 Amigos</button>
     <button class="nav-tab" id="nav-pedidos" onclick="showTab('pedidos')">✋ Pedidos</button>
+    <button class="nav-tab" onclick="showTab('meuspedidos')">🙋 Meus Pedidos</button>
   </div>
 
   <div id="album-tab">
@@ -403,6 +404,16 @@
         <p>Pessoas que querem figurinhas das suas repetidas</p>
       </div>
       <div id="pedidos-tab-content"></div>
+    </main>
+  </div>
+
+  <div id="meuspedidos-tab" style="display:none">
+    <main>
+      <div class="pedidos-tab-header">
+        <h2>🙋 Meus Pedidos</h2>
+        <p>Cartas que você pediu para seus amigos</p>
+      </div>
+      <div id="meuspedidos-tab-content"></div>
     </main>
   </div>
 </div>
@@ -989,10 +1000,12 @@ function showTab(tab) {
   document.getElementById('album-tab').style.display=tab==='album'?'':'none';
   document.getElementById('social-tab').style.display=tab==='social'?'':'none';
   document.getElementById('pedidos-tab').style.display=tab==='pedidos'?'':'none';
+  document.getElementById('meuspedidos-tab').style.display=tab==='meuspedidos'?'':'none';
   document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',
-    (i===0&&tab==='album')||(i===1&&tab==='social')||(i===2&&tab==='pedidos')));
+    (i===0&&tab==='album')||(i===1&&tab==='social')||(i===2&&tab==='pedidos')||(i===3&&tab==='meuspedidos')));
   if(tab==='social') loadSocialTab();
   if(tab==='pedidos') renderPedidosTab();
+  if(tab==='meuspedidos') renderMeusPedidosTab();
 }
 
 // ===== SOCIAL TAB =====
@@ -1219,6 +1232,74 @@ async function renderPedidosTab() {
     </div>`;
   }
   el.innerHTML=html;
+}
+
+async function renderMeusPedidosTab() {
+  const el = document.getElementById('meuspedidos-tab-content');
+  el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando...</div>`;
+
+  const { data: pedidos } = await sb.from('pedidos')
+    .select('figurinha,pais_id,pais_nome,dono_id')
+    .eq('solicitante_id', currentUser.id);
+
+  if (!pedidos || !pedidos.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">🙋</div>Você não pediu nenhuma carta ainda.<br><span style="font-size:12px">Na aba Amigos, clique em "+ Quero" nas repetidas dos seus amigos.</span></div>`;
+    return;
+  }
+
+  // busca nomes dos donos
+  const ids = [...new Set(pedidos.map(p => p.dono_id))];
+  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
+  const nomeMap = {};
+  (users||[]).forEach(u => nomeMap[u.id] = u.nome);
+
+  // agrupa por dono
+  const porDono = {};
+  pedidos.forEach(p => {
+    const k = p.dono_id;
+    if (!porDono[k]) porDono[k] = { nome: nomeMap[k] || '?', itens: [] };
+    porDono[k].itens.push(p);
+  });
+
+  let html = '';
+  for (const donoId in porDono) {
+    const { nome, itens } = porDono[donoId];
+    const itensHtml = itens.map(p => `
+      <div class="pedido-item">
+        <div class="pedido-item-tag tem">${p.figurinha}</div>
+        <div class="pedido-item-pais">${p.pais_nome}</div>
+        <div class="pedido-item-actions">
+          <button class="btn-recusar" onclick="cancelarMeuPedido('${donoId}','${p.pais_id}','${p.figurinha}',this.parentElement)" title="Cancelar pedido">✕</button>
+        </div>
+      </div>`).join('');
+    html += `<div class="pedido-card">
+      <div class="pedido-card-avatar">${nome[0].toUpperCase()}</div>
+      <div class="pedido-card-body">
+        <div class="pedido-card-name">${nome}</div>
+        <div class="pedido-card-sub">${itens.length} carta${itens.length > 1 ? 's' : ''} pedida${itens.length > 1 ? 's' : ''}</div>
+        <div class="pedido-card-stickers">${itensHtml}</div>
+      </div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+async function cancelarMeuPedido(donoId, paisId, figurinha, btnRow) {
+  btnRow.querySelectorAll('button').forEach(b => b.disabled = true);
+  await sb.from('pedidos')
+    .delete()
+    .eq('solicitante_id', currentUser.id)
+    .eq('dono_id', donoId)
+    .eq('figurinha', figurinha)
+    .eq('pais_id', paisId);
+  const item = btnRow.closest('.pedido-item');
+  const card = item.closest('.pedido-card');
+  item.remove();
+  if (card.querySelectorAll('.pedido-item').length === 0) card.remove();
+  if (document.querySelectorAll('#meuspedidos-tab-content .pedido-card').length === 0) renderMeusPedidosTab();
+  // sincroniza o botão "+ Quero" na aba social se estiver visível
+  const btn = document.querySelector(`.quero-btn[data-key="${donoId}:${figurinha}"]`);
+  if (btn) { btn.classList.remove('active'); btn.textContent = '+ Quero'; }
 }
 
 function atualizarBadgePedidos(total) {
