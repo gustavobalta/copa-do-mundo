@@ -233,6 +233,10 @@
   .btn-recusar { background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; padding:3px 10px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s; }
   .btn-recusar:hover { background:var(--danger); color:#fff; }
   .btn-recusar:disabled { opacity:.4; cursor:not-allowed; }
+  .btn-concluir { background:rgba(255,215,0,.15); border:1px solid var(--amarelo); color:var(--amarelo); border-radius:6px; padding:3px 10px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s; }
+  .btn-concluir:hover { background:var(--amarelo); color:#000; }
+  .btn-concluir:disabled { opacity:.4; cursor:not-allowed; }
+  .pedido-item.aceito { opacity:.75; background:rgba(255,215,0,.05); border-radius:6px; padding:4px 6px; }
 
   .empty-state { text-align:center; padding:50px 20px; color:var(--muted); }
   .empty-state .emoji { font-size:44px; margin-bottom:10px; }
@@ -1128,7 +1132,7 @@ async function togglePedido(btn, donoId, figurinha, paisId, paisNome) {
 
 async function fetchMeusPedidos() {
   const { data: pedidos } = await sb.from('pedidos')
-    .select('figurinha,pais_id,pais_nome,solicitante_id')
+    .select('figurinha,pais_id,pais_nome,solicitante_id,status')
     .eq('dono_id', currentUser.id);
   if (!pedidos || !pedidos.length) return [];
 
@@ -1186,7 +1190,6 @@ function temRepetida(paisId, figurinha) {
 async function aceitarPedido(solicitanteId, paisId, figurinha, btnRow) {
   btnRow.querySelectorAll('button').forEach(b => b.disabled = true);
 
-  // descobre o índice da figurinha no state
   const c = COUNTRY_MAP[paisId];
   if (!c) { btnRow.querySelectorAll('button').forEach(b => b.disabled = false); return; }
   let idx;
@@ -1198,13 +1201,12 @@ async function aceitarPedido(solicitanteId, paisId, figurinha, btnRow) {
   }
   if (idx < 0) { btnRow.querySelectorAll('button').forEach(b => b.disabled = false); return; }
 
-  // decrementa no state local
+  // decrementa repetida no state local e salva
   state[paisId][idx] = Math.max(0, (state[paisId][idx] || 0) - 1);
-
-  // salva no Supabase e deleta o pedido
   await Promise.all([
     saveStateToSupabase(),
-    sb.from('pedidos').delete()
+    sb.from('pedidos')
+      .update({ status: 'aceito' })
       .eq('dono_id', currentUser.id)
       .eq('solicitante_id', solicitanteId)
       .eq('figurinha', figurinha)
@@ -1213,8 +1215,17 @@ async function aceitarPedido(solicitanteId, paisId, figurinha, btnRow) {
 
   updateHeader();
   renderGrid();
+  renderPedidosTab();
+}
 
-  // remove da tela
+async function concluirPedido(solicitanteId, paisId, figurinha, btnRow) {
+  btnRow.querySelectorAll('button').forEach(b => b.disabled = true);
+  await sb.from('pedidos').delete()
+    .eq('dono_id', currentUser.id)
+    .eq('solicitante_id', solicitanteId)
+    .eq('figurinha', figurinha)
+    .eq('pais_id', paisId);
+
   const item = btnRow.closest('.pedido-item');
   const card = item.closest('.pedido-card');
   item.remove();
@@ -1267,12 +1278,16 @@ async function renderPedidosTab() {
       const tem = temRepetida(p.pais_id, p.figurinha);
       const tagClass = tem ? 'tem' : 'nao-tem';
       const tagTitle = tem ? `Você tem repetida de ${p.figurinha}` : `Você não tem mais ${p.figurinha}`;
-      return `<div class="pedido-item">
-        <div class="pedido-item-tag ${tagClass}" title="${tagTitle}">${p.figurinha}</div>
-        <div class="pedido-item-pais">${p.pais_nome}</div>
+      const aceito = p.status === 'aceito';
+      return `<div class="pedido-item${aceito?' aceito':''}">
+        <div class="pedido-item-tag ${aceito?'tem':tagClass}" title="${tagTitle}">${p.figurinha}</div>
+        <div class="pedido-item-pais">${p.pais_nome}${aceito?' <span style="color:var(--amarelo);font-size:10px;font-weight:700">· aceito</span>':''}</div>
         <div class="pedido-item-actions">
-          ${tem ? `<button class="btn-aceitar" onclick="aceitarPedido('${solicitanteId}','${p.pais_id}','${p.figurinha}',this.parentElement)">✓ Aceitar</button>` : ''}
-          <button class="btn-recusar" onclick="recusarPedido('${solicitanteId}','${p.pais_id}','${p.figurinha}',this.parentElement)">✕ Recusar</button>
+          ${aceito
+            ? `<button class="btn-concluir" onclick="concluirPedido('${solicitanteId}','${p.pais_id}','${p.figurinha}',this.parentElement)">✓ Concluído</button>`
+            : `${tem ? `<button class="btn-aceitar" onclick="aceitarPedido('${solicitanteId}','${p.pais_id}','${p.figurinha}',this.parentElement)">✓ Aceitar</button>` : ''}
+               <button class="btn-recusar" onclick="recusarPedido('${solicitanteId}','${p.pais_id}','${p.figurinha}',this.parentElement)">✕ Recusar</button>`
+          }
         </div>
       </div>`;
     }).join('');
