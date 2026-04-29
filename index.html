@@ -1702,23 +1702,8 @@ function startRealtimeNotifs() {
 }
 
 // ===== COPA TAB =====
-const FDORG_KEY = '1fd25edc87ff4d5cae3cc607216fceeb';
-const FDORG_BASE = 'https://api.football-data.org/v4/competitions/WC/matches';
-
-async function fdorgFetch(url) {
-  // tenta direto primeiro (funciona em localhost), cai no proxy se der CORS
-  try {
-    const res = await fetch(url, { headers: { 'X-Auth-Token': FDORG_KEY } });
-    if (res.ok) return res.json();
-    throw new Error(res.status);
-  } catch(e) {
-    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const res2 = await fetch(proxy, { headers: { 'X-Auth-Token': FDORG_KEY } });
-    if (!res2.ok) throw new Error(res2.status);
-    const wrap = await res2.json();
-    return JSON.parse(wrap.contents);
-  }
-}
+const ESPN_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?limit=200&dates=20260611-20260719';
+const ESPN_URL_TODAY = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
 
 let _copaJogos = [];
 let _copaFiltroAtivo = 'todos';
@@ -1728,23 +1713,28 @@ async function loadCopaTab() {
   if (_copaJogos.length) { renderCopaJogos(); return; }
   document.getElementById('copa-content').innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando jogos...</div>`;
   try {
-    const json = await fdorgFetch(FDORG_BASE);
-    _copaJogos = json.matches || [];
+    const res = await fetch(ESPN_URL);
+    if (!res.ok) throw new Error(res.status);
+    const json = await res.json();
+    _copaJogos = json.events || [];
     renderCopaFiltros();
     renderCopaJogos();
-    // auto-refresh a cada 60s se houver jogo ao vivo
     _copaAutoRefresh = setInterval(refreshCopaAoVivo, 60000);
   } catch(e) {
-    document.getElementById('copa-content').innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div>Erro ao carregar jogos.<br><span style="font-size:12px;color:var(--muted)">Verifique a chave de API nas configurações.</span></div>`;
+    document.getElementById('copa-content').innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div>Erro ao carregar jogos.<br><span style="font-size:12px;color:var(--muted)">${e.message}</span></div>`;
   }
 }
 
 async function refreshCopaAoVivo() {
-  const temAoVivo = _copaJogos.some(m => m.status === 'IN_PLAY' || m.status === 'PAUSED');
+  const temAoVivo = _copaJogos.some(m => {
+    const s = m.competitions?.[0]?.status?.type?.state;
+    return s === 'in';
+  });
   if (!temAoVivo) return;
   try {
-    const json = await fdorgFetch(FDORG_BASE + '?status=LIVE');
-    (json.matches||[]).forEach(live => {
+    const res = await fetch(ESPN_URL_TODAY);
+    const json = await res.json();
+    (json.events||[]).forEach(live => {
       const idx = _copaJogos.findIndex(m => m.id === live.id);
       if (idx >= 0) _copaJogos[idx] = live;
     });
@@ -1753,8 +1743,13 @@ async function refreshCopaAoVivo() {
 }
 
 function renderCopaFiltros() {
-  const rodadas = [...new Set(_copaJogos.map(m => m.stage))];
-  const filtros = [{ key:'todos', label:'Todos' }, { key:'hoje', label:'Hoje' }, { key:'SCHEDULED', label:'Agendados' }, { key:'FINISHED', label:'Encerrados' }];
+  const filtros = [
+    { key:'todos', label:'Todos' },
+    { key:'hoje', label:'Hoje' },
+    { key:'pre', label:'Agendados' },
+    { key:'post', label:'Encerrados' },
+    { key:'in', label:'Ao Vivo' },
+  ];
   document.getElementById('copa-filtros').innerHTML = filtros.map(f =>
     `<button class="copa-filtro-btn${f.key===_copaFiltroAtivo?' active':''}" onclick="setCopaFiltro('${f.key}')">${f.label}</button>`
   ).join('');
@@ -1767,13 +1762,13 @@ function setCopaFiltro(filtro) {
 }
 
 function renderCopaJogos() {
-  const hoje = new Date().toISOString().slice(0,10);
+  const hoje = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
   let jogos = _copaJogos;
 
   if (_copaFiltroAtivo === 'hoje') {
-    jogos = jogos.filter(m => m.utcDate.slice(0,10) === hoje);
+    jogos = jogos.filter(m => m.date.slice(0,10) === hoje);
   } else if (_copaFiltroAtivo !== 'todos') {
-    jogos = jogos.filter(m => m.status === _copaFiltroAtivo);
+    jogos = jogos.filter(m => m.competitions?.[0]?.status?.type?.state === _copaFiltroAtivo);
   }
 
   if (!jogos.length) {
@@ -1781,10 +1776,9 @@ function renderCopaJogos() {
     return;
   }
 
-  // agrupa por rodada/fase
   const porFase = {};
   jogos.forEach(m => {
-    const fase = traduzirFase(m.stage, m.group);
+    const fase = traduzirFaseESPN(m.season?.slug, m.competitions?.[0]?.notes?.[0]?.headline);
     if (!porFase[fase]) porFase[fase] = [];
     porFase[fase].push(m);
   });
@@ -1798,32 +1792,42 @@ function renderCopaJogos() {
 }
 
 function montarJogo(m) {
-  const aoVivo = m.status === 'IN_PLAY' || m.status === 'PAUSED';
-  const encerrado = m.status === 'FINISHED';
-  const homeGol = m.score?.fullTime?.home ?? (aoVivo ? m.score?.halfTime?.home : null);
-  const awayGol = m.score?.fullTime?.away ?? (aoVivo ? m.score?.halfTime?.away : null);
+  const comp = m.competitions?.[0];
+  const status = comp?.status?.type;
+  const aoVivo = status?.state === 'in';
+  const encerrado = status?.state === 'post';
 
-  const placarNums = (homeGol !== null && awayGol !== null)
+  const home = comp?.competitors?.find(c => c.homeAway === 'home');
+  const away = comp?.competitors?.find(c => c.homeAway === 'away');
+
+  const homeGol = encerrado || aoVivo ? (home?.score ?? '') : '';
+  const awayGol = encerrado || aoVivo ? (away?.score ?? '') : '';
+  const placarNums = (homeGol !== '' && awayGol !== '')
     ? `${homeGol} — ${awayGol}`
-    : '— vs —';
+    : 'vs';
 
   let infoTxt = '';
-  if (aoVivo) infoTxt = `<div class="copa-placar-info ao-vivo">● AO VIVO${m.minute ? ' '+m.minute+"'" : ''}</div>`;
-  else if (encerrado) infoTxt = `<div class="copa-placar-info">Encerrado</div>`;
-  else {
-    const dt = new Date(m.utcDate);
+  if (aoVivo) {
+    const min = comp?.status?.displayClock || '';
+    infoTxt = `<div class="copa-placar-info ao-vivo">● AO VIVO${min ? ' '+min : ''}</div>`;
+  } else if (encerrado) {
+    infoTxt = `<div class="copa-placar-info">Encerrado</div>`;
+  } else {
+    const dt = new Date(m.date);
     const dataFmt = dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', timeZone:'America/Sao_Paulo' });
     const horaFmt = dt.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo' });
     infoTxt = `<div class="copa-placar-info">${dataFmt} ${horaFmt}</div>`;
   }
 
-  const homeLogo = m.homeTeam?.crest ? `<img src="${m.homeTeam.crest}" onerror="this.style.display='none'">` : '';
-  const awayLogo = m.awayTeam?.crest ? `<img src="${m.awayTeam.crest}" onerror="this.style.display='none'">` : '';
+  const homeLogo = home?.team?.logo ? `<img src="${home.team.logo}" onerror="this.style.display='none'">` : '';
+  const awayLogo = away?.team?.logo ? `<img src="${away.team.logo}" onerror="this.style.display='none'">` : '';
+  const homeNome = home?.team?.shortDisplayName || home?.team?.name || '?';
+  const awayNome = away?.team?.shortDisplayName || away?.team?.name || '?';
 
   return `<div class="copa-jogo${aoVivo?' ao-vivo':''}">
     <div class="copa-time">
       ${homeLogo}
-      <div class="copa-time-nome">${m.homeTeam?.shortName || m.homeTeam?.name || '?'}</div>
+      <div class="copa-time-nome">${homeNome}</div>
     </div>
     <div class="copa-placar">
       <div class="copa-placar-nums">${placarNums}</div>
@@ -1831,21 +1835,23 @@ function montarJogo(m) {
     </div>
     <div class="copa-time away">
       ${awayLogo}
-      <div class="copa-time-nome">${m.awayTeam?.shortName || m.awayTeam?.name || '?'}</div>
+      <div class="copa-time-nome">${awayNome}</div>
     </div>
   </div>`;
 }
 
-function traduzirFase(stage, group) {
+function traduzirFaseESPN(slug, headline) {
   const map = {
-    'GROUP_STAGE': group ? `Fase de Grupos · ${group}` : 'Fase de Grupos',
-    'LAST_16': 'Oitavas de Final',
-    'QUARTER_FINALS': 'Quartas de Final',
-    'SEMI_FINALS': 'Semifinais',
-    'THIRD_PLACE': 'Disputa de 3º Lugar',
-    'FINAL': 'Final',
+    'group-stage': 'Fase de Grupos',
+    'round-of-32': 'Rodada de 32',
+    'round-of-16': 'Oitavas de Final',
+    'quarterfinals': 'Quartas de Final',
+    'semifinals': 'Semifinais',
+    '3rd-place-match': 'Disputa de 3º Lugar',
+    'final': 'Final',
   };
-  return map[stage] || stage;
+  const fase = map[slug] || slug || 'Copa do Mundo 2026';
+  return headline ? `${fase} · ${headline}` : fase;
 }
 
 // ===== INIT =====
