@@ -192,6 +192,22 @@
   .troca-country-name { font-size:12px; font-weight:600; min-width:120px; }
   .troca-tags { display:flex; flex-wrap:wrap; gap:4px; }
 
+  /* PEDIDOS */
+  .quero-btn { border:1px solid var(--azul); background:rgba(0,48,135,.2); color:#6b9aff; border-radius:5px; padding:2px 8px; font-size:10px; font-weight:700; cursor:pointer; transition:all .2s; white-space:nowrap; font-family:inherit; }
+  .quero-btn:hover { background:var(--azul); color:#fff; }
+  .quero-btn.active { background:var(--azul); color:#fff; border-color:var(--azul); }
+  .quero-btn.mine { border-color:var(--muted); background:transparent; color:var(--muted); cursor:default; }
+  .pedidos-section { background:var(--card); border:1px solid rgba(107,154,255,.3); border-radius:13px; padding:18px; margin-bottom:20px; }
+  .pedidos-title { font-family:Impact,'Arial Narrow',sans-serif; font-size:18px; letter-spacing:2px; color:#6b9aff; text-transform:uppercase; margin-bottom:14px; }
+  .pedido-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .pedido-row:last-child { border-bottom:none; }
+  .pedido-avatar { width:28px; height:28px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .pedido-info { flex:1; font-size:13px; }
+  .pedido-info strong { color:var(--text); }
+  .pedido-info span { color:var(--muted); font-size:11px; }
+  .pedido-tags { display:flex; flex-wrap:wrap; gap:4px; }
+  .pedido-tag { background:rgba(107,154,255,.15); border:1px solid rgba(107,154,255,.4); border-radius:5px; padding:2px 8px; font-size:11px; font-weight:600; color:#6b9aff; }
+
   .empty-state { text-align:center; padding:50px 20px; color:var(--muted); }
   .empty-state .emoji { font-size:44px; margin-bottom:10px; }
 
@@ -315,8 +331,9 @@
         <div id="countries-grid"></div>
       </div>
       <div id="panel-repetidas" style="display:none">
+        <div id="pedidos-panel"></div>
         <div class="section-header">
-          <div class="section-title" style="color:var(--warning)">🔄 Repetidas para Troca</div>
+          <div class="section-title" style="color:var(--warning)">🔄 Minhas Repetidas</div>
           <button class="btn btn-yellow" id="btn-copy-all-dups" style="font-size:11px;padding:5px 11px">📋 Copiar lista</button>
         </div>
         <div id="dup-panel-full"></div>
@@ -905,7 +922,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     currentFilter=btn.dataset.filter;
-    if(currentFilter==='duplicates'){ showPanel('repetidas'); renderDupPanel(); }
+    if(currentFilter==='duplicates'){ showPanel('repetidas'); renderDupPanel(); renderPedidosPanel(); }
     else { showPanel('selecoes'); renderGrid(); }
   });
 });
@@ -966,8 +983,13 @@ async function loadSocialTab() {
     </div>`;
   }).join('');
 
+  // Carrega pedidos já feitos pelo usuário atual
+  const { data: meusPedidos } = await sb.from('pedidos').select('figurinha,dono_id').eq('solicitante_id', currentUser.id);
+  const pedidosFeitos = new Set((meusPedidos||[]).map(p => `${p.dono_id}:${p.figurinha}`));
+
   let dupsHtml='';
   (users||[]).forEach(u => {
+    if(u.id === currentUser.id) return; // não mostra as próprias repetidas aqui
     const compact=figsMap[u.id]||{};
     let countriesHtml='', totalUserDups=0;
     ALL_COUNTRIES.forEach(c => {
@@ -975,13 +997,24 @@ async function loadSocialTab() {
       const cdata=compact[c.id]||{};
       for(let i=0;i<c.stickers;i++){
         const v=cdata[i]??cdata[String(i)]??0;
-        if(v>=2){ const qty=v-1; totalUserDups+=qty; labels.push({lbl:getStickerLabel(c,i),qty}); }
+        if(v>=2){ const qty=v-1; totalUserDups+=qty; labels.push({lbl:getStickerLabel(c,i),qty,cid:c.id,cname:c.name}); }
       }
       if(!labels.length) return;
+      const tagsHtml=labels.map(({lbl,qty,cid,cname})=>{
+        const jaQuis=pedidosFeitos.has(`${u.id}:${lbl}`);
+        return `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+          <div class="dup-tag">${lbl}${qty>1?` ×${qty}`:''}</div>
+          <button class="quero-btn ${jaQuis?'active':''}"
+            onclick="togglePedido(this,'${u.id}','${lbl}','${cid}','${cname}')"
+            data-key="${u.id}:${lbl}">
+            ${jaQuis?'✓ Quero':'+ Quero'}
+          </button>
+        </div>`;
+      }).join('');
       countriesHtml+=`<div class="troca-country">
         ${flagImgEl(c.iso,32,22)}
         <div class="troca-country-name">${c.name}</div>
-        <div class="troca-tags">${labels.map(({lbl,qty})=>`<div class="dup-tag">${lbl}${qty>1?` ×${qty}`:''}</div>`).join('')}</div>
+        <div class="troca-tags">${tagsHtml}</div>
       </div>`;
     });
     if(!totalUserDups) return;
@@ -995,6 +1028,52 @@ async function loadSocialTab() {
     </div>`;
   });
   dupsEl.innerHTML=dupsHtml||`<div class="empty-state"><div class="emoji">✨</div>Ninguém tem repetidas ainda.</div>`;
+}
+
+async function togglePedido(btn, donoId, figurinha, paisId, paisNome) {
+  const key=`${donoId}:${figurinha}`;
+  const jaQuis=btn.classList.contains('active');
+  btn.disabled=true;
+  if(jaQuis) {
+    await sb.from('pedidos').delete().eq('solicitante_id',currentUser.id).eq('dono_id',donoId).eq('figurinha',figurinha);
+    btn.classList.remove('active'); btn.textContent='+ Quero';
+  } else {
+    await sb.from('pedidos').insert({ solicitante_id:currentUser.id, dono_id:donoId, figurinha, pais_id:paisId, pais_nome:paisNome });
+    btn.classList.add('active'); btn.textContent='✓ Quero';
+  }
+  btn.disabled=false;
+}
+
+async function renderPedidosPanel() {
+  const panel=document.getElementById('pedidos-panel');
+  if(!panel) return;
+
+  // Pedidos de outros nas minhas repetidas
+  const { data: pedidos } = await sb.from('pedidos')
+    .select('figurinha,pais_id,pais_nome,solicitante_id,usuarios(nome)')
+    .eq('dono_id', currentUser.id);
+
+  if(!pedidos || pedidos.length===0) { panel.innerHTML=''; return; }
+
+  // Agrupa por solicitante
+  const porPessoa={};
+  pedidos.forEach(p => {
+    const nome=p.usuarios?.nome||'?';
+    if(!porPessoa[nome]) porPessoa[nome]=[];
+    porPessoa[nome].push(p);
+  });
+
+  let html=`<div class="pedidos-section"><div class="pedidos-title">✋ Pedidos das suas repetidas</div>`;
+  for(const nome in porPessoa) {
+    const itens=porPessoa[nome];
+    html+=`<div class="pedido-row">
+      <div class="pedido-avatar">${nome[0].toUpperCase()}</div>
+      <div class="pedido-info"><strong>${nome}</strong> quer:</div>
+      <div class="pedido-tags">${itens.map(p=>`<div class="pedido-tag">${p.figurinha} <span style="opacity:.6">(${p.pais_nome})</span></div>`).join('')}</div>
+    </div>`;
+  }
+  html+=`</div>`;
+  panel.innerHTML=html;
 }
 
 // ===== INIT =====
