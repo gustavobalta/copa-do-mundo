@@ -1089,10 +1089,18 @@ async function togglePedido(btn, donoId, figurinha, paisId, paisNome) {
 }
 
 async function fetchMeusPedidos() {
-  const { data } = await sb.from('pedidos')
-    .select('figurinha,pais_id,pais_nome,solicitante_id,usuarios(nome)')
+  const { data: pedidos } = await sb.from('pedidos')
+    .select('figurinha,pais_id,pais_nome,solicitante_id')
     .eq('dono_id', currentUser.id);
-  return data || [];
+  if (!pedidos || !pedidos.length) return [];
+
+  // busca nomes dos solicitantes
+  const ids = [...new Set(pedidos.map(p => p.solicitante_id))];
+  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
+  const nomeMap = {};
+  (users||[]).forEach(u => nomeMap[u.id] = u.nome);
+
+  return pedidos.map(p => ({ ...p, nome: nomeMap[p.solicitante_id] || '?' }));
 }
 
 async function renderPedidosPanel() {
@@ -1103,7 +1111,7 @@ async function renderPedidosPanel() {
   if(!pedidos.length) { panel.innerHTML=''; return; }
   const porPessoa={};
   pedidos.forEach(p => {
-    const nome=p.usuarios?.nome||'?';
+    const nome=p.nome||'?';
     if(!porPessoa[nome]) porPessoa[nome]=[];
     porPessoa[nome].push(p);
   });
@@ -1132,7 +1140,7 @@ async function renderPedidosTab() {
   }
   const porPessoa={};
   pedidos.forEach(p => {
-    const nome=p.usuarios?.nome||'?';
+    const nome=p.nome||'?';
     if(!porPessoa[nome]) porPessoa[nome]={nome, itens:[]};
     porPessoa[nome].itens.push(p);
   });
