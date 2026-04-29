@@ -219,7 +219,19 @@
   .pedido-card-body { flex:1; }
   .pedido-card-name { font-weight:700; font-size:15px; margin-bottom:4px; }
   .pedido-card-sub { font-size:12px; color:var(--muted); margin-bottom:10px; }
-  .pedido-card-stickers { display:flex; flex-wrap:wrap; gap:6px; }
+  .pedido-card-stickers { display:flex; flex-direction:column; gap:8px; }
+  .pedido-item { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .pedido-item-tag { border-radius:6px; padding:4px 10px; font-size:12px; font-weight:700; border:1px solid; }
+  .pedido-item-tag.tem { background:rgba(34,197,94,.15); border-color:var(--success); color:var(--success); }
+  .pedido-item-tag.nao-tem { background:rgba(239,68,68,.1); border-color:var(--danger); color:var(--danger); text-decoration:line-through; opacity:.7; }
+  .pedido-item-pais { font-size:11px; color:var(--muted); }
+  .pedido-item-actions { display:flex; gap:5px; margin-left:auto; }
+  .btn-aceitar { background:rgba(34,197,94,.15); border:1px solid var(--success); color:var(--success); border-radius:6px; padding:3px 10px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s; }
+  .btn-aceitar:hover { background:var(--success); color:#000; }
+  .btn-aceitar:disabled { opacity:.4; cursor:not-allowed; }
+  .btn-recusar { background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; padding:3px 10px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s; }
+  .btn-recusar:hover { background:var(--danger); color:#fff; }
+  .btn-recusar:disabled { opacity:.4; cursor:not-allowed; }
 
   .empty-state { text-align:center; padding:50px 20px; color:var(--muted); }
   .empty-state .emoji { font-size:44px; margin-bottom:10px; }
@@ -1129,6 +1141,39 @@ async function renderPedidosPanel() {
   atualizarBadgePedidos(pedidos.length);
 }
 
+function temRepetida(paisId, figurinha) {
+  const c = COUNTRY_MAP[paisId];
+  if (!c) return false;
+  const s = state[paisId] || {};
+  // descobre o índice pelo label
+  let idx;
+  if (c.stickerLabels) {
+    idx = c.stickerLabels.indexOf(figurinha);
+  } else {
+    const num = parseInt(figurinha.replace(paisId.toUpperCase(), ''));
+    idx = isNaN(num) ? -1 : num - 1;
+  }
+  if (idx < 0) return false;
+  return (s[idx] || 0) >= 2;
+}
+
+async function recusarPedido(solicitanteId, paisId, figurinha, btnRow) {
+  btnRow.querySelectorAll('button').forEach(b => b.disabled = true);
+  await sb.from('pedidos')
+    .delete()
+    .eq('dono_id', currentUser.id)
+    .eq('solicitante_id', solicitanteId)
+    .eq('figurinha', figurinha)
+    .eq('pais_id', paisId);
+  btnRow.closest('.pedido-item').remove();
+  // se não sobrou nenhum item, remove o card inteiro
+  const card = document.querySelector(`[data-solicitante="${solicitanteId}"]`);
+  if (card && card.querySelectorAll('.pedido-item').length === 0) card.remove();
+  const restantes = document.querySelectorAll('.pedido-item').length;
+  atualizarBadgePedidos(restantes);
+  if (restantes === 0) renderPedidosTab();
+}
+
 async function renderPedidosTab() {
   const el=document.getElementById('pedidos-tab-content');
   el.innerHTML=`<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando pedidos...</div>`;
@@ -1140,22 +1185,35 @@ async function renderPedidosTab() {
   }
   const porPessoa={};
   pedidos.forEach(p => {
-    const nome=p.nome||'?';
-    if(!porPessoa[nome]) porPessoa[nome]={nome, itens:[]};
-    porPessoa[nome].itens.push(p);
+    const k=p.solicitante_id;
+    if(!porPessoa[k]) porPessoa[k]={nome:p.nome||'?', solicitanteId:k, itens:[]};
+    porPessoa[k].itens.push(p);
   });
   let html='';
-  for(const nome in porPessoa) {
-    const { itens } = porPessoa[nome];
-    const total=itens.length;
-    html+=`<div class="pedido-card">
+  for(const k in porPessoa) {
+    const { nome, solicitanteId, itens } = porPessoa[k];
+    const disponivel = itens.filter(p => temRepetida(p.pais_id, p.figurinha)).length;
+    const sub = disponivel > 0
+      ? `<span style="color:var(--success)">${disponivel} disponível${disponivel>1?'is':''}</span> · ${itens.length} pedido${itens.length>1?'s':''}`
+      : `${itens.length} pedido${itens.length>1?'s':''} · <span style="color:var(--danger)">nenhuma disponível agora</span>`;
+    const itensHtml = itens.map(p => {
+      const tem = temRepetida(p.pais_id, p.figurinha);
+      const tagClass = tem ? 'tem' : 'nao-tem';
+      const tagTitle = tem ? `Você tem repetida de ${p.figurinha}` : `Você não tem mais ${p.figurinha}`;
+      return `<div class="pedido-item">
+        <div class="pedido-item-tag ${tagClass}" title="${tagTitle}">${p.figurinha}</div>
+        <div class="pedido-item-pais">${p.pais_nome}</div>
+        <div class="pedido-item-actions">
+          <button class="btn-recusar" onclick="recusarPedido('${solicitanteId}','${p.pais_id}','${p.figurinha}',this.parentElement)">✕ Recusar</button>
+        </div>
+      </div>`;
+    }).join('');
+    html+=`<div class="pedido-card" data-solicitante="${solicitanteId}">
       <div class="pedido-card-avatar">${nome[0].toUpperCase()}</div>
       <div class="pedido-card-body">
         <div class="pedido-card-name">${nome}</div>
-        <div class="pedido-card-sub">quer ${total} figurinha${total>1?'s':''} sua${total>1?'s':''}</div>
-        <div class="pedido-card-stickers">
-          ${itens.map(p=>`<div class="pedido-tag" title="${p.pais_nome}">${p.figurinha} <span style="opacity:.6;font-size:10px">${p.pais_nome}</span></div>`).join('')}
-        </div>
+        <div class="pedido-card-sub">${sub}</div>
+        <div class="pedido-card-stickers">${itensHtml}</div>
       </div>
     </div>`;
   }
