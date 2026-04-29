@@ -1308,7 +1308,7 @@ async function renderMeusPedidosTab() {
   el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando...</div>`;
 
   const { data: pedidos } = await sb.from('pedidos')
-    .select('figurinha,pais_id,pais_nome,dono_id')
+    .select('figurinha,pais_id,pais_nome,dono_id,status')
     .eq('solicitante_id', currentUser.id);
 
   if (!pedidos || !pedidos.length) {
@@ -1333,19 +1333,30 @@ async function renderMeusPedidosTab() {
   let html = '';
   for (const donoId in porDono) {
     const { nome, itens } = porDono[donoId];
-    const itensHtml = itens.map(p => `
-      <div class="pedido-item">
-        <div class="pedido-item-tag tem">${p.figurinha}</div>
+    const itensHtml = itens.map(p => {
+      const aceito = p.status === 'aceito';
+      const statusBadge = aceito
+        ? `<span style="background:rgba(255,215,0,.15);border:1px solid var(--amarelo);color:var(--amarelo);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700">✓ Aceito</span>`
+        : `<span style="background:rgba(122,139,160,.1);border:1px solid var(--muted);color:var(--muted);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700">Aguardando</span>`;
+      return `
+      <div class="pedido-item${aceito?' aceito':''}">
+        <div class="pedido-item-tag ${aceito?'tem':''}" style="${aceito?'':'border-color:var(--muted);color:var(--muted)'}">${p.figurinha}</div>
         <div class="pedido-item-pais">${p.pais_nome}</div>
         <div class="pedido-item-actions">
-          <button class="btn-recusar" onclick="cancelarMeuPedido('${donoId}','${p.pais_id}','${p.figurinha}',this.parentElement)" title="Cancelar pedido">✕</button>
+          ${statusBadge}
+          ${!aceito ? `<button class="btn-recusar" onclick="cancelarMeuPedido('${donoId}','${p.pais_id}','${p.figurinha}',this.parentElement)" title="Cancelar pedido">✕</button>` : ''}
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
+    const aceitos = itens.filter(p => p.status === 'aceito').length;
+    const sub = aceitos > 0
+      ? `${itens.length} carta${itens.length>1?'s':''} · <span style="color:var(--amarelo)">${aceitos} aceita${aceitos>1?'s':''}</span>`
+      : `${itens.length} carta${itens.length>1?'s':''} pedida${itens.length>1?'s':''}`;
     html += `<div class="pedido-card">
       <div class="pedido-card-avatar">${nome[0].toUpperCase()}</div>
       <div class="pedido-card-body">
         <div class="pedido-card-name">${nome}</div>
-        <div class="pedido-card-sub">${itens.length} carta${itens.length > 1 ? 's' : ''} pedida${itens.length > 1 ? 's' : ''}</div>
+        <div class="pedido-card-sub">${sub}</div>
         <div class="pedido-card-stickers">${itensHtml}</div>
       </div>
     </div>`;
