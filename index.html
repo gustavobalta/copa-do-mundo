@@ -101,6 +101,7 @@
   .card-header { padding:12px 14px; display:flex; align-items:center; justify-content:space-between; background:var(--card2); border-bottom:1px solid var(--border); }
   .country-info .country-name { font-weight:700; font-size:14px; }
   .country-info .country-group { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+  .country-info .country-group.especiais { color:var(--amarelo); font-weight:700; }
   .card-flag { width:44px; height:30px; border-radius:4px; object-fit:cover; border:1px solid rgba(255,255,255,.1); flex-shrink:0; }
   .complete-badge { background:var(--success); color:#000; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 7px; border-radius:5px; }
   .card-progress { padding:9px 12px; }
@@ -534,10 +535,10 @@ const GROUPS = [
 ];
 const NAMES = ['Escudo','Estádio','Treinador','Capitão','GK1','GK2','DF1','DF2','DF3','DF4','DF5','MF1','MF2','MF3','MF4','MF5','FW1','FW2','FW3','FW4'];
 const SPECIAL_SECTIONS = [
-  { id:'intro',  name:'Contra-Capa',          iso:'', group:'⭐ Especiais', stickers:1,  stickerLabels:['00'] },
-  { id:'fwc_a',  name:'FIFA World Cup (1–8)',  iso:'', group:'⭐ Especiais', stickers:8,  stickerLabels:['FWC01','FWC02','FWC03','FWC04','FWC05','FWC06','FWC07','FWC08'] },
-  { id:'fwc_b',  name:'FIFA World Cup (9–19)', iso:'', group:'⭐ Especiais', stickers:11, stickerLabels:['FWC09','FWC10','FWC11','FWC12','FWC13','FWC14','FWC15','FWC16','FWC17','FWC18','FWC19'] },
-  { id:'cc',     name:'Coca-Cola',             iso:'', group:'⭐ Especiais', stickers:14, stickerLabels:['CC01','CC02','CC03','CC04','CC05','CC06','CC07','CC08','CC09','CC10','CC11','CC12','CC13','CC14'] },
+  { id:'intro',  name:'Contra-Capa',          iso:'', group:'Especiais', stickers:1,  stickerLabels:['00'] },
+  { id:'fwc_a',  name:'FIFA World Cup (1–8)',  iso:'', group:'Especiais', stickers:8,  stickerLabels:['FWC01','FWC02','FWC03','FWC04','FWC05','FWC06','FWC07','FWC08'] },
+  { id:'fwc_b',  name:'FIFA World Cup (9–19)', iso:'', group:'Especiais', stickers:11, stickerLabels:['FWC09','FWC10','FWC11','FWC12','FWC13','FWC14','FWC15','FWC16','FWC17','FWC18','FWC19'] },
+  { id:'cc',     name:'Coca-Cola',             iso:'', group:'Especiais', stickers:14, stickerLabels:['CC01','CC02','CC03','CC04','CC05','CC06','CC07','CC08','CC09','CC10','CC11','CC12','CC13','CC14'] },
 ];
 const SELECOES = GROUPS.flatMap(g => g.countries.map(c => ({...c, group:g.name})));
 const ALL_COUNTRIES = [SPECIAL_SECTIONS[0], SPECIAL_SECTIONS[1], ...SELECOES, SPECIAL_SECTIONS[2], SPECIAL_SECTIONS[3]];
@@ -549,7 +550,7 @@ function getStickerLabel(c, i) {
   return c.stickerLabels ? c.stickerLabels[i] : c.id.toUpperCase() + String(i+1).padStart(2,'0');
 }
 function flagImgEl(iso, w, h) {
-  if(!iso) return `<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.55)}px">⭐</div>`;
+  if(!iso) return `<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.4)}px;font-weight:700;color:var(--amarelo);letter-spacing:1px;font-family:Impact,'Arial Narrow',sans-serif">ESP</div>`;
   return `<img src="https://flagcdn.com/w80/${iso}.png" width="${w}" height="${h}" style="border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#1e2d45" onerror="this.style.display='none'">`;
 }
 
@@ -773,8 +774,8 @@ function renderGrid() {
     return `<div class="country-card${st.have===st.total?' complete':''}" data-id="${c.id}">
       <div class="card-header">
         <div class="country-info">
-          <div class="country-name">${c.stickerLabels?'⭐ ':''}${c.name}</div>
-          <div class="country-group">${c.group}</div>
+          <div class="country-name">${c.name}</div>
+          <div class="country-group${c.stickerLabels?' especiais':''}">${c.group}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           ${st.have===st.total?'<div class="complete-badge">✓ OK</div>':''}
