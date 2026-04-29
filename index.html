@@ -1053,7 +1053,8 @@ async function loadSocialTab() {
       const cdata=compact[c.id]||{};
       for(let i=0;i<c.stickers;i++){
         const v=cdata[i]??cdata[String(i)]??0;
-        if(v>=2){ const qty=v-1; totalUserDups+=qty; labels.push({lbl:getStickerLabel(c,i),qty,cid:c.id,cname:c.name}); }
+        const euTenho=(state[c.id]?.[i]??0)>=1;
+        if(v>=2 && !euTenho){ const qty=v-1; totalUserDups+=qty; labels.push({lbl:getStickerLabel(c,i),qty,cid:c.id,cname:c.name}); }
       }
       if(!labels.length) return;
       const tagsHtml=labels.map(({lbl,qty,cid,cname})=>{
