@@ -737,6 +737,8 @@ function enterApp() {
   updateHeader();
   startRealtimeNotifs();
   renderPedidosPanel();
+  const savedTab = localStorage.getItem('copa_active_tab') || 'album';
+  showTab(savedTab);
 }
 
 // ===== COMPUTED =====
@@ -1022,6 +1024,7 @@ function showTab(tab) {
   if(tab==='social') loadSocialTab();
   if(tab==='pedidos') renderPedidosTab();
   if(tab==='meuspedidos') renderMeusPedidosTab();
+  localStorage.setItem('copa_active_tab', tab);
 }
 
 // ===== SOCIAL TAB =====
