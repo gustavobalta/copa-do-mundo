@@ -549,8 +549,19 @@ const GRAND_TOTAL = ALL_COUNTRIES.reduce((s,c) => s+c.stickers, 0);
 function getStickerLabel(c, i) {
   return c.stickerLabels ? c.stickerLabels[i] : c.id.toUpperCase() + String(i+1).padStart(2,'0');
 }
-function flagImgEl(iso, w, h) {
-  if(!iso) return `<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.4)}px;font-weight:700;color:var(--amarelo);letter-spacing:1px;font-family:Impact,'Arial Narrow',sans-serif">ESP</div>`;
+const SPECIAL_IMGS = {
+  fwc_a: 'https://upload.wikimedia.org/wikipedia/en/thumb/5/5c/2026_FIFA_World_Cup_emblem.svg/200px-2026_FIFA_World_Cup_emblem.svg.png',
+  fwc_b: 'https://upload.wikimedia.org/wikipedia/en/thumb/5/5c/2026_FIFA_World_Cup_emblem.svg/200px-2026_FIFA_World_Cup_emblem.svg.png',
+  cc:    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Coca-Cola_logo.svg/320px-Coca-Cola_logo.svg.png',
+  intro: null,
+};
+
+function flagImgEl(iso, w, h, id) {
+  if(!iso) {
+    const src = id && SPECIAL_IMGS[id];
+    if(src) return `<img src="${src}" width="${w}" height="${h}" style="border-radius:4px;object-fit:contain;background:#fff;padding:2px;border:1px solid rgba(255,255,255,.12)" onerror="this.outerHTML='<div style=\'width:${w}px;height:${h}px;background:#1e2d45;border-radius:4px\'></div>'">`;
+    return `<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.4)}px;font-weight:700;color:var(--amarelo);letter-spacing:1px;font-family:Impact,'Arial Narrow',sans-serif">ESP</div>`;
+  }
   return `<img src="https://flagcdn.com/w80/${iso}.png" width="${w}" height="${h}" style="border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#1e2d45" onerror="this.style.display='none'">`;
 }
 
@@ -779,7 +790,7 @@ function renderGrid() {
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           ${st.have===st.total?'<div class="complete-badge">✓ OK</div>':''}
-          ${flagImgEl(c.iso,44,30)}
+          ${flagImgEl(c.iso,44,30,c.id)}
         </div>
       </div>
       <div class="card-progress">
@@ -835,7 +846,7 @@ function refreshCard(cid) {
 function openModal(cid) {
   currentCountry=cid;
   const c=COUNTRY_MAP[cid];
-  document.getElementById('modal-flag').innerHTML=flagImgEl(c.iso,56,37);
+  document.getElementById('modal-flag').innerHTML=flagImgEl(c.iso,56,37,c.id);
   document.getElementById('modal-country-name').textContent=c.name;
   updateModalSub(cid); renderModalGrid(cid);
   document.getElementById('modal-overlay').classList.add('open');
@@ -948,7 +959,7 @@ function renderDupPanel(){
     if(!labels.length) return;
     totalDups+=cd;
     html+=`<div class="dup-section">
-      <div class="dup-section-header">${flagImgEl(c.iso,36,24)}
+      <div class="dup-section-header">${flagImgEl(c.iso,36,24,c.id)}
         <div><div style="font-weight:700;font-size:14px">${c.name}</div>
         <div style="font-size:11px;color:var(--muted)">${cd} repetida${cd>1?'s':''}</div></div>
       </div>
@@ -1083,7 +1094,7 @@ async function loadSocialTab() {
         </div>`;
       }).join('');
       countriesHtml+=`<div class="troca-country">
-        ${flagImgEl(c.iso,32,22)}
+        ${flagImgEl(c.iso,32,22,c.id)}
         <div class="troca-country-name">${c.name}</div>
         <div class="troca-tags">${tagsHtml}</div>
       </div>`;
