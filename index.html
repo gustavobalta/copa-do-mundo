@@ -612,11 +612,17 @@ async function loadUserState() {
 async function saveStateToSupabase() {
   showSaveIndicator('saving');
   const compact = compactState();
-  const { error } = await sb.from('figurinhas').upsert(
-    { usuario_id: currentUser.id, dados: compact, atualizado_em: new Date().toISOString() },
-    { onConflict: 'usuario_id' }
-  );
+
+  // Tenta update primeiro, se não existir cria
+  const { data: existing } = await sb.from('figurinhas').select('id').eq('usuario_id', currentUser.id).maybeSingle();
+  let error;
+  if(existing) {
+    ({ error } = await sb.from('figurinhas').update({ dados: compact, atualizado_em: new Date().toISOString() }).eq('usuario_id', currentUser.id));
+  } else {
+    ({ error } = await sb.from('figurinhas').insert({ usuario_id: currentUser.id, dados: compact, atualizado_em: new Date().toISOString() }));
+  }
   showSaveIndicator(error ? 'error' : 'saved');
+  if(error) console.error('saveState error:', error);
 }
 
 function scheduleSave() {
