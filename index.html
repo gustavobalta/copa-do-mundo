@@ -1585,7 +1585,7 @@ async function buscarUsuarios() {
     });
     const pct = Math.round(have/GRAND_TOTAL*100);
     let btnHtml = '';
-    if (!st) btnHtml = `<button class="btn-seguir" onclick="seguirUsuario('${u.id}','${u.perfil_privado}',this)">+ Seguir</button>`;
+    if (!st) btnHtml = `<button class="btn-seguir" onclick="seguirUsuario('${u.id}',${u.perfil_privado?1:0},this)">+ Seguir</button>`;
     else if (st === 'pendente') btnHtml = `<button class="btn-seguir pendente" disabled>Pendente</button>`;
     else btnHtml = `<button class="btn-seguir seguindo" onclick="deixarDeSeguir('${u.id}',this)">Seguindo</button>`;
     return `<div class="user-result">
