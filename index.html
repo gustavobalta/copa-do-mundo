@@ -1431,30 +1431,58 @@ function formatarTempo(dt) {
 let _amigosFigsMap = {};
 let _amigosNomeMap = {};
 let _amigosIds = [];
+let _amigosCarregados = false;
+let _amigosCarregandoPromise = null;
 
 async function renderAmigosSeguidos() {
   const grid = document.getElementById('social-amigos-grid');
   const detalhe = document.getElementById('social-repetidas-detalhe');
-  grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div>`;
+  // garante que grid esteja visível e detalhe oculto
+  grid.style.display = '';
   detalhe.style.display = 'none';
+
+  // se já carregou, só re-renderiza o grid sem ir ao servidor
+  if (_amigosCarregados) { _renderAmigosGrid(); return; }
+
+  // evita chamadas paralelas
+  if (_amigosCarregandoPromise) { await _amigosCarregandoPromise; _renderAmigosGrid(); return; }
+
+  grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div>`;
 
   const { data: seguindo } = await sb.from('seguidores')
     .select('seguido_id').eq('seguidor_id', currentUser.id).eq('status','aceito');
   _amigosIds = (seguindo||[]).map(s => s.seguido_id);
 
+  let resolve;
+  _amigosCarregandoPromise = new Promise(r => resolve = r);
+
   if (!_amigosIds.length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">👥</div>Você não segue ninguém ainda.<br><span style="font-size:12px">Use <strong>Descobrir</strong> para encontrar usuários.</span></div>`;
+    _amigosCarregados = true;
+    _amigosCarregandoPromise = null;
+    resolve();
     return;
   }
 
-  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', _amigosIds);
-  const { data: figs } = await sb.from('figurinhas').select('usuario_id,dados').in('usuario_id', _amigosIds);
+  const [{ data: users }, { data: figs }] = await Promise.all([
+    sb.from('usuarios').select('id,nome').in('id', _amigosIds),
+    sb.from('figurinhas').select('usuario_id,dados').in('usuario_id', _amigosIds)
+  ]);
 
   _amigosFigsMap = {};
   (figs||[]).forEach(f => _amigosFigsMap[f.usuario_id] = f.dados);
   _amigosNomeMap = {};
   (users||[]).forEach(u => _amigosNomeMap[u.id] = u.nome);
 
+  _amigosCarregados = true;
+  _amigosCarregandoPromise = null;
+  resolve();
+  _renderAmigosGrid();
+}
+
+function _renderAmigosGrid() {
+  const grid = document.getElementById('social-amigos-grid');
+  if (!_amigosIds.length) return;
   grid.innerHTML = _amigosIds.map(uid => {
     const nome = _amigosNomeMap[uid] || '?';
     const compact = _amigosFigsMap[uid] || {};
@@ -1466,7 +1494,6 @@ async function renderAmigosSeguidos() {
         if(v>=1){ have++; if(v>=2) dup+=v-1; }
       }
     });
-    // quantas repetidas dele eu preciso
     let precisoCount = 0;
     ALL_COUNTRIES.forEach(c => {
       const cdata = compact[c.id] || {};
@@ -1621,6 +1648,7 @@ async function seguirUsuario(uid, privado, btn) {
   btn.className = privado ? 'btn-seguir pendente' : 'btn-seguir seguindo';
   if (!privado) btn.onclick = () => deixarDeSeguir(uid, btn);
   btn.disabled = privado;
+  _amigosCarregados = false; // invalida cache
 }
 
 async function deixarDeSeguir(uid, btn) {
@@ -1630,6 +1658,7 @@ async function deixarDeSeguir(uid, btn) {
   btn.textContent = '+ Seguir';
   btn.className = 'btn-seguir';
   btn.disabled = false;
+  _amigosCarregados = false; // invalida cache
 }
 
 async function renderSeguindo() {
@@ -1670,6 +1699,7 @@ async function deixarDeSeguirById(uid, btn) {
   btn.disabled = true;
   await sb.from('seguidores').delete().eq('seguidor_id', currentUser.id).eq('seguido_id', uid);
   btn.closest('.user-result').remove();
+  _amigosCarregados = false; // invalida cache
 }
 
 async function renderSeguidores() {
@@ -1743,13 +1773,11 @@ function atualizarBadgeSeguidores(n) {
 }
 
 async function verRepetidasDe(uid, nome) {
-  // Navega para o subtab Repetidas e abre o detalhe deste amigo
+  // Navega para o subtab Repetidas
   showSocialSubtab('repetidas');
 
-  // Garante que os dados do amigo estejam no cache
-  if (!_amigosNomeMap[uid] || !_amigosFigsMap[uid]) {
-    await renderAmigosSeguidos();
-  }
+  // Aguarda carregamento em andamento (disparado pelo showSocialSubtab acima)
+  if (_amigosCarregandoPromise) await _amigosCarregandoPromise;
 
   // Se ainda não tem no cache (ex: não segue), busca direto
   if (!_amigosFigsMap[uid]) {
