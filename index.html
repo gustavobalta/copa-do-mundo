@@ -2182,11 +2182,18 @@ let _marcadores = [];
 async function loadPontosTab() {
   if (!_mapaInicializado) {
     await new Promise(r => setTimeout(r, 100)); // espera DOM
-    _mapaObj = L.map('mapa-pontos').setView([-15.78, -47.93], 4);
+    _mapaObj = L.map('mapa-pontos').setView([-23.55, -46.63], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(_mapaObj);
     _mapaInicializado = true;
+    // tenta centralizar na localização do usuário
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => _mapaObj.setView([pos.coords.latitude, pos.coords.longitude], 13),
+        () => {} // silencia erro se usuário negar
+      );
+    }
   }
   await carregarPontos();
 }
