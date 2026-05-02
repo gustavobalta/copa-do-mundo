@@ -604,13 +604,22 @@
       </div>
       <div class="social-subtabs">
         <button class="social-subtab active" onclick="showSocialSubtab('feed')">📰 Feed</button>
-        <button class="social-subtab" onclick="showSocialSubtab('precisam')">🎯 Precisam</button>
+        <button class="social-subtab" onclick="showSocialSubtab('repetidas')">🔄 Repetidas</button>
         <button class="social-subtab" onclick="showSocialSubtab('descobrir')">🔍 Descobrir</button>
         <button class="social-subtab" onclick="showSocialSubtab('seguindo')">👤 Seguindo</button>
         <button class="social-subtab" onclick="showSocialSubtab('seguidores')">👥 Seguidores <span id="badge-seguidores"></span></button>
       </div>
       <div id="social-feed-panel"></div>
-      <div id="social-precisam-panel" style="display:none"></div>
+      <div id="social-repetidas-panel" style="display:none">
+        <div id="social-amigos-grid" class="users-grid"></div>
+        <div id="social-repetidas-detalhe" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <button onclick="voltarParaAmigos()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:13px;font-family:inherit">← Voltar</button>
+            <div id="repetidas-detalhe-titulo" style="font-weight:700;font-size:16px"></div>
+          </div>
+          <div id="repetidas-detalhe-content"></div>
+        </div>
+      </div>
       <div id="social-descobrir-panel" style="display:none">
         <div style="margin-bottom:14px">
           <input type="text" id="busca-usuario" placeholder="Buscar usuário..." oninput="buscarUsuarios()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit">
@@ -1339,16 +1348,16 @@ async function loadSocialTab() {
 
 function showSocialSubtab(sub) {
   _socialSubtabAtiva = sub;
-  ['feed','precisam','descobrir','seguindo','seguidores'].forEach(s => {
+  ['feed','repetidas','descobrir','seguindo','seguidores'].forEach(s => {
     const el = document.getElementById(`social-${s}-panel`);
     if(el) el.style.display = s===sub ? '' : 'none';
   });
   document.querySelectorAll('.social-subtab').forEach((btn,i) => {
     btn.classList.toggle('active',
-      (i===0&&sub==='feed')||(i===1&&sub==='precisam')||(i===2&&sub==='descobrir')||(i===3&&sub==='seguindo')||(i===4&&sub==='seguidores'));
+      (i===0&&sub==='feed')||(i===1&&sub==='repetidas')||(i===2&&sub==='descobrir')||(i===3&&sub==='seguindo')||(i===4&&sub==='seguidores'));
   });
   if(sub==='feed') renderFeed();
-  if(sub==='precisam') renderPrecisam();
+  if(sub==='repetidas') renderAmigosSeguidos();
   if(sub==='descobrir') { document.getElementById('busca-usuario').value=''; document.getElementById('busca-resultado').innerHTML=''; }
   if(sub==='seguindo') renderSeguindo();
   if(sub==='seguidores') renderSeguidores();
@@ -1415,66 +1424,125 @@ function formatarTempo(dt) {
   return dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
 }
 
-async function renderPrecisam() {
-  const el = document.getElementById('social-precisam-panel');
-  el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando...</div>`;
+let _amigosFigsMap = {};
+let _amigosNomeMap = {};
+let _amigosIds = [];
 
-  // pega quem eu sigo
+async function renderAmigosSeguidos() {
+  const grid = document.getElementById('social-amigos-grid');
+  const detalhe = document.getElementById('social-repetidas-detalhe');
+  grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div>`;
+  detalhe.style.display = 'none';
+
   const { data: seguindo } = await sb.from('seguidores')
     .select('seguido_id').eq('seguidor_id', currentUser.id).eq('status','aceito');
-  const ids = (seguindo||[]).map(s => s.seguido_id);
+  _amigosIds = (seguindo||[]).map(s => s.seguido_id);
 
-  if (!ids.length) {
-    el.innerHTML = `<div class="empty-state"><div class="emoji">🎯</div>Siga pessoas para ver o que elas precisam.</div>`;
+  if (!_amigosIds.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">👥</div>Você não segue ninguém ainda.<br><span style="font-size:12px">Use <strong>Descobrir</strong> para encontrar usuários.</span></div>`;
     return;
   }
 
-  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
-  const { data: figs } = await sb.from('figurinhas').select('usuario_id,dados').in('usuario_id', ids);
-  const figsMap = {};
-  (figs||[]).forEach(f => figsMap[f.usuario_id] = f.dados);
-  const nomeMap = {};
-  (users||[]).forEach(u => nomeMap[u.id] = u.nome);
+  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', _amigosIds);
+  const { data: figs } = await sb.from('figurinhas').select('usuario_id,dados').in('usuario_id', _amigosIds);
 
-  let html = '';
-  ids.forEach(uid => {
-    const nome = nomeMap[uid] || '?';
-    const compact = figsMap[uid] || {};
-    let dispHtml = '', totalDisp = 0;
+  _amigosFigsMap = {};
+  (figs||[]).forEach(f => _amigosFigsMap[f.usuario_id] = f.dados);
+  _amigosNomeMap = {};
+  (users||[]).forEach(u => _amigosNomeMap[u.id] = u.nome);
 
+  grid.innerHTML = _amigosIds.map(uid => {
+    const nome = _amigosNomeMap[uid] || '?';
+    const compact = _amigosFigsMap[uid] || {};
+    let have = 0, dup = 0;
     ALL_COUNTRIES.forEach(c => {
       const cdata = compact[c.id] || {};
-      const labels = [];
       for(let i=0;i<c.stickers;i++){
-        const elesTemRepetida = (cdata[i]??cdata[String(i)]??0) >= 2;
-        const euNaoTenho = (state[c.id]?.[i]??0) === 0;
-        if(elesTemRepetida && euNaoTenho) { labels.push(getStickerLabel(c,i)); totalDisp++; }
+        const v = cdata[i]??cdata[String(i)]??0;
+        if(v>=1){ have++; if(v>=2) dup+=v-1; }
       }
-      if(!labels.length) return;
-      dispHtml += `<div class="troca-country" style="margin-bottom:8px">
-        ${flagImgEl(c.iso,28,19,c.id)}
-        <div class="troca-country-name">${c.name}</div>
-        <div class="troca-tags">${labels.map(lbl =>
-          `<div style="display:flex;align-items:center;gap:4px">
-            <div class="dup-tag">${lbl}</div>
-            <button class="quero-btn" onclick="abrirModalTroca('${uid}','${nome}','${c.id}','${c.name}','${lbl}')">⇄ Trocar</button>
-          </div>`
-        ).join('')}</div>
-      </div>`;
     });
-
-    if (!totalDisp) return;
-    html += `<div class="troca-section">
-      <div class="troca-header">
-        <div class="troca-avatar">${nome[0].toUpperCase()}</div>
-        <div><div class="troca-name">${nome}</div>
-        <div class="troca-sub">${totalDisp} repetida${totalDisp>1?'s':''} que você precisa</div></div>
+    // quantas repetidas dele eu preciso
+    let precisoCount = 0;
+    ALL_COUNTRIES.forEach(c => {
+      const cdata = compact[c.id] || {};
+      for(let i=0;i<c.stickers;i++){
+        const v = cdata[i]??cdata[String(i)]??0;
+        if(v>=2 && (state[c.id]?.[i]??0)===0) precisoCount++;
+      }
+    });
+    const pct = Math.round(have/GRAND_TOTAL*100);
+    return `<div class="user-card" onclick="verRepetidasAmigo('${uid}')" style="cursor:pointer">
+      <div class="user-card-header">
+        <div class="user-card-avatar">${nome[0].toUpperCase()}</div>
+        <div>
+          <div class="user-card-name">${nome}</div>
+          <div class="user-card-sub">${pct}% completo</div>
+        </div>
       </div>
-      <div class="troca-countries">${dispHtml}</div>
+      <div class="user-card-bar"><div class="user-card-fill" style="width:${pct}%"></div></div>
+      <div class="user-card-stats">
+        <span class="s-dup">🔄 ${dup} repetidas</span>
+        <span style="color:var(--border)">·</span>
+        ${precisoCount>0
+          ? `<span style="color:var(--success);font-weight:600;font-size:12px">✓ ${precisoCount} que você precisa</span>`
+          : `<span class="s-need" style="font-size:12px">nenhuma que você precisa</span>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function voltarParaAmigos() {
+  document.getElementById('social-amigos-grid').style.display = '';
+  document.getElementById('social-repetidas-detalhe').style.display = 'none';
+}
+
+function verRepetidasAmigo(uid) {
+  const nome = _amigosNomeMap[uid] || '?';
+  const compact = _amigosFigsMap[uid] || {};
+
+  document.getElementById('social-amigos-grid').style.display = 'none';
+  const detalhe = document.getElementById('social-repetidas-detalhe');
+  detalhe.style.display = '';
+  document.getElementById('repetidas-detalhe-titulo').textContent = `🔄 Repetidas de ${nome}`;
+
+  let html = '', totalDups = 0;
+  ALL_COUNTRIES.forEach(c => {
+    const cdata = compact[c.id] || {};
+    const labels = [];
+    for(let i=0;i<c.stickers;i++){
+      const v = cdata[i]??cdata[String(i)]??0;
+      if(v>=2){
+        const euTenho = (state[c.id]?.[i]??0) >= 1;
+        const qty = v-1;
+        totalDups += qty;
+        labels.push({ lbl: getStickerLabel(c,i), qty, euTenho, paisId: c.id, paisNome: c.name });
+      }
+    }
+    if(!labels.length) return;
+    html += `<div class="dup-section">
+      <div class="dup-section-header">
+        ${flagImgEl(c.iso,36,24,c.id)}
+        <div>
+          <div style="font-weight:700;font-size:14px">${c.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${labels.length} repetida${labels.length>1?'s':''}</div>
+        </div>
+      </div>
+      <div class="dup-list">
+        ${labels.map(({lbl,qty,euTenho,paisId,paisNome}) => `
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+            <div class="dup-tag" style="${euTenho?'opacity:.45;text-decoration:line-through':''}" title="${euTenho?'Você já tem essa':'Você não tem essa'}">${lbl}${qty>1?` ×${qty}`:''}</div>
+            ${!euTenho
+              ? `<button class="quero-btn" onclick="abrirModalTroca('${uid}','${nome}','${paisId}','${paisNome}','${lbl}')">⇄ Trocar</button>`
+              : `<span style="font-size:10px;color:var(--muted)">já tenho</span>`}
+          </div>`).join('')}
+      </div>
     </div>`;
   });
 
-  el.innerHTML = html || `<div class="empty-state"><div class="emoji">✨</div>Nenhuma repetida dos seus seguidos te falta.</div>`;
+  document.getElementById('repetidas-detalhe-content').innerHTML = totalDups
+    ? `<p style="color:var(--muted);font-size:12px;margin-bottom:14px">${totalDups} repetida${totalDups>1?'s':''} no total · figurinhas riscadas você já tem</p>${html}`
+    : `<div class="empty-state"><div class="emoji">✨</div>${nome} não tem repetidas ainda.</div>`;
 }
 
 async function buscarUsuarios() {
