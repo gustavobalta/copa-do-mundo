@@ -655,20 +655,32 @@
   <!-- PONTOS DE TROCA -->
   <div id="pontos-tab" style="display:none">
     <main style="max-width:900px;margin:0 auto;padding:24px 28px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
         <div>
           <h2 style="font-family:Impact,'Arial Narrow',sans-serif;font-size:22px;letter-spacing:2px;color:var(--text);text-transform:uppercase">📍 Pontos de Troca</h2>
           <p style="font-size:12px;color:var(--muted);margin-top:4px">Locais físicos para troca de figurinhas</p>
         </div>
         <button class="btn btn-yellow" onclick="abrirModalPonto()">+ Cadastrar Ponto</button>
       </div>
-      <div id="mapa-pontos" class="mapa-container"></div>
-      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-        <input type="text" id="busca-cidade" placeholder="Filtrar por cidade..." oninput="filtrarPontos()" style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit">
-        <button class="filter-btn active" id="filtro-ativo-btn" onclick="toggleFiltroPontos(this,'ativo')">● Ativos</button>
-        <button class="filter-btn" id="filtro-todos-btn" onclick="toggleFiltroPontos(this,'todos')">Todos</button>
+      <!-- subtabs -->
+      <div class="social-subtabs" style="margin-bottom:16px">
+        <button class="social-subtab active" id="pontos-subtab-mapa" onclick="showPontosSubtab('mapa')">🗺️ Mapa</button>
+        <button class="social-subtab" id="pontos-subtab-meus" onclick="showPontosSubtab('meus')">📌 Meus Locais</button>
       </div>
-      <div id="pontos-lista"></div>
+      <!-- painel mapa -->
+      <div id="pontos-panel-mapa">
+        <div id="mapa-pontos" class="mapa-container"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;margin-bottom:16px;flex-wrap:wrap">
+          <input type="text" id="busca-cidade" placeholder="Filtrar por cidade..." oninput="filtrarPontos()" style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit">
+          <button class="filter-btn active" id="filtro-ativo-btn" onclick="toggleFiltroPontos(this,'ativo')">● Ativos</button>
+          <button class="filter-btn" id="filtro-todos-btn" onclick="toggleFiltroPontos(this,'todos')">Todos</button>
+        </div>
+        <div id="pontos-lista"></div>
+      </div>
+      <!-- painel meus locais -->
+      <div id="pontos-panel-meus" style="display:none">
+        <div id="meus-pontos-lista"></div>
+      </div>
     </main>
   </div>
 
@@ -723,6 +735,14 @@
     </div>
     <div class="modal-body">
       <div class="form-group"><label>Nome do local</label><input type="text" id="ponto-nome" placeholder="Ex: Praça da Liberdade"></div>
+      <div class="form-group">
+        <label>CEP <span style="font-size:11px;color:var(--muted)">(preenche cidade, estado e bairro)</span></label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="ponto-cep" placeholder="00000-000" maxlength="9" oninput="formatarCep(this)" style="flex:1" onblur="buscarCep()">
+          <button type="button" onclick="buscarCep()" style="background:var(--primary);color:#000;border:none;border-radius:8px;padding:0 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Buscar</button>
+        </div>
+        <div id="cep-status" style="font-size:11px;color:var(--muted);margin-top:4px;min-height:14px"></div>
+      </div>
       <div class="form-group"><label>Cidade</label><input type="text" id="ponto-cidade" placeholder="Ex: São Vicente"></div>
       <div class="form-group"><label>Estado (sigla)</label><input type="text" id="ponto-estado" placeholder="Ex: SP" maxlength="2" style="text-transform:uppercase"></div>
       <div class="form-group"><label>Bairro (opcional)</label><input type="text" id="ponto-bairro" placeholder="Ex: Centro"></div>
@@ -2273,26 +2293,29 @@ function renderPontos() {
 async function toggleAtivarPonto(id, ativoAtual) {
   await sb.from('pontos_troca').update({ ativo: !ativoAtual }).eq('id', id);
   await carregarPontos();
+  if (document.getElementById('pontos-panel-meus').style.display !== 'none') renderMeusPontos();
 }
 
 async function deletarPonto(id) {
   if (!confirm('Remover este ponto de troca?')) return;
   await sb.from('pontos_troca').delete().eq('id', id);
   await carregarPontos();
+  if (document.getElementById('pontos-panel-meus').style.display !== 'none') renderMeusPontos();
 }
 
 let _mapaModalInicializado = false;
 function abrirModalPonto() {
   document.getElementById('ponto-modal-overlay').classList.add('open');
-  ['ponto-nome','ponto-cidade','ponto-estado','ponto-bairro','ponto-horario','ponto-desc'].forEach(id => {
+  ['ponto-nome','ponto-cep','ponto-cidade','ponto-estado','ponto-bairro','ponto-horario','ponto-desc'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  document.getElementById('cep-status').textContent = '';
   _pontoLat = null; _pontoLng = null;
   document.getElementById('ponto-coord-info').textContent = 'Nenhuma localização marcada';
 
   setTimeout(() => {
     if (!_mapaModalInicializado) {
-      _mapaModalObj = L.map('mapa-ponto-modal').setView([-15.78, -47.93], 4);
+      _mapaModalObj = L.map('mapa-ponto-modal').setView([-23.55, -46.63], 11);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(_mapaModalObj);
       _mapaModalObj.on('click', e => {
         _pontoLat = e.latlng.lat.toFixed(6);
@@ -2338,6 +2361,74 @@ async function salvarPonto() {
   btn.disabled = false; btn.textContent = 'Salvar Ponto';
   fecharModalPonto();
   if (document.getElementById('pontos-tab').style.display !== 'none') await carregarPontos();
+}
+
+function showPontosSubtab(sub) {
+  document.getElementById('pontos-panel-mapa').style.display = sub === 'mapa' ? '' : 'none';
+  document.getElementById('pontos-panel-meus').style.display = sub === 'meus' ? '' : 'none';
+  document.getElementById('pontos-subtab-mapa').classList.toggle('active', sub === 'mapa');
+  document.getElementById('pontos-subtab-meus').classList.toggle('active', sub === 'meus');
+  if (sub === 'meus') renderMeusPontos();
+  else setTimeout(() => _mapaObj?.invalidateSize(), 50);
+}
+
+function renderMeusPontos() {
+  const meus = _todosPontos.filter(p => p.usuario_id === currentUser.id);
+  const el = document.getElementById('meus-pontos-lista');
+  if (!meus.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">📍</div>Você ainda não cadastrou nenhum ponto.<br><span style="font-size:12px">Clique em <strong>+ Cadastrar Ponto</strong> para adicionar.</span></div>`;
+    return;
+  }
+  el.innerHTML = meus.map(p => `
+    <div class="ponto-card">
+      <div class="ponto-card-header">
+        <div class="ponto-pin">📍</div>
+        <div style="flex:1">
+          <div class="ponto-nome">${p.nome}</div>
+          <div class="ponto-local">${p.cidade}/${p.estado}${p.bairro?' · '+p.bairro:''}</div>
+        </div>
+        <div style="display:flex;gap:5px;align-items:center">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer">
+            <input type="checkbox" ${p.ativo?'checked':''} onchange="toggleAtivarPonto('${p.id}',${p.ativo})" style="cursor:pointer;accent-color:var(--primary)">
+            ${p.ativo ? '<span style="color:var(--success)">Ativo</span>' : 'Inativo'}
+          </label>
+          <button onclick="deletarPonto('${p.id}')" style="font-size:11px;background:none;border:1px solid var(--danger);color:var(--danger);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:inherit">Remover</button>
+        </div>
+      </div>
+      ${p.horario ? `<div style="font-size:12px;color:var(--muted)">🕐 ${p.horario}</div>` : ''}
+      ${p.descricao ? `<div style="font-size:12px;color:var(--muted);margin-top:4px">${p.descricao}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function formatarCep(input) {
+  let v = input.value.replace(/\D/g,'').slice(0,8);
+  if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5);
+  input.value = v;
+}
+
+async function buscarCep() {
+  const cep = document.getElementById('ponto-cep').value.replace(/\D/g,'');
+  const status = document.getElementById('cep-status');
+  if (cep.length !== 8) return;
+  status.textContent = 'Buscando...';
+  status.style.color = 'var(--muted)';
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const data = await res.json();
+    if (data.erro) { status.textContent = 'CEP não encontrado.'; status.style.color = 'var(--danger)'; return; }
+    document.getElementById('ponto-cidade').value = data.localidade || '';
+    document.getElementById('ponto-estado').value = data.uf || '';
+    document.getElementById('ponto-bairro').value = data.bairro || '';
+    status.textContent = `✓ ${data.logradouro ? data.logradouro + ', ' : ''}${data.localidade}/${data.uf}`;
+    status.style.color = 'var(--success)';
+    // centraliza mapa modal na cidade
+    if (_mapaModalObj && data.localidade) {
+      const geo = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(data.localidade+','+data.uf+',Brasil')}&format=json&limit=1`);
+      const geoData = await geo.json();
+      if (geoData[0]) _mapaModalObj.setView([parseFloat(geoData[0].lat), parseFloat(geoData[0].lon)], 14);
+    }
+  } catch { status.textContent = 'Erro ao buscar CEP.'; status.style.color = 'var(--danger)'; }
 }
 
 // ===== COPA TAB =====
