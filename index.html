@@ -215,7 +215,6 @@
   /* badge no nav */
   .nav-tab .badge { display:inline-flex; align-items:center; justify-content:center; background:var(--danger); color:#fff; font-size:10px; font-weight:700; border-radius:99px; min-width:16px; height:16px; padding:0 4px; margin-left:5px; line-height:1; }
   /* aba pedidos */
-  #pedidos-tab main { max-width:700px; margin:0 auto; padding:24px 28px; }
   .pedidos-tab-header { margin-bottom:24px; }
   .pedidos-tab-header h2 { font-family:Impact,'Arial Narrow',sans-serif; font-size:22px; letter-spacing:2px; color:#6b9aff; text-transform:uppercase; }
   .pedidos-tab-header p { font-size:12px; color:var(--muted); margin-top:4px; }
@@ -312,7 +311,7 @@
     .hstat { padding:6px 10px; }
     .hstat-num { font-size:18px; }
     #countries-grid { grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); }
-    #pedidos-tab main, #meuspedidos-tab main { padding:18px 20px; }
+    #trocas-tab main { padding:18px 20px; }
   }
 
   /* Mobile */
@@ -370,8 +369,8 @@
     .troca-section { padding:12px 14px; }
     .troca-country { gap:7px; }
 
-    /* Pedidos */
-    #pedidos-tab main, #meuspedidos-tab main { padding:12px 14px; }
+    /* Trocas */
+    #trocas-tab main { padding:12px 14px; }
     .pedidos-tab-header { margin-bottom:16px; }
     .pedidos-tab-header h2 { font-size:17px; letter-spacing:1px; }
     .pedido-card { padding:12px 14px; gap:10px; }
@@ -395,6 +394,55 @@
     .nav-tab { padding:10px 10px; font-size:11px; }
     .filter-btn { padding:4px 7px; font-size:10px; }
   }
+
+  /* SOCIAL SUBTABS */
+  .social-subtabs { display:flex; gap:0; margin-bottom:20px; background:var(--bg); border-radius:10px; padding:4px; }
+  .social-subtab { flex:1; padding:9px; text-align:center; border-radius:7px; cursor:pointer; font-size:13px; font-weight:600; color:var(--muted); border:none; background:none; font-family:inherit; transition:all .2s; white-space:nowrap; }
+  .social-subtab.active { background:var(--card2); color:var(--text); }
+
+  /* TROCAS SUBTABS */
+  .trocas-subtabs { display:flex; gap:0; background:var(--bg); border-radius:8px; padding:3px; }
+
+  /* FEED */
+  .feed-item { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px; }
+  .feed-avatar { width:38px; height:38px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .feed-body { flex:1; font-size:13px; line-height:1.5; }
+  .feed-time { font-size:11px; color:var(--muted); margin-top:3px; }
+
+  /* USER SEARCH RESULT */
+  .user-result { background:var(--card); border:1px solid var(--border); border-radius:11px; padding:14px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+  .user-result-avatar { width:40px; height:40px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:17px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .user-result-info { flex:1; }
+  .user-result-name { font-weight:700; font-size:15px; }
+  .user-result-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+  .btn-seguir { border:1px solid var(--amarelo); background:rgba(255,215,0,.1); color:var(--amarelo); border-radius:7px; padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s; white-space:nowrap; }
+  .btn-seguir:hover { background:var(--amarelo); color:#000; }
+  .btn-seguir.seguindo { border-color:var(--muted); background:transparent; color:var(--muted); }
+  .btn-seguir.seguindo:hover { border-color:var(--danger); color:var(--danger); }
+  .btn-seguir.pendente { border-color:var(--muted); background:transparent; color:var(--muted); cursor:default; }
+
+  /* TROCA CARD */
+  .troca-card { background:var(--card); border:1px solid rgba(107,154,255,.3); border-radius:13px; padding:16px 18px; margin-bottom:12px; }
+  .troca-card-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .troca-card-body { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px; margin-bottom:14px; }
+  .troca-lado { background:var(--bg); border:1px solid var(--border); border-radius:9px; padding:10px 12px; }
+  .troca-lado-titulo { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+  .troca-lado-fig { font-family:Impact,'Arial Narrow',sans-serif; font-size:18px; color:var(--amarelo); }
+  .troca-lado-pais { font-size:11px; color:var(--muted); margin-top:2px; }
+  .troca-seta { font-size:20px; color:var(--muted); text-align:center; }
+  .troca-actions { display:flex; gap:7px; flex-wrap:wrap; }
+  .troca-status-badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:5px; font-size:11px; font-weight:700; }
+  .troca-status-badge.pendente { background:rgba(122,139,160,.1); border:1px solid var(--muted); color:var(--muted); }
+  .troca-status-badge.aceito { background:rgba(255,215,0,.1); border:1px solid var(--amarelo); color:var(--amarelo); }
+  .troca-status-badge.recusado { background:rgba(239,68,68,.1); border:1px solid var(--danger); color:var(--danger); }
+  .troca-status-badge.concluido { background:rgba(34,197,94,.1); border:1px solid var(--success); color:var(--success); }
+
+  /* PERFIL PRIVADO TOGGLE */
+  .privado-toggle { display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--card); border:1px solid var(--border); border-radius:10px; margin-bottom:16px; cursor:pointer; }
+  .toggle-switch { width:40px; height:22px; border-radius:99px; background:var(--border); position:relative; transition:background .2s; flex-shrink:0; }
+  .toggle-switch.on { background:var(--verde); }
+  .toggle-knob { width:18px; height:18px; border-radius:99px; background:#fff; position:absolute; top:2px; left:2px; transition:left .2s; }
+  .toggle-switch.on .toggle-knob { left:20px; }
 </style>
 </head>
 <body>
@@ -469,9 +517,8 @@
 
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showTab('album')">📖 Meu Álbum</button>
-    <button class="nav-tab" onclick="showTab('social')">👥 Amigos</button>
-    <button class="nav-tab" id="nav-pedidos" onclick="showTab('pedidos')">✋ Pedidos</button>
-    <button class="nav-tab" onclick="showTab('meuspedidos')">🙋 Meus Pedidos</button>
+    <button class="nav-tab" onclick="showTab('social')">👥 Social</button>
+    <button class="nav-tab" id="nav-trocas" onclick="showTab('trocas')">🔄 Trocas</button>
     <button class="nav-tab nav-tab-copa" onclick="showTab('copa')">🏆 COPA</button>
   </div>
 
@@ -502,7 +549,6 @@
         <div id="countries-grid"></div>
       </div>
       <div id="panel-repetidas" style="display:none">
-        <div id="pedidos-panel"></div>
         <div class="section-header">
           <div class="section-title" style="color:var(--warning)">🔄 Minhas Repetidas</div>
           <button class="btn btn-yellow" id="btn-copy-all-dups" style="font-size:11px;padding:5px 11px">📋 Copiar lista</button>
@@ -515,39 +561,41 @@
   <div id="social-tab" style="display:none">
     <main>
       <div class="social-header">
-        <h2>👥 Progresso dos Amigos</h2>
-        <p>Clique em um amigo para ver as repetidas dele</p>
+        <h2>👥 Social</h2>
+        <p id="social-subtitulo">Conecte-se com outros colecionadores</p>
       </div>
-      <div id="users-progress-grid" class="users-grid"></div>
-      <div id="dups-filtro-header" style="display:none;margin-top:20px">
-        <div class="section-header">
-          <div class="section-title" style="color:var(--warning)" id="dups-filtro-titulo">🔄 Repetidas</div>
-          <button id="btn-ver-todos" style="font-size:12px;background:rgba(245,158,11,.1);border:1px solid var(--warning);color:var(--warning);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit;font-weight:700" onclick="mostrarTodosDups()">Ver todos</button>
+      <div class="social-subtabs">
+        <button class="social-subtab active" onclick="showSocialSubtab('feed')">📰 Feed</button>
+        <button class="social-subtab" onclick="showSocialSubtab('descobrir')">🔍 Descobrir</button>
+        <button class="social-subtab" onclick="showSocialSubtab('seguindo')">👤 Seguindo</button>
+        <button class="social-subtab" onclick="showSocialSubtab('seguidores')">👥 Seguidores <span id="badge-seguidores"></span></button>
+      </div>
+      <div id="social-feed-panel"></div>
+      <div id="social-descobrir-panel" style="display:none">
+        <div style="margin-bottom:14px">
+          <input type="text" id="busca-usuario" placeholder="Buscar usuário..." oninput="buscarUsuarios()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit">
         </div>
+        <div id="busca-resultado"></div>
       </div>
-      <div id="all-dups-panel"></div>
+      <div id="social-seguindo-panel" style="display:none"></div>
+      <div id="social-seguidores-panel" style="display:none"></div>
     </main>
   </div>
 
-  <div id="pedidos-tab" style="display:none">
-    <main>
+  <div id="trocas-tab" style="display:none">
+    <main style="max-width:800px;margin:0 auto;padding:24px 28px">
       <div class="pedidos-tab-header">
-        <h2>✋ Pedidos das suas repetidas</h2>
-        <p>Pessoas que querem figurinhas das suas repetidas</p>
+        <h2>🔄 Trocas</h2>
+        <p>Proponha e gerencie trocas de figurinhas</p>
       </div>
-      <div id="pedidos-tab-content"></div>
-      <div class="historico-section" id="historico-dono"></div>
-    </main>
-  </div>
-
-  <div id="meuspedidos-tab" style="display:none">
-    <main>
-      <div class="pedidos-tab-header">
-        <h2>🙋 Meus Pedidos</h2>
-        <p>Cartas que você pediu para seus amigos</p>
+      <div class="trocas-subtabs">
+        <button class="historico-tab active" onclick="showTrocasSubtab('recebidas')">📥 Recebidas</button>
+        <button class="historico-tab" onclick="showTrocasSubtab('enviadas')">📤 Enviadas</button>
+        <button class="historico-tab" onclick="showTrocasSubtab('historico')">📋 Histórico</button>
       </div>
-      <div id="meuspedidos-tab-content"></div>
-      <div class="historico-section" id="historico-solicitante"></div>
+      <div id="trocas-recebidas-panel" style="margin-top:16px"></div>
+      <div id="trocas-enviadas-panel" style="display:none;margin-top:16px"></div>
+      <div id="trocas-historico-panel" style="display:none;margin-top:16px"></div>
     </main>
   </div>
 
@@ -878,9 +926,9 @@ function enterApp() {
   renderGrid();
   updateHeader();
   startRealtimeNotifs();
-  renderPedidosPanel();
   const savedTab = localStorage.getItem('copa_active_tab') || 'album';
-  showTab(savedTab);
+  const validTabs = ['album','social','trocas','copa'];
+  showTab(validTabs.includes(savedTab) ? savedTab : 'album');
 }
 
 // ===== COMPUTED =====
@@ -1146,7 +1194,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     currentFilter=btn.dataset.filter;
-    if(currentFilter==='duplicates'){ showPanel('repetidas'); renderDupPanel(); renderPedidosPanel(); }
+    if(currentFilter==='duplicates'){ showPanel('repetidas'); renderDupPanel(); }
     else { showPanel('selecoes'); renderGrid(); }
   });
 });
@@ -1157,500 +1205,610 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); }
 
 // ===== NAV TABS =====
 function showTab(tab) {
-  ['album','social','pedidos','meuspedidos','copa'].forEach(t =>
-    document.getElementById(t+'-tab').style.display = tab===t ? '' : 'none');
+  ['album','social','trocas','copa'].forEach(t => {
+    const el = document.getElementById(t+'-tab');
+    if(el) el.style.display = tab===t ? '' : 'none';
+  });
   document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',
-    (i===0&&tab==='album')||(i===1&&tab==='social')||(i===2&&tab==='pedidos')||(i===3&&tab==='meuspedidos')||(i===4&&tab==='copa')));
+    (i===0&&tab==='album')||(i===1&&tab==='social')||(i===2&&tab==='trocas')||(i===3&&tab==='copa')));
   if(tab==='social') loadSocialTab();
-  if(tab==='pedidos') { renderPedidosTab(); renderHistorico('historico-dono','dono'); }
-  if(tab==='meuspedidos') { renderMeusPedidosTab(); renderHistorico('historico-solicitante','solicitante'); }
+  if(tab==='trocas') loadTrocasTab();
   if(tab==='copa') loadCopaTab();
   localStorage.setItem('copa_active_tab', tab);
 }
 
 // ===== SOCIAL TAB =====
-let _socialUsers=[], _socialFigsMap={}, _socialPedidosFeitos=new Set();
+let _socialSubtabAtiva = 'feed';
+let _seguidoresCache = []; // {id, nome, status} quem me segue
+let _seguindoCache = [];   // {id, nome} quem eu sigo
 
 async function loadSocialTab() {
-  const progressEl=document.getElementById('users-progress-grid');
-  const dupsEl=document.getElementById('all-dups-panel');
-  progressEl.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div>`;
-  dupsEl.innerHTML='';
-  document.getElementById('dups-filtro-header').style.display='none';
-
-  const { data: users } = await sb.from('usuarios').select('id,nome');
-  const { data: allFigs } = await sb.from('figurinhas').select('usuario_id,dados');
-  const { data: meusPedidos } = await sb.from('pedidos').select('figurinha,dono_id').eq('solicitante_id', currentUser.id);
-
-  _socialFigsMap={};
-  (allFigs||[]).forEach(f => _socialFigsMap[f.usuario_id]=f.dados);
-  _socialPedidosFeitos=new Set((meusPedidos||[]).map(p=>`${p.dono_id}:${p.figurinha}`));
-  _socialUsers=(users||[]).filter(u=>u.id!==currentUser.id);
-
-  // cards dos amigos (sem o próprio usuário)
-  progressEl.innerHTML=_socialUsers.map(u => {
-    const compact=_socialFigsMap[u.id]||{};
-    let have=0, dup=0;
-    ALL_COUNTRIES.forEach(c => {
-      const cdata=compact[c.id]||{};
-      for(let i=0;i<c.stickers;i++){
-        const v=cdata[i]??cdata[String(i)]??0;
-        if(v>=1){ have++; dup+=v-1; }
-      }
-    });
-    const pct=Math.round(have/GRAND_TOTAL*100);
-    return `<div class="user-card" onclick="selecionarAmigo('${u.id}','${u.nome}')" data-uid="${u.id}">
-      <div class="user-card-header">
-        <div class="user-card-avatar">${u.nome[0].toUpperCase()}</div>
-        <div>
-          <div class="user-card-name">${u.nome}</div>
-          <div class="user-card-sub">${pct}% completo</div>
-        </div>
-      </div>
-      <div class="user-card-bar"><div class="user-card-fill" style="width:${pct}%"></div></div>
-      <div class="user-card-stats">
-        <span class="s-have">✓ ${have}</span>
-        <span style="color:var(--muted);font-size:10px">coladas</span>
-        <span style="color:var(--border)">·</span>
-        <span class="s-dup">${dup}</span>
-        <span style="color:var(--muted);font-size:10px">repetidas</span>
-        <span style="color:var(--border)">·</span>
-        <span class="s-need">${GRAND_TOTAL-have}</span>
-        <span style="color:var(--muted);font-size:10px">faltam</span>
-      </div>
-    </div>`;
-  }).join('') || `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">👥</div>Nenhum amigo cadastrado ainda.</div>`;
+  showSocialSubtab(_socialSubtabAtiva);
 }
 
-function renderDupsDeUsuarios(usuariosFiltro) {
-  const dupsEl=document.getElementById('all-dups-panel');
-  let dupsHtml='';
-  usuariosFiltro.forEach(u => {
-    const compact=_socialFigsMap[u.id]||{};
-    let countriesHtml='', totalUserDups=0;
-    ALL_COUNTRIES.forEach(c => {
-      const labels=[];
-      const cdata=compact[c.id]||{};
-      for(let i=0;i<c.stickers;i++){
-        const v=cdata[i]??cdata[String(i)]??0;
-        const euTenho=(state[c.id]?.[i]??0)>=1;
-        if(v>=2 && !euTenho){ const qty=v-1; totalUserDups+=qty; labels.push({lbl:getStickerLabel(c,i),qty,cid:c.id,cname:c.name}); }
-      }
-      if(!labels.length) return;
-      const tagsHtml=labels.map(({lbl,qty,cid,cname})=>{
-        const jaQuis=_socialPedidosFeitos.has(`${u.id}:${lbl}`);
-        return `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
-          <div class="dup-tag">${lbl}${qty>1?` ×${qty}`:''}</div>
-          <button class="quero-btn ${jaQuis?'active':''}"
-            onclick="togglePedido(this,'${u.id}','${lbl}','${cid}','${cname}')"
-            data-key="${u.id}:${lbl}">
-            ${jaQuis?'✓ Quero':'+ Quero'}
-          </button>
-        </div>`;
-      }).join('');
-      countriesHtml+=`<div class="troca-country">
-        ${flagImgEl(c.iso,32,22,c.id)}
-        <div class="troca-country-name">${c.name}</div>
-        <div class="troca-tags">${tagsHtml}</div>
-      </div>`;
-    });
-    if(!totalUserDups) return;
-    dupsHtml+=`<div class="troca-section">
-      <div class="troca-header">
-        <div class="troca-avatar">${u.nome[0].toUpperCase()}</div>
-        <div><div class="troca-name">${u.nome}</div>
-        <div class="troca-sub">${totalUserDups} figurinha${totalUserDups>1?'s':''} para troca</div></div>
-      </div>
-      <div class="troca-countries">${countriesHtml}</div>
-    </div>`;
+function showSocialSubtab(sub) {
+  _socialSubtabAtiva = sub;
+  ['feed','descobrir','seguindo','seguidores'].forEach(s => {
+    document.getElementById(`social-${s}-panel`).style.display = s===sub ? '' : 'none';
   });
-  dupsEl.innerHTML=dupsHtml||`<div class="empty-state"><div class="emoji">✨</div>Nenhuma repetida disponível.</div>`;
+  document.querySelectorAll('.social-subtab').forEach((btn,i) => {
+    btn.classList.toggle('active',
+      (i===0&&sub==='feed')||(i===1&&sub==='descobrir')||(i===2&&sub==='seguindo')||(i===3&&sub==='seguidores'));
+  });
+  if(sub==='feed') renderFeed();
+  if(sub==='descobrir') { document.getElementById('busca-usuario').value=''; document.getElementById('busca-resultado').innerHTML=''; }
+  if(sub==='seguindo') renderSeguindo();
+  if(sub==='seguidores') renderSeguidores();
 }
 
-function selecionarAmigo(uid, nome) {
-  // highlight no card
-  document.querySelectorAll('.user-card').forEach(c=>c.classList.remove('selected'));
-  document.querySelector(`.user-card[data-uid="${uid}"]`)?.classList.add('selected');
+async function renderFeed() {
+  const el = document.getElementById('social-feed-panel');
+  el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando feed...</div>`;
 
-  const header=document.getElementById('dups-filtro-header');
-  header.style.display='';
-  document.getElementById('dups-filtro-titulo').textContent=`🔄 Repetidas de ${nome}`;
-  document.getElementById('btn-ver-todos').style.display='';
+  // pega quem eu sigo
+  const { data: seguindo } = await sb.from('seguidores')
+    .select('seguido_id').eq('seguidor_id', currentUser.id).eq('status','aceito');
+  const ids = (seguindo||[]).map(s => s.seguido_id);
 
-  const u=_socialUsers.find(u=>u.id===uid);
-  if(u) renderDupsDeUsuarios([u]);
-}
-
-function mostrarTodosDups() {
-  document.querySelectorAll('.user-card').forEach(c=>c.classList.remove('selected'));
-  document.getElementById('dups-filtro-titulo').textContent='🔄 Repetidas de todos';
-  document.getElementById('btn-ver-todos').style.display='none';
-  renderDupsDeUsuarios(_socialUsers);
-}
-
-async function togglePedido(btn, donoId, figurinha, paisId, paisNome) {
-  const key=`${donoId}:${figurinha}`;
-  const jaQuis=btn.classList.contains('active');
-  btn.disabled=true;
-  if(jaQuis) {
-    await sb.from('pedidos').delete().eq('solicitante_id',currentUser.id).eq('dono_id',donoId).eq('figurinha',figurinha);
-    btn.classList.remove('active'); btn.textContent='+ Quero';
-  } else {
-    await sb.from('pedidos').insert({ solicitante_id:currentUser.id, dono_id:donoId, figurinha, pais_id:paisId, pais_nome:paisNome });
-    btn.classList.add('active'); btn.textContent='✓ Quero';
+  if (!ids.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">📰</div>Seu feed está vazio.<br><span style="font-size:12px">Siga pessoas na aba <strong>Descobrir</strong> para ver as atividades delas aqui.</span></div>`;
+    return;
   }
-  btn.disabled=false;
-}
 
-async function fetchMeusPedidos() {
-  const { data: pedidos } = await sb.from('pedidos')
-    .select('figurinha,pais_id,pais_nome,solicitante_id,status')
-    .eq('dono_id', currentUser.id);
-  if (!pedidos || !pedidos.length) return [];
+  // inclui o próprio usuário no feed
+  const todosIds = [currentUser.id, ...ids];
+  const { data: atividades } = await sb.from('atividades')
+    .select('usuario_id,tipo,dados,criado_em')
+    .in('usuario_id', todosIds)
+    .order('criado_em', { ascending: false })
+    .limit(50);
 
-  // busca nomes dos solicitantes
-  const ids = [...new Set(pedidos.map(p => p.solicitante_id))];
-  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
+  if (!atividades || !atividades.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">📰</div>Nenhuma atividade ainda.<br><span style="font-size:12px">As atividades aparecerão aqui conforme as pessoas colarem figurinhas.</span></div>`;
+    return;
+  }
+
+  // busca nomes
+  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', todosIds);
   const nomeMap = {};
   (users||[]).forEach(u => nomeMap[u.id] = u.nome);
 
-  return pedidos.map(p => ({ ...p, nome: nomeMap[p.solicitante_id] || '?' }));
-}
-
-async function renderPedidosPanel() {
-  // mantém compatibilidade com o painel antigo nas repetidas (simplificado)
-  const panel=document.getElementById('pedidos-panel');
-  if(!panel) return;
-  const pedidos = await fetchMeusPedidos();
-  if(!pedidos.length) { panel.innerHTML=''; return; }
-  const porPessoa={};
-  pedidos.forEach(p => {
-    const nome=p.nome||'?';
-    if(!porPessoa[nome]) porPessoa[nome]=[];
-    porPessoa[nome].push(p);
-  });
-  let html=`<div class="pedidos-section"><div class="pedidos-title">✋ Pedidos das suas repetidas</div>`;
-  for(const nome in porPessoa) {
-    const itens=porPessoa[nome];
-    html+=`<div class="pedido-row">
-      <div class="pedido-avatar">${nome[0].toUpperCase()}</div>
-      <div class="pedido-info"><strong>${nome}</strong> quer:</div>
-      <div class="pedido-tags">${itens.map(p=>`<div class="pedido-tag">${p.figurinha} <span style="opacity:.6">(${p.pais_nome})</span></div>`).join('')}</div>
-    </div>`;
-  }
-  html+=`</div>`;
-  panel.innerHTML=html;
-  atualizarBadgePedidos(pedidos.length);
-}
-
-function temRepetida(paisId, figurinha) {
-  const c = COUNTRY_MAP[paisId];
-  if (!c) return false;
-  const s = state[paisId] || {};
-  // descobre o índice pelo label
-  let idx;
-  if (c.stickerLabels) {
-    idx = c.stickerLabels.indexOf(figurinha);
-  } else {
-    const num = parseInt(figurinha.replace(paisId.toUpperCase(), ''));
-    idx = isNaN(num) ? -1 : num - 1;
-  }
-  if (idx < 0) return false;
-  return (s[idx] || 0) >= 2;
-}
-
-async function aceitarPedido(solicitanteId, paisId, figurinha, btnRow) {
-  btnRow.querySelectorAll('button').forEach(b => b.disabled = true);
-
-  const c = COUNTRY_MAP[paisId];
-  if (!c) { btnRow.querySelectorAll('button').forEach(b => b.disabled = false); return; }
-  let idx;
-  if (c.stickerLabels) {
-    idx = c.stickerLabels.indexOf(figurinha);
-  } else {
-    const num = parseInt(figurinha.replace(paisId.toUpperCase(), ''));
-    idx = isNaN(num) ? -1 : num - 1;
-  }
-  if (idx < 0) { btnRow.querySelectorAll('button').forEach(b => b.disabled = false); return; }
-
-  // decrementa repetida no state local e salva
-  state[paisId][idx] = Math.max(0, (state[paisId][idx] || 0) - 1);
-  await Promise.all([
-    saveStateToSupabase(),
-    sb.from('pedidos')
-      .update({ status: 'aceito' })
-      .eq('dono_id', currentUser.id)
-      .eq('solicitante_id', solicitanteId)
-      .eq('figurinha', figurinha)
-      .eq('pais_id', paisId)
-  ]);
-
-  updateHeader();
-  renderGrid();
-  renderPedidosTab();
-}
-
-async function concluirPedido(solicitanteId, paisId, figurinha, btnRow) {
-  btnRow.querySelectorAll('button').forEach(b => b.disabled = true);
-
-  // busca pais_nome antes de deletar
-  const item = btnRow.closest('.pedido-item');
-  const paisNome = item.querySelector('.pedido-item-pais')?.textContent?.trim() || paisId;
-
-  await Promise.all([
-    sb.from('pedidos').delete()
-      .eq('dono_id', currentUser.id)
-      .eq('solicitante_id', solicitanteId)
-      .eq('figurinha', figurinha)
-      .eq('pais_id', paisId),
-    sb.from('historico').insert({
-      dono_id: currentUser.id,
-      solicitante_id: solicitanteId,
-      figurinha,
-      pais_id: paisId,
-      pais_nome: paisNome
-    })
-  ]);
-
-  const card = item.closest('.pedido-card');
-  item.remove();
-  if (card.querySelectorAll('.pedido-item').length === 0) card.remove();
-  const restantes = document.querySelectorAll('#pedidos-tab-content .pedido-item').length;
-  atualizarBadgePedidos(restantes);
-  renderPedidosTab();
-  renderHistorico('historico-dono', 'dono');
-}
-
-async function recusarPedido(solicitanteId, paisId, figurinha, btnRow) {
-  btnRow.querySelectorAll('button').forEach(b => b.disabled = true);
-  const item = btnRow.closest('.pedido-item');
-  const paisNome = item.querySelector('.pedido-item-pais')?.textContent?.trim() || paisId;
-
-  await Promise.all([
-    sb.from('pedidos').delete()
-      .eq('dono_id', currentUser.id)
-      .eq('solicitante_id', solicitanteId)
-      .eq('figurinha', figurinha)
-      .eq('pais_id', paisId),
-    sb.from('historico').insert({
-      dono_id: currentUser.id,
-      solicitante_id: solicitanteId,
-      figurinha,
-      pais_id: paisId,
-      pais_nome: paisNome,
-      tipo: 'recusado'
-    })
-  ]);
-
-  item.remove();
-  const card = document.querySelector(`[data-solicitante="${solicitanteId}"]`);
-  if (card && card.querySelectorAll('.pedido-item').length === 0) card.remove();
-  const restantes = document.querySelectorAll('.pedido-item').length;
-  atualizarBadgePedidos(restantes);
-  renderPedidosTab();
-  renderHistorico('historico-dono', 'dono');
-}
-
-async function renderPedidosTab() {
-  const el=document.getElementById('pedidos-tab-content');
-  el.innerHTML=`<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando pedidos...</div>`;
-  const pedidos = await fetchMeusPedidos();
-  atualizarBadgePedidos(pedidos.length);
-  if(!pedidos.length) {
-    el.innerHTML=`<div class="empty-state"><div class="emoji">✨</div>Ninguém pediu suas repetidas ainda.<br><span style="font-size:12px">Quando alguém clicar em "+ Quero" nas suas cartas, vai aparecer aqui.</span></div>`;
-    return;
-  }
-  const porPessoa={};
-  pedidos.forEach(p => {
-    const k=p.solicitante_id;
-    if(!porPessoa[k]) porPessoa[k]={nome:p.nome||'?', solicitanteId:k, itens:[]};
-    porPessoa[k].itens.push(p);
-  });
-  let html='';
-  for(const k in porPessoa) {
-    const { nome, solicitanteId, itens } = porPessoa[k];
-    const disponivel = itens.filter(p => temRepetida(p.pais_id, p.figurinha)).length;
-    const sub = disponivel > 0
-      ? `<span style="color:var(--success)">${disponivel} disponível${disponivel>1?'is':''}</span> · ${itens.length} pedido${itens.length>1?'s':''}`
-      : `${itens.length} pedido${itens.length>1?'s':''} · <span style="color:var(--danger)">nenhuma disponível agora</span>`;
-    const itensHtml = itens.map(p => {
-      const tem = temRepetida(p.pais_id, p.figurinha);
-      const tagClass = tem ? 'tem' : 'nao-tem';
-      const tagTitle = tem ? `Você tem repetida de ${p.figurinha}` : `Você não tem mais ${p.figurinha}`;
-      const aceito = p.status === 'aceito';
-      return `<div class="pedido-item${aceito?' aceito':''}">
-        <div class="pedido-item-tag ${aceito?'tem':tagClass}" title="${tagTitle}">${p.figurinha}</div>
-        <div class="pedido-item-pais">${p.pais_nome}${aceito?' <span style="color:var(--amarelo);font-size:10px;font-weight:700">· aceito</span>':''}</div>
-        <div class="pedido-item-actions">
-          ${aceito
-            ? `<button class="btn-concluir" onclick="concluirPedido('${solicitanteId}','${p.pais_id}','${p.figurinha}',this.parentElement)">✓ Concluído</button>`
-            : `${tem ? `<button class="btn-aceitar" onclick="aceitarPedido('${solicitanteId}','${p.pais_id}','${p.figurinha}',this.parentElement)">✓ Aceitar</button>` : ''}
-               <button class="btn-recusar" onclick="recusarPedido('${solicitanteId}','${p.pais_id}','${p.figurinha}',this.parentElement)">✕ Recusar</button>`
-          }
-        </div>
-      </div>`;
-    }).join('');
-    html+=`<div class="pedido-card" data-solicitante="${solicitanteId}">
-      <div class="pedido-card-avatar">${nome[0].toUpperCase()}</div>
-      <div class="pedido-card-body">
-        <div class="pedido-card-name">${nome}</div>
-        <div class="pedido-card-sub">${sub}</div>
-        <div class="pedido-card-stickers">${itensHtml}</div>
+  el.innerHTML = atividades.map(a => {
+    const nome = nomeMap[a.usuario_id] || '?';
+    const eu = a.usuario_id === currentUser.id;
+    let texto = '';
+    const d = a.dados || {};
+    if (a.tipo === 'colou') texto = `${eu?'Você colou':'<strong>'+nome+'</strong> colou'} <strong>${d.figurinha}</strong> (${d.pais_nome})`;
+    else if (a.tipo === 'completou_pais') texto = `${eu?'Você completou':'<strong>'+nome+'</strong> completou'} a seleção de <strong>${d.pais_nome}</strong>!`;
+    else if (a.tipo === 'troca_concluida') texto = `${eu?'Você concluiu':'<strong>'+nome+'</strong> concluiu'} uma troca de figurinhas`;
+    else texto = `${eu?'Você':'<strong>'+nome+'</strong>'} fez algo`;
+    const dt = new Date(a.criado_em);
+    const tempo = formatarTempo(dt);
+    return `<div class="feed-item">
+      <div class="feed-avatar">${nome[0].toUpperCase()}</div>
+      <div class="feed-body">
+        <div>${texto}</div>
+        <div class="feed-time">${tempo}</div>
       </div>
     </div>`;
-  }
-  el.innerHTML=html;
+  }).join('');
 }
 
-async function renderMeusPedidosTab() {
-  const el = document.getElementById('meuspedidos-tab-content');
+function formatarTempo(dt) {
+  const diff = Math.floor((Date.now() - dt.getTime()) / 1000);
+  if (diff < 60) return 'agora';
+  if (diff < 3600) return `há ${Math.floor(diff/60)} min`;
+  if (diff < 86400) return `há ${Math.floor(diff/3600)}h`;
+  return dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+}
+
+async function buscarUsuarios() {
+  const termo = document.getElementById('busca-usuario').value.trim();
+  const el = document.getElementById('busca-resultado');
+  if (termo.length < 2) { el.innerHTML = ''; return; }
+
+  const { data: users } = await sb.from('usuarios')
+    .select('id,nome,perfil_privado')
+    .ilike('nome', `%${termo}%`)
+    .neq('id', currentUser.id)
+    .limit(10);
+
+  if (!users || !users.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">🔍</div>Nenhum usuário encontrado.</div>`;
+    return;
+  }
+
+  // verifica status de seguimento para cada um
+  const ids = users.map(u => u.id);
+  const { data: minhasSolicitacoes } = await sb.from('seguidores')
+    .select('seguido_id,status')
+    .eq('seguidor_id', currentUser.id)
+    .in('seguido_id', ids);
+  const statusMap = {};
+  (minhasSolicitacoes||[]).forEach(s => statusMap[s.seguido_id] = s.status);
+
+  // stats de cada usuário
+  const { data: figs } = await sb.from('figurinhas').select('usuario_id,dados').in('usuario_id', ids);
+  const figsMap = {};
+  (figs||[]).forEach(f => figsMap[f.usuario_id] = f.dados);
+
+  el.innerHTML = users.map(u => {
+    const st = statusMap[u.id];
+    const compact = figsMap[u.id] || {};
+    let have = 0;
+    ALL_COUNTRIES.forEach(c => {
+      const cdata = compact[c.id] || {};
+      for(let i=0;i<c.stickers;i++) { const v=cdata[i]??cdata[String(i)]??0; if(v>=1) have++; }
+    });
+    const pct = Math.round(have/GRAND_TOTAL*100);
+    let btnHtml = '';
+    if (!st) btnHtml = `<button class="btn-seguir" onclick="seguirUsuario('${u.id}','${u.perfil_privado}',this)">+ Seguir</button>`;
+    else if (st === 'pendente') btnHtml = `<button class="btn-seguir pendente" disabled>Pendente</button>`;
+    else btnHtml = `<button class="btn-seguir seguindo" onclick="deixarDeSeguir('${u.id}',this)">Seguindo</button>`;
+    return `<div class="user-result">
+      <div class="user-result-avatar">${u.nome[0].toUpperCase()}</div>
+      <div class="user-result-info">
+        <div class="user-result-name">${u.nome} ${u.perfil_privado?'🔒':''}</div>
+        <div class="user-result-sub">${pct}% do álbum · ${have} figurinhas</div>
+      </div>
+      ${btnHtml}
+    </div>`;
+  }).join('');
+}
+
+async function seguirUsuario(uid, privado, btn) {
+  btn.disabled = true;
+  const status = privado ? 'pendente' : 'aceito';
+  await sb.from('seguidores').insert({ seguidor_id: currentUser.id, seguido_id: uid, status });
+  btn.textContent = privado ? 'Pendente' : 'Seguindo';
+  btn.className = privado ? 'btn-seguir pendente' : 'btn-seguir seguindo';
+  if (!privado) btn.onclick = () => deixarDeSeguir(uid, btn);
+  btn.disabled = privado;
+}
+
+async function deixarDeSeguir(uid, btn) {
+  if (!confirm('Deixar de seguir?')) return;
+  btn.disabled = true;
+  await sb.from('seguidores').delete().eq('seguidor_id', currentUser.id).eq('seguido_id', uid);
+  btn.textContent = '+ Seguir';
+  btn.className = 'btn-seguir';
+  btn.disabled = false;
+}
+
+async function renderSeguindo() {
+  const el = document.getElementById('social-seguindo-panel');
   el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando...</div>`;
 
-  const { data: pedidos } = await sb.from('pedidos')
-    .select('figurinha,pais_id,pais_nome,dono_id,status')
-    .eq('solicitante_id', currentUser.id);
+  const { data: rel } = await sb.from('seguidores')
+    .select('seguido_id,status').eq('seguidor_id', currentUser.id);
 
-  if (!pedidos || !pedidos.length) {
-    el.innerHTML = `<div class="empty-state"><div class="emoji">🙋</div>Você não pediu nenhuma carta ainda.<br><span style="font-size:12px">Na aba Amigos, clique em "+ Quero" nas repetidas dos seus amigos.</span></div>`;
+  if (!rel || !rel.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">👤</div>Você não segue ninguém ainda.<br><span style="font-size:12px">Use <strong>Descobrir</strong> para encontrar usuários.</span></div>`;
     return;
   }
 
-  // busca nomes dos donos
-  const ids = [...new Set(pedidos.map(p => p.dono_id))];
-  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
-  const nomeMap = {};
-  (users||[]).forEach(u => nomeMap[u.id] = u.nome);
+  const ids = rel.map(r => r.seguido_id);
+  const { data: users } = await sb.from('usuarios').select('id,nome,perfil_privado').in('id', ids);
+  const statusMap = {};
+  rel.forEach(r => statusMap[r.seguido_id] = r.status);
 
-  // agrupa por dono
-  const porDono = {};
-  pedidos.forEach(p => {
-    const k = p.dono_id;
-    if (!porDono[k]) porDono[k] = { nome: nomeMap[k] || '?', itens: [] };
-    porDono[k].itens.push(p);
-  });
-
-  let html = '';
-  for (const donoId in porDono) {
-    const { nome, itens } = porDono[donoId];
-    const itensHtml = itens.map(p => {
-      const aceito = p.status === 'aceito';
-      const statusBadge = aceito
-        ? `<span style="background:rgba(255,215,0,.15);border:1px solid var(--amarelo);color:var(--amarelo);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700">✓ Aceito</span>`
-        : `<span style="background:rgba(122,139,160,.1);border:1px solid var(--muted);color:var(--muted);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700">Aguardando</span>`;
-      return `
-      <div class="pedido-item${aceito?' aceito':''}">
-        <div class="pedido-item-tag ${aceito?'tem':''}" style="${aceito?'':'border-color:var(--muted);color:var(--muted)'}">${p.figurinha}</div>
-        <div class="pedido-item-pais">${p.pais_nome}</div>
-        <div class="pedido-item-actions">
-          ${statusBadge}
-          ${!aceito ? `<button class="btn-recusar" onclick="cancelarMeuPedido('${donoId}','${p.pais_id}','${p.figurinha}',this.parentElement)" title="Cancelar pedido">✕</button>` : ''}
-        </div>
-      </div>`;
-    }).join('');
-    const aceitos = itens.filter(p => p.status === 'aceito').length;
-    const sub = aceitos > 0
-      ? `${itens.length} carta${itens.length>1?'s':''} · <span style="color:var(--amarelo)">${aceitos} aceita${aceitos>1?'s':''}</span>`
-      : `${itens.length} carta${itens.length>1?'s':''} pedida${itens.length>1?'s':''}`;
-    html += `<div class="pedido-card">
-      <div class="pedido-card-avatar">${nome[0].toUpperCase()}</div>
-      <div class="pedido-card-body">
-        <div class="pedido-card-name">${nome}</div>
-        <div class="pedido-card-sub">${sub}</div>
-        <div class="pedido-card-stickers">${itensHtml}</div>
+  el.innerHTML = users.map(u => {
+    const st = statusMap[u.id];
+    return `<div class="user-result">
+      <div class="user-result-avatar">${u.nome[0].toUpperCase()}</div>
+      <div class="user-result-info">
+        <div class="user-result-name">${u.nome} ${u.perfil_privado?'🔒':''}</div>
+        <div class="user-result-sub">${st==='pendente'?'Solicitação pendente':'Seguindo'}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-seguir" style="font-size:11px;padding:5px 10px" onclick="verRepetidasDe('${u.id}','${u.nome}')">🔄 Repetidas</button>
+        <button class="btn-seguir seguindo" onclick="deixarDeSeguirById('${u.id}',this)">Seguindo</button>
       </div>
     </div>`;
-  }
-  el.innerHTML = html;
+  }).join('');
 }
 
-async function cancelarMeuPedido(donoId, paisId, figurinha, btnRow) {
-  btnRow.querySelectorAll('button').forEach(b => b.disabled = true);
-  await sb.from('pedidos')
-    .delete()
-    .eq('solicitante_id', currentUser.id)
-    .eq('dono_id', donoId)
-    .eq('figurinha', figurinha)
-    .eq('pais_id', paisId);
-  const item = btnRow.closest('.pedido-item');
-  const card = item.closest('.pedido-card');
-  item.remove();
-  if (card.querySelectorAll('.pedido-item').length === 0) card.remove();
-  if (document.querySelectorAll('#meuspedidos-tab-content .pedido-card').length === 0) renderMeusPedidosTab();
-  // sincroniza o botão "+ Quero" na aba social se estiver visível
-  const btn = document.querySelector(`.quero-btn[data-key="${donoId}:${figurinha}"]`);
-  if (btn) { btn.classList.remove('active'); btn.textContent = '+ Quero'; }
+async function deixarDeSeguirById(uid, btn) {
+  if (!confirm('Deixar de seguir?')) return;
+  btn.disabled = true;
+  await sb.from('seguidores').delete().eq('seguidor_id', currentUser.id).eq('seguido_id', uid);
+  btn.closest('.user-result').remove();
 }
 
-async function renderHistorico(containerId, modo) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
+async function renderSeguidores() {
+  const el = document.getElementById('social-seguidores-panel');
+  el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando...</div>`;
 
-  const campoOutro = modo === 'dono' ? 'solicitante_id' : 'dono_id';
-  const { data: itens } = await sb.from('historico')
-    .select(`figurinha,pais_nome,${campoOutro},concluido_em,tipo`)
-    .eq(modo === 'dono' ? 'dono_id' : 'solicitante_id', currentUser.id)
-    .order('concluido_em', { ascending: false });
+  const { data: rel } = await sb.from('seguidores')
+    .select('seguidor_id,status').eq('seguido_id', currentUser.id);
 
-  if (!itens || !itens.length) {
-    el.innerHTML = `<div class="historico-titulo">📋 Histórico</div><div style="font-size:12px;color:var(--muted);padding:8px 0">Nenhuma transação ainda.</div>`;
+  if (!rel || !rel.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">👥</div>Nenhum seguidor ainda.</div>`;
+    atualizarBadgeSeguidores(0);
     return;
   }
 
-  const ids = [...new Set(itens.map(p => p[campoOutro]))];
+  const pendentes = rel.filter(r => r.status === 'pendente');
+  atualizarBadgeSeguidores(pendentes.length);
+
+  const ids = rel.map(r => r.seguidor_id);
+  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
+  const nomeMap = {};
+  (users||[]).forEach(u => nomeMap[u.id] = u.nome);
+  const statusMap = {};
+  rel.forEach(r => statusMap[r.seguidor_id] = r.status);
+
+  el.innerHTML = rel.map(r => {
+    const nome = nomeMap[r.seguidor_id] || '?';
+    const aceito = r.status === 'aceito';
+    const acoes = aceito
+      ? `<span style="font-size:12px;color:var(--muted)">Seguidor</span>`
+      : `<button class="btn-aceitar" onclick="aceitarSeguidor('${r.seguidor_id}',this)">✓ Aceitar</button>
+         <button class="btn-recusar" onclick="recusarSeguidor('${r.seguidor_id}',this)">✕ Recusar</button>`;
+    return `<div class="user-result" data-seguidor="${r.seguidor_id}">
+      <div class="user-result-avatar">${nome[0].toUpperCase()}</div>
+      <div class="user-result-info">
+        <div class="user-result-name">${nome}</div>
+        <div class="user-result-sub">${aceito?'Segue você':'Quer te seguir'}</div>
+      </div>
+      <div style="display:flex;gap:6px">${acoes}</div>
+    </div>`;
+  }).join('');
+}
+
+async function aceitarSeguidor(seguidorId, btn) {
+  btn.disabled = true;
+  await sb.from('seguidores').update({ status: 'aceito' })
+    .eq('seguidor_id', seguidorId).eq('seguido_id', currentUser.id);
+  const row = btn.closest('.user-result');
+  row.querySelector('.user-result-sub').textContent = 'Segue você';
+  row.querySelector('div[style]').innerHTML = `<span style="font-size:12px;color:var(--muted)">Seguidor</span>`;
+  const badge = document.getElementById('badge-seguidores');
+  const n = parseInt(badge.textContent) || 0;
+  atualizarBadgeSeguidores(Math.max(0, n-1));
+}
+
+async function recusarSeguidor(seguidorId, btn) {
+  btn.disabled = true;
+  await sb.from('seguidores').delete()
+    .eq('seguidor_id', seguidorId).eq('seguido_id', currentUser.id);
+  btn.closest('.user-result').remove();
+  const badge = document.getElementById('badge-seguidores');
+  const n = parseInt(badge.textContent) || 0;
+  atualizarBadgeSeguidores(Math.max(0, n-1));
+}
+
+function atualizarBadgeSeguidores(n) {
+  const badge = document.getElementById('badge-seguidores');
+  if (!badge) return;
+  badge.textContent = n > 0 ? n : '';
+  badge.style.cssText = n > 0 ? 'display:inline-flex;align-items:center;justify-content:center;background:var(--danger);color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:16px;height:16px;padding:0 4px;margin-left:4px;line-height:1' : '';
+}
+
+async function verRepetidasDe(uid, nome) {
+  // muda para o painel do feed e mostra as repetidas
+  showSocialSubtab('feed');
+  const el = document.getElementById('social-feed-panel');
+  el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <button onclick="showSocialSubtab('seguindo')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;font-family:inherit">← Voltar</button>
+    <div style="font-weight:700;font-size:16px">🔄 Repetidas de ${nome}</div>
+  </div>
+  <div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando...</div>`;
+
+  const { data: fig } = await sb.from('figurinhas').select('dados').eq('usuario_id', uid).single();
+  const compact = fig?.dados || {};
+  let html = '';
+  let total = 0;
+
+  ALL_COUNTRIES.forEach(c => {
+    const labels = [];
+    const cdata = compact[c.id] || {};
+    for(let i=0;i<c.stickers;i++){
+      const v = cdata[i]??cdata[String(i)]??0;
+      const euTenho = (state[c.id]?.[i]??0) >= 1;
+      if(v>=2 && !euTenho) { const qty=v-1; total+=qty; labels.push({lbl:getStickerLabel(c,i),qty,cid:c.id,cname:c.name}); }
+    }
+    if(!labels.length) return;
+    const tagsHtml = labels.map(({lbl,qty,cid,cname}) =>
+      `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+        <div class="dup-tag">${lbl}${qty>1?` ×${qty}`:''}</div>
+        <button class="quero-btn" onclick="abrirModalTroca('${uid}','${nome}','${cid}','${cname}','${lbl}')">⇄ Trocar</button>
+      </div>`
+    ).join('');
+    html += `<div class="troca-country" style="margin-bottom:10px">
+      ${flagImgEl(c.iso,32,22,c.id)}
+      <div class="troca-country-name">${c.name}</div>
+      <div class="troca-tags">${tagsHtml}</div>
+    </div>`;
+  });
+
+  const feedEl = document.getElementById('social-feed-panel');
+  const header = feedEl.children[0].outerHTML;
+  feedEl.innerHTML = header + (html
+    ? `<div class="troca-section"><div class="troca-countries">${html}</div></div>`
+    : `<div class="empty-state"><div class="emoji">✨</div>Nenhuma repetida disponível para troca.</div>`);
+}
+
+// ===== TROCAS TAB =====
+let _trocasSubtabAtiva = 'recebidas';
+
+async function loadTrocasTab() {
+  showTrocasSubtab(_trocasSubtabAtiva);
+}
+
+function showTrocasSubtab(sub) {
+  _trocasSubtabAtiva = sub;
+  ['recebidas','enviadas','historico'].forEach(s => {
+    document.getElementById(`trocas-${s}-panel`).style.display = s===sub ? '' : 'none';
+  });
+  document.querySelectorAll('.trocas-subtabs .historico-tab').forEach((btn,i) => {
+    btn.classList.toggle('active',
+      (i===0&&sub==='recebidas')||(i===1&&sub==='enviadas')||(i===2&&sub==='historico'));
+  });
+  if(sub==='recebidas') renderTrocasRecebidas();
+  if(sub==='enviadas') renderTrocasEnviadas();
+  if(sub==='historico') renderTrocasHistorico();
+}
+
+async function renderTrocasRecebidas() {
+  const el = document.getElementById('trocas-recebidas-panel');
+  el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando...</div>`;
+
+  const { data: trocas } = await sb.from('trocas')
+    .select('*').eq('receptor_id', currentUser.id)
+    .in('status', ['pendente','aceito'])
+    .order('criado_em', { ascending: false });
+
+  if (!trocas || !trocas.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">📥</div>Nenhuma troca recebida.</div>`;
+    atualizarBadgeTrocas(0);
+    return;
+  }
+
+  const pendentes = trocas.filter(t => t.status === 'pendente').length;
+  atualizarBadgeTrocas(pendentes);
+
+  const ids = [...new Set(trocas.map(t => t.solicitante_id))];
   const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
   const nomeMap = {};
   (users||[]).forEach(u => nomeMap[u.id] = u.nome);
 
-  function montarLista(lista) {
-    if (!lista.length) return `<div style="font-size:12px;color:var(--muted);padding:8px 0">Nenhum registro.</div>`;
-    return lista.map(p => {
-      const outroNome = nomeMap[p[campoOutro]] || '?';
-      const concluido = p.tipo !== 'recusado';
-      const texto = concluido
-        ? (modo === 'dono'
-            ? `Você deu <strong>${p.figurinha}</strong> (${p.pais_nome}) para <strong>${outroNome}</strong>`
-            : `<strong>${outroNome}</strong> te deu <strong>${p.figurinha}</strong> (${p.pais_nome})`)
-        : (modo === 'dono'
-            ? `Você recusou o pedido de <strong>${outroNome}</strong>: <strong>${p.figurinha}</strong> (${p.pais_nome})`
-            : `<strong>${outroNome}</strong> recusou seu pedido de <strong>${p.figurinha}</strong> (${p.pais_nome})`);
-      const data = new Date(p.concluido_em).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-      const tagClass = concluido ? 'concluido' : 'recusado';
-      const tagIcon = concluido ? '✓' : '✕';
-      return `<div class="historico-item">
-        <div class="historico-tag ${tagClass}">${tagIcon}</div>
-        <div style="flex:1">${texto}</div>
-        <div class="historico-data">${data}</div>
-      </div>`;
-    }).join('');
+  el.innerHTML = trocas.map(t => montarTrocaCard(t, nomeMap, 'recebida')).join('');
+}
+
+async function renderTrocasEnviadas() {
+  const el = document.getElementById('trocas-enviadas-panel');
+  el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando...</div>`;
+
+  const { data: trocas } = await sb.from('trocas')
+    .select('*').eq('solicitante_id', currentUser.id)
+    .in('status', ['pendente','aceito'])
+    .order('criado_em', { ascending: false });
+
+  if (!trocas || !trocas.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">📤</div>Nenhuma troca enviada.<br><span style="font-size:12px">Proponha trocas na aba Social clicando nas repetidas dos seus amigos.</span></div>`;
+    return;
   }
 
-  const concluidos = itens.filter(p => p.tipo !== 'recusado');
-  const recusados  = itens.filter(p => p.tipo === 'recusado');
+  const ids = [...new Set(trocas.map(t => t.receptor_id))];
+  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
+  const nomeMap = {};
+  (users||[]).forEach(u => nomeMap[u.id] = u.nome);
 
-  el.innerHTML = `
-    <div class="historico-titulo">📋 Histórico</div>
-    <div class="historico-tabs">
-      <button class="historico-tab active" onclick="switchHistoricoTab(this,'${containerId}-concluidos')">✓ Concluídos (${concluidos.length})</button>
-      <button class="historico-tab" onclick="switchHistoricoTab(this,'${containerId}-recusados')">✕ Recusados (${recusados.length})</button>
+  el.innerHTML = trocas.map(t => montarTrocaCard(t, nomeMap, 'enviada')).join('');
+}
+
+async function renderTrocasHistorico() {
+  const el = document.getElementById('trocas-historico-panel');
+  el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando...</div>`;
+
+  const { data: trocas } = await sb.from('trocas')
+    .select('*')
+    .or(`solicitante_id.eq.${currentUser.id},receptor_id.eq.${currentUser.id}`)
+    .in('status', ['concluido','recusado'])
+    .order('criado_em', { ascending: false });
+
+  if (!trocas || !trocas.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">📋</div>Nenhum histórico ainda.</div>`;
+    return;
+  }
+
+  const ids = [...new Set([...trocas.map(t => t.solicitante_id), ...trocas.map(t => t.receptor_id)])];
+  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
+  const nomeMap = {};
+  (users||[]).forEach(u => nomeMap[u.id] = u.nome);
+
+  el.innerHTML = trocas.map(t => {
+    const euSolicitei = t.solicitante_id === currentUser.id;
+    return montarTrocaCard(t, nomeMap, euSolicitei ? 'enviada' : 'recebida');
+  }).join('');
+}
+
+function montarTrocaCard(t, nomeMap, tipo) {
+  const outroId = tipo === 'recebida' ? t.solicitante_id : t.receptor_id;
+  const outroNome = nomeMap[outroId] || '?';
+  const statusBadge = `<span class="troca-status-badge ${t.status}">${
+    t.status === 'pendente' ? '⏳ Pendente' :
+    t.status === 'aceito' ? '✓ Aceito' :
+    t.status === 'recusado' ? '✕ Recusado' : '✓ Concluído'
+  }</span>`;
+
+  const subtitulo = tipo === 'recebida'
+    ? `<strong>${outroNome}</strong> quer trocar com você`
+    : `Você propôs troca com <strong>${outroNome}</strong>`;
+
+  // o que cada lado oferece/quer
+  const euOfereço = tipo === 'recebida' ? t.quer_figurinha : t.oferece_figurinha;
+  const euOfereçoPais = tipo === 'recebida' ? t.quer_pais_nome : t.oferece_pais_nome;
+  const eleOferece = tipo === 'recebida' ? t.oferece_figurinha : t.quer_figurinha;
+  const eleOfereçePais = tipo === 'recebida' ? t.oferece_pais_nome : t.quer_pais_nome;
+
+  let acoes = '';
+  if (t.status === 'pendente' && tipo === 'recebida') {
+    acoes = `
+      <button class="btn-aceitar" onclick="aceitarTroca('${t.id}',this)">✓ Aceitar</button>
+      <button class="btn-recusar" onclick="recusarTroca('${t.id}',this)">✕ Recusar</button>`;
+  } else if (t.status === 'aceito' && tipo === 'recebida') {
+    acoes = `<button class="btn-concluir" onclick="concluirTroca('${t.id}',this)">✓ Concluído</button>`;
+  } else if (t.status === 'pendente' && tipo === 'enviada') {
+    acoes = `<button class="btn-recusar" onclick="cancelarTroca('${t.id}',this)">✕ Cancelar</button>`;
+  }
+
+  return `<div class="troca-card" data-troca="${t.id}">
+    <div class="troca-card-header">
+      <div class="pedido-card-avatar">${outroNome[0].toUpperCase()}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:15px">${outroNome}</div>
+        <div style="font-size:12px;color:var(--muted)">${subtitulo.replace(/<[^>]+>/g,'')}</div>
+      </div>
+      ${statusBadge}
     </div>
-    <div class="historico-lista" id="${containerId}-concluidos">${montarLista(concluidos)}</div>
-    <div class="historico-lista" id="${containerId}-recusados" style="display:none">${montarLista(recusados)}</div>`;
+    <div class="troca-card-body">
+      <div class="troca-lado">
+        <div class="troca-lado-titulo">Você entrega</div>
+        <div class="troca-lado-fig">${euOfereço}</div>
+        <div class="troca-lado-pais">${euOfereçoPais}</div>
+      </div>
+      <div class="troca-seta">⇄</div>
+      <div class="troca-lado">
+        <div class="troca-lado-titulo">Você recebe</div>
+        <div class="troca-lado-fig">${eleOferece}</div>
+        <div class="troca-lado-pais">${eleOfereçePais}</div>
+      </div>
+    </div>
+    ${acoes ? `<div class="troca-actions">${acoes}</div>` : ''}
+  </div>`;
 }
 
-function switchHistoricoTab(btn, listaId) {
-  const section = btn.closest('.historico-section');
-  section.querySelectorAll('.historico-tab').forEach(t => t.classList.remove('active'));
-  section.querySelectorAll('.historico-lista').forEach(l => l.style.display = 'none');
-  btn.classList.add('active');
-  document.getElementById(listaId).style.display = '';
+async function aceitarTroca(trocaId, btn) {
+  btn.disabled = true;
+  btn.closest('.troca-actions').querySelectorAll('button').forEach(b => b.disabled = true);
+  await sb.from('trocas').update({ status: 'aceito' }).eq('id', trocaId);
+  renderTrocasRecebidas();
 }
 
-function atualizarBadgePedidos(total) {
-  const btn=document.getElementById('nav-pedidos');
-  if(!btn) return;
-  const existente=btn.querySelector('.badge');
-  if(existente) existente.remove();
-  if(total>0) btn.insertAdjacentHTML('beforeend',`<span class="badge">${total}</span>`);
+async function recusarTroca(trocaId, btn) {
+  btn.disabled = true;
+  btn.closest('.troca-actions').querySelectorAll('button').forEach(b => b.disabled = true);
+  await sb.from('trocas').update({ status: 'recusado' }).eq('id', trocaId);
+  btn.closest('.troca-card').remove();
+  renderTrocasRecebidas();
+}
+
+async function concluirTroca(trocaId, btn) {
+  btn.disabled = true;
+  // busca dados da troca para decrementar o state e registrar atividade
+  const { data: t } = await sb.from('trocas').select('*').eq('id', trocaId).single();
+  if (t) {
+    // decrementa a figurinha que entregou (quer_figurinha = o que o receptor entrega)
+    const c = COUNTRY_MAP[t.quer_pais_id];
+    if (c) {
+      let idx;
+      if (c.stickerLabels) idx = c.stickerLabels.indexOf(t.quer_figurinha);
+      else { const num = parseInt(t.quer_figurinha.replace(t.quer_pais_id.toUpperCase(),'')); idx = isNaN(num)?-1:num-1; }
+      if (idx >= 0 && state[t.quer_pais_id]) {
+        state[t.quer_pais_id][idx] = Math.max(0, (state[t.quer_pais_id][idx]||0) - 1);
+        updateHeader(); renderGrid(); scheduleSave();
+      }
+    }
+    await Promise.all([
+      sb.from('trocas').update({ status: 'concluido' }).eq('id', trocaId),
+      sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'troca_concluida', dados: {} })
+    ]);
+  }
+  btn.closest('.troca-card').remove();
+  renderTrocasRecebidas();
+}
+
+async function cancelarTroca(trocaId, btn) {
+  btn.disabled = true;
+  await sb.from('trocas').delete().eq('id', trocaId);
+  btn.closest('.troca-card').remove();
+}
+
+function atualizarBadgeTrocas(n) {
+  const btn = document.getElementById('nav-trocas');
+  if (!btn) return;
+  const ex = btn.querySelector('.badge');
+  if (ex) ex.remove();
+  if (n > 0) btn.insertAdjacentHTML('beforeend', `<span class="badge">${n}</span>`);
+}
+
+// ===== PROPOR TROCA (chamado pelo social) =====
+// Modal de proposta de troca — aparece quando clica em uma repetida do amigo
+let _trocaProposta = null; // { receptorId, receptorNome, querPaisId, querPaisNome, querFigurinha }
+
+function abrirModalTroca(receptorId, receptorNome, querPaisId, querPaisNome, querFigurinha) {
+  _trocaProposta = { receptorId, receptorNome, querPaisId, querPaisNome, querFigurinha };
+
+  // monta lista de repetidas do usuário atual para oferecer
+  const minhasRepetidas = [];
+  ALL_COUNTRIES.forEach(c => {
+    const s = state[c.id] || {};
+    for(let i=0;i<c.stickers;i++) {
+      if((s[i]||0) >= 2) minhasRepetidas.push({ lbl: getStickerLabel(c,i), paisId: c.id, paisNome: c.name });
+    }
+  });
+
+  if (!minhasRepetidas.length) {
+    alert('Você não tem nenhuma repetida para oferecer em troca!');
+    return;
+  }
+
+  const opcoesHtml = minhasRepetidas.map(r =>
+    `<option value="${r.lbl}|${r.paisId}|${r.paisNome}">${r.lbl} (${r.paisNome})</option>`
+  ).join('');
+
+  // cria modal simples
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'troca-modal-overlay';
+  overlay.innerHTML = `<div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-flag"></div>
+      <div class="modal-title">
+        <h2>Propor Troca</h2>
+        <p>com ${receptorNome}</p>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('troca-modal-overlay').remove()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+        Você quer: <strong style="color:var(--amarelo)">${querFigurinha} (${querPaisNome})</strong>
+      </p>
+      <div class="form-group">
+        <label>Você oferece em troca:</label>
+        <select id="troca-select" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit">
+          ${opcoesHtml}
+        </select>
+      </div>
+      <button class="auth-btn" style="margin-top:8px" onclick="enviarProposta()">Enviar Proposta</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function enviarProposta() {
+  const sel = document.getElementById('troca-select').value.split('|');
+  const [oferecelbl, ofpaisId, ofpaisNome] = sel;
+  const { receptorId, receptorNome, querPaisId, querPaisNome, querFigurinha } = _trocaProposta;
+
+  const btn = document.querySelector('#troca-modal-overlay .auth-btn');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  await sb.from('trocas').insert({
+    solicitante_id: currentUser.id,
+    receptor_id: receptorId,
+    quer_pais_id: querPaisId,
+    quer_pais_nome: querPaisNome,
+    quer_figurinha: querFigurinha,
+    oferece_pais_id: ofpaisId,
+    oferece_pais_nome: ofpaisNome,
+    oferece_figurinha: oferecelbl,
+  });
+
+  document.getElementById('troca-modal-overlay').remove();
+  showNotif('Troca proposta!', `Sua proposta foi enviada para <strong>${receptorNome}</strong>.`);
 }
 
 // ===== NOTIFICACOES =====
@@ -1674,29 +1832,30 @@ let realtimeChannel = null;
 
 function startRealtimeNotifs() {
   if (realtimeChannel) sb.removeChannel(realtimeChannel);
-  realtimeChannel = sb.channel(`pedidos-notif-${currentUser.id}`)
+  realtimeChannel = sb.channel(`trocas-notif-${currentUser.id}`)
     .on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
-      table: 'pedidos',
-      filter: `dono_id=eq.${currentUser.id}`
+      table: 'trocas',
+      filter: `receptor_id=eq.${currentUser.id}`
     }, payload => {
-      const p = payload.new;
-      sb.from('usuarios').select('nome').eq('id', p.solicitante_id).single().then(({ data }) => {
+      const t = payload.new;
+      sb.from('usuarios').select('nome').eq('id', t.solicitante_id).single().then(({ data }) => {
         const nome = data?.nome || 'Alguém';
-        showNotif('Pedido de figurinha', `<strong>${nome}</strong> quer sua carta <strong>${p.figurinha}</strong> (${p.pais_nome})!`);
-        renderPedidosPanel();
-        if(document.getElementById('pedidos-tab').style.display !== 'none') renderPedidosTab();
+        showNotif('Nova proposta de troca!', `<strong>${nome}</strong> quer trocar <strong>${t.oferece_figurinha}</strong> pela sua <strong>${t.quer_figurinha}</strong>!`);
+        atualizarBadgeTrocas(1);
       });
     })
     .on('postgres_changes', {
-      event: 'DELETE',
+      event: 'INSERT',
       schema: 'public',
-      table: 'pedidos',
-      filter: `dono_id=eq.${currentUser.id}`
-    }, () => {
-      renderPedidosPanel();
-      if(document.getElementById('pedidos-tab').style.display !== 'none') renderPedidosTab();
+      table: 'seguidores',
+      filter: `seguido_id=eq.${currentUser.id}`
+    }, payload => {
+      sb.from('usuarios').select('nome').eq('id', payload.new.seguidor_id).single().then(({ data }) => {
+        const nome = data?.nome || 'Alguém';
+        showNotif('Novo seguidor!', `<strong>${nome}</strong> quer te seguir.`);
+      });
     })
     .subscribe();
 }
