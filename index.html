@@ -1440,18 +1440,18 @@ async function renderPrecisam() {
   ids.forEach(uid => {
     const nome = nomeMap[uid] || '?';
     const compact = figsMap[uid] || {};
-    let faltamHtml = '', totalFalta = 0;
+    let dispHtml = '', totalDisp = 0;
 
     ALL_COUNTRIES.forEach(c => {
       const cdata = compact[c.id] || {};
       const labels = [];
       for(let i=0;i<c.stickers;i++){
-        const v = cdata[i]??cdata[String(i)]??0;
-        const euTenhoRepetida = (state[c.id]?.[i]??0) >= 2;
-        if(v === 0 && euTenhoRepetida) { labels.push(getStickerLabel(c,i)); totalFalta++; }
+        const elesTemRepetida = (cdata[i]??cdata[String(i)]??0) >= 2;
+        const euNaoTenho = (state[c.id]?.[i]??0) === 0;
+        if(elesTemRepetida && euNaoTenho) { labels.push(getStickerLabel(c,i)); totalDisp++; }
       }
       if(!labels.length) return;
-      faltamHtml += `<div class="troca-country" style="margin-bottom:8px">
+      dispHtml += `<div class="troca-country" style="margin-bottom:8px">
         ${flagImgEl(c.iso,28,19,c.id)}
         <div class="troca-country-name">${c.name}</div>
         <div class="troca-tags">${labels.map(lbl =>
@@ -1463,18 +1463,18 @@ async function renderPrecisam() {
       </div>`;
     });
 
-    if (!totalFalta) return;
+    if (!totalDisp) return;
     html += `<div class="troca-section">
       <div class="troca-header">
         <div class="troca-avatar">${nome[0].toUpperCase()}</div>
         <div><div class="troca-name">${nome}</div>
-        <div class="troca-sub">${totalFalta} figurinha${totalFalta>1?'s':''} que você tem repetida e ela precisa</div></div>
+        <div class="troca-sub">${totalDisp} repetida${totalDisp>1?'s':''} que você precisa</div></div>
       </div>
-      <div class="troca-countries">${faltamHtml}</div>
+      <div class="troca-countries">${dispHtml}</div>
     </div>`;
   });
 
-  el.innerHTML = html || `<div class="empty-state"><div class="emoji">✨</div>Nenhuma figurinha sua repetida é necessária para quem você segue.</div>`;
+  el.innerHTML = html || `<div class="empty-state"><div class="emoji">✨</div>Nenhuma repetida dos seus seguidos te falta.</div>`;
 }
 
 async function buscarUsuarios() {
