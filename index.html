@@ -6,6 +6,8 @@
 <title>Álbum Copa do Mundo 2026</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
     --verde: #006847; --amarelo: #FFD700; --azul: #003087;
@@ -443,6 +445,35 @@
   .toggle-switch.on { background:var(--verde); }
   .toggle-knob { width:18px; height:18px; border-radius:99px; background:#fff; position:absolute; top:2px; left:2px; transition:left .2s; }
   .toggle-switch.on .toggle-knob { left:20px; }
+
+  /* SINO NOTIFICAÇÕES */
+  .notif-bell { position:relative; width:38px; height:38px; border-radius:99px; border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.3); color:#fff; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s; flex-shrink:0; }
+  .notif-bell:hover { background:rgba(0,0,0,.5); }
+  .notif-bell .bell-badge { position:absolute; top:-3px; right:-3px; background:var(--danger); color:#fff; font-size:9px; font-weight:700; border-radius:99px; min-width:16px; height:16px; padding:0 3px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg); display:none; }
+  .notif-bell .bell-badge.show { display:flex; }
+
+  /* PAINEL PERFIL */
+  .perfil-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:150; display:none; }
+  .perfil-overlay.open { display:block; }
+  .perfil-panel { position:fixed; top:0; right:0; height:100vh; width:320px; max-width:90vw; background:var(--card); border-left:1px solid var(--border); z-index:151; display:flex; flex-direction:column; transform:translateX(100%); transition:transform .3s ease; overflow-y:auto; }
+  .perfil-overlay.open .perfil-panel { transform:translateX(0); }
+  .perfil-panel-header { padding:20px 20px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+  .perfil-panel-avatar { width:50px; height:50px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:22px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .perfil-panel-body { padding:20px; flex:1; }
+  .perfil-section-title { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:10px; margin-top:20px; }
+  .perfil-section-title:first-child { margin-top:0; }
+
+  /* PONTOS DE TROCA */
+  .ponto-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+  .ponto-card-header { display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+  .ponto-pin { font-size:22px; flex-shrink:0; }
+  .ponto-nome { font-weight:700; font-size:14px; }
+  .ponto-local { font-size:12px; color:var(--muted); margin-top:2px; }
+  .ponto-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .ponto-tag { font-size:11px; border-radius:5px; padding:2px 8px; font-weight:600; }
+  .ponto-tag.ativo { background:rgba(34,197,94,.1); border:1px solid var(--success); color:var(--success); }
+  .ponto-tag.inativo { background:rgba(122,139,160,.1); border:1px solid var(--muted); color:var(--muted); }
+  .mapa-container { border-radius:12px; overflow:hidden; border:1px solid var(--border); margin-bottom:20px; height:300px; }
 </style>
 </head>
 <body>
@@ -499,11 +530,15 @@
         <div class="hstat"><div class="hstat-num" id="stat-total">0</div><div class="hstat-label">Coladas</div></div>
         <div class="hstat"><div class="hstat-num" id="stat-need" style="color:#ef4444">0</div><div class="hstat-label">Faltam</div></div>
         <div class="hstat"><div class="hstat-num" id="stat-dup" style="color:#f59e0b">0</div><div class="hstat-label">Repetidas</div></div>
-        <div class="user-badge" onclick="doLogout()">
+        <button class="notif-bell" id="notif-bell" onclick="abrirPerfil()" title="Perfil e configurações">
+          🔔
+          <span class="bell-badge" id="bell-badge"></span>
+        </button>
+        <div class="user-badge" onclick="abrirPerfil()">
           <div class="user-avatar" id="user-avatar">?</div>
           <div>
             <div class="user-name" id="user-name-display">-</div>
-            <div class="logout-hint">sair</div>
+            <div class="logout-hint">perfil</div>
           </div>
         </div>
       </div>
@@ -519,6 +554,7 @@
     <button class="nav-tab active" onclick="showTab('album')">📖 Meu Álbum</button>
     <button class="nav-tab" onclick="showTab('social')">👥 Social</button>
     <button class="nav-tab" id="nav-trocas" onclick="showTab('trocas')">🔄 Trocas</button>
+    <button class="nav-tab" onclick="showTab('pontos')">📍 Pontos</button>
     <button class="nav-tab nav-tab-copa" onclick="showTab('copa')">🏆 COPA</button>
   </div>
 
@@ -566,11 +602,13 @@
       </div>
       <div class="social-subtabs">
         <button class="social-subtab active" onclick="showSocialSubtab('feed')">📰 Feed</button>
+        <button class="social-subtab" onclick="showSocialSubtab('precisam')">🎯 Precisam</button>
         <button class="social-subtab" onclick="showSocialSubtab('descobrir')">🔍 Descobrir</button>
         <button class="social-subtab" onclick="showSocialSubtab('seguindo')">👤 Seguindo</button>
         <button class="social-subtab" onclick="showSocialSubtab('seguidores')">👥 Seguidores <span id="badge-seguidores"></span></button>
       </div>
       <div id="social-feed-panel"></div>
+      <div id="social-precisam-panel" style="display:none"></div>
       <div id="social-descobrir-panel" style="display:none">
         <div style="margin-bottom:14px">
           <input type="text" id="busca-usuario" placeholder="Buscar usuário..." oninput="buscarUsuarios()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit">
@@ -599,6 +637,26 @@
     </main>
   </div>
 
+  <!-- PONTOS DE TROCA -->
+  <div id="pontos-tab" style="display:none">
+    <main style="max-width:900px;margin:0 auto;padding:24px 28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <h2 style="font-family:Impact,'Arial Narrow',sans-serif;font-size:22px;letter-spacing:2px;color:var(--text);text-transform:uppercase">📍 Pontos de Troca</h2>
+          <p style="font-size:12px;color:var(--muted);margin-top:4px">Locais físicos para troca de figurinhas</p>
+        </div>
+        <button class="btn btn-yellow" onclick="abrirModalPonto()">+ Cadastrar Ponto</button>
+      </div>
+      <div id="mapa-pontos" class="mapa-container"></div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <input type="text" id="busca-cidade" placeholder="Filtrar por cidade..." oninput="filtrarPontos()" style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;font-family:inherit">
+        <button class="filter-btn active" id="filtro-ativo-btn" onclick="toggleFiltroPontos(this,'ativo')">● Ativos</button>
+        <button class="filter-btn" id="filtro-todos-btn" onclick="toggleFiltroPontos(this,'todos')">Todos</button>
+      </div>
+      <div id="pontos-lista"></div>
+    </main>
+  </div>
+
   <div id="copa-tab" style="display:none">
     <main style="max-width:900px;margin:0 auto;padding:24px 28px">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap">
@@ -610,6 +668,56 @@
       </div>
       <div id="copa-content"><div class="empty-state"><div class="spinner" style="margin:0 auto"></div></div></div>
     </main>
+  </div>
+</div>
+
+<!-- PAINEL PERFIL -->
+<div class="perfil-overlay" id="perfil-overlay" onclick="fecharPerfil(event)">
+  <div class="perfil-panel" id="perfil-panel">
+    <div class="perfil-panel-header">
+      <div class="perfil-panel-avatar" id="perfil-avatar">?</div>
+      <div>
+        <div style="font-weight:700;font-size:16px" id="perfil-nome">-</div>
+        <div style="font-size:12px;color:var(--muted)">Meu Perfil</div>
+      </div>
+      <button onclick="fecharPerfil(null)" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div class="perfil-panel-body">
+      <div class="perfil-section-title">Privacidade</div>
+      <div class="privado-toggle" onclick="togglePrivado()">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px">Perfil Privado</div>
+          <div style="font-size:12px;color:var(--muted)">Exige aprovação para novos seguidores</div>
+        </div>
+        <div class="toggle-switch" id="toggle-privado"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="perfil-section-title">Notificações</div>
+      <div id="perfil-notifs-lista" style="min-height:60px;font-size:13px;color:var(--muted)">Nenhuma notificação recente.</div>
+      <div class="perfil-section-title">Conta</div>
+      <button onclick="doLogout()" style="width:100%;padding:11px;background:rgba(239,68,68,.1);border:1px solid var(--danger);border-radius:9px;color:var(--danger);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">Sair da conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PONTO DE TROCA -->
+<div class="modal-overlay" id="ponto-modal-overlay">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title"><h2>📍 Cadastrar Ponto</h2><p>Local físico para troca de figurinhas</p></div>
+      <button class="modal-close" onclick="fecharModalPonto()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nome do local</label><input type="text" id="ponto-nome" placeholder="Ex: Praça da Liberdade"></div>
+      <div class="form-group"><label>Cidade</label><input type="text" id="ponto-cidade" placeholder="Ex: São Vicente"></div>
+      <div class="form-group"><label>Estado (sigla)</label><input type="text" id="ponto-estado" placeholder="Ex: SP" maxlength="2" style="text-transform:uppercase"></div>
+      <div class="form-group"><label>Bairro (opcional)</label><input type="text" id="ponto-bairro" placeholder="Ex: Centro"></div>
+      <div class="form-group"><label>Horário (opcional)</label><input type="text" id="ponto-horario" placeholder="Ex: Sáb e Dom 9h–12h"></div>
+      <div class="form-group"><label>Descrição (opcional)</label><input type="text" id="ponto-desc" placeholder="Detalhes sobre o ponto..."></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">📌 Clique no mapa abaixo para marcar a localização exata</div>
+      <div id="mapa-ponto-modal" style="height:200px;border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:16px"></div>
+      <div id="ponto-coord-info" style="font-size:12px;color:var(--muted);margin-bottom:14px;text-align:center">Nenhuma localização marcada</div>
+      <button class="auth-btn" onclick="salvarPonto()">Salvar Ponto</button>
+    </div>
   </div>
 </div>
 
@@ -927,7 +1035,7 @@ function enterApp() {
   updateHeader();
   startRealtimeNotifs();
   const savedTab = localStorage.getItem('copa_active_tab') || 'album';
-  const validTabs = ['album','social','trocas','copa'];
+  const validTabs = ['album','social','trocas','pontos','copa'];
   showTab(validTabs.includes(savedTab) ? savedTab : 'album');
 }
 
@@ -1205,14 +1313,15 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); }
 
 // ===== NAV TABS =====
 function showTab(tab) {
-  ['album','social','trocas','copa'].forEach(t => {
+  ['album','social','trocas','pontos','copa'].forEach(t => {
     const el = document.getElementById(t+'-tab');
     if(el) el.style.display = tab===t ? '' : 'none';
   });
   document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',
-    (i===0&&tab==='album')||(i===1&&tab==='social')||(i===2&&tab==='trocas')||(i===3&&tab==='copa')));
+    (i===0&&tab==='album')||(i===1&&tab==='social')||(i===2&&tab==='trocas')||(i===3&&tab==='pontos')||(i===4&&tab==='copa')));
   if(tab==='social') loadSocialTab();
   if(tab==='trocas') loadTrocasTab();
+  if(tab==='pontos') loadPontosTab();
   if(tab==='copa') loadCopaTab();
   localStorage.setItem('copa_active_tab', tab);
 }
@@ -1228,14 +1337,16 @@ async function loadSocialTab() {
 
 function showSocialSubtab(sub) {
   _socialSubtabAtiva = sub;
-  ['feed','descobrir','seguindo','seguidores'].forEach(s => {
-    document.getElementById(`social-${s}-panel`).style.display = s===sub ? '' : 'none';
+  ['feed','precisam','descobrir','seguindo','seguidores'].forEach(s => {
+    const el = document.getElementById(`social-${s}-panel`);
+    if(el) el.style.display = s===sub ? '' : 'none';
   });
   document.querySelectorAll('.social-subtab').forEach((btn,i) => {
     btn.classList.toggle('active',
-      (i===0&&sub==='feed')||(i===1&&sub==='descobrir')||(i===2&&sub==='seguindo')||(i===3&&sub==='seguidores'));
+      (i===0&&sub==='feed')||(i===1&&sub==='precisam')||(i===2&&sub==='descobrir')||(i===3&&sub==='seguindo')||(i===4&&sub==='seguidores'));
   });
   if(sub==='feed') renderFeed();
+  if(sub==='precisam') renderPrecisam();
   if(sub==='descobrir') { document.getElementById('busca-usuario').value=''; document.getElementById('busca-resultado').innerHTML=''; }
   if(sub==='seguindo') renderSeguindo();
   if(sub==='seguidores') renderSeguidores();
@@ -1300,6 +1411,68 @@ function formatarTempo(dt) {
   if (diff < 3600) return `há ${Math.floor(diff/60)} min`;
   if (diff < 86400) return `há ${Math.floor(diff/3600)}h`;
   return dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+}
+
+async function renderPrecisam() {
+  const el = document.getElementById('social-precisam-panel');
+  el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando...</div>`;
+
+  // pega quem eu sigo
+  const { data: seguindo } = await sb.from('seguidores')
+    .select('seguido_id').eq('seguidor_id', currentUser.id).eq('status','aceito');
+  const ids = (seguindo||[]).map(s => s.seguido_id);
+
+  if (!ids.length) {
+    el.innerHTML = `<div class="empty-state"><div class="emoji">🎯</div>Siga pessoas para ver o que elas precisam.</div>`;
+    return;
+  }
+
+  const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
+  const { data: figs } = await sb.from('figurinhas').select('usuario_id,dados').in('usuario_id', ids);
+  const figsMap = {};
+  (figs||[]).forEach(f => figsMap[f.usuario_id] = f.dados);
+  const nomeMap = {};
+  (users||[]).forEach(u => nomeMap[u.id] = u.nome);
+
+  let html = '';
+  ids.forEach(uid => {
+    const nome = nomeMap[uid] || '?';
+    const compact = figsMap[uid] || {};
+    let faltamHtml = '', totalFalta = 0;
+
+    ALL_COUNTRIES.forEach(c => {
+      const cdata = compact[c.id] || {};
+      const labels = [];
+      for(let i=0;i<c.stickers;i++){
+        const v = cdata[i]??cdata[String(i)]??0;
+        const euTenhoRepetida = (state[c.id]?.[i]??0) >= 2;
+        if(v === 0 && euTenhoRepetida) { labels.push(getStickerLabel(c,i)); totalFalta++; }
+      }
+      if(!labels.length) return;
+      faltamHtml += `<div class="troca-country" style="margin-bottom:8px">
+        ${flagImgEl(c.iso,28,19,c.id)}
+        <div class="troca-country-name">${c.name}</div>
+        <div class="troca-tags">${labels.map(lbl =>
+          `<div style="display:flex;align-items:center;gap:4px">
+            <div class="dup-tag">${lbl}</div>
+            <button class="quero-btn" onclick="abrirModalTroca('${uid}','${nome}','${c.id}','${c.name}','${lbl}')">⇄ Trocar</button>
+          </div>`
+        ).join('')}</div>
+      </div>`;
+    });
+
+    if (!totalFalta) return;
+    html += `<div class="troca-section">
+      <div class="troca-header">
+        <div class="troca-avatar">${nome[0].toUpperCase()}</div>
+        <div><div class="troca-name">${nome}</div>
+        <div class="troca-sub">${totalFalta} figurinha${totalFalta>1?'s':''} que você tem repetida e ela precisa</div></div>
+      </div>
+      <div class="troca-countries">${faltamHtml}</div>
+    </div>`;
+  });
+
+  el.innerHTML = html || `<div class="empty-state"><div class="emoji">✨</div>Nenhuma figurinha sua repetida é necessária para quem você segue.</div>`;
 }
 
 async function buscarUsuarios() {
@@ -1842,7 +2015,9 @@ function startRealtimeNotifs() {
       const t = payload.new;
       sb.from('usuarios').select('nome').eq('id', t.solicitante_id).single().then(({ data }) => {
         const nome = data?.nome || 'Alguém';
-        showNotif('Nova proposta de troca!', `<strong>${nome}</strong> quer trocar <strong>${t.oferece_figurinha}</strong> pela sua <strong>${t.quer_figurinha}</strong>!`);
+        const msg = `🔄 <strong>${nome}</strong> quer trocar <strong>${t.oferece_figurinha}</strong> pela sua <strong>${t.quer_figurinha}</strong>`;
+        showNotif('Nova proposta de troca!', msg);
+        adicionarNotifHistorico(msg);
         atualizarBadgeTrocas(1);
       });
     })
@@ -1854,10 +2029,221 @@ function startRealtimeNotifs() {
     }, payload => {
       sb.from('usuarios').select('nome').eq('id', payload.new.seguidor_id).single().then(({ data }) => {
         const nome = data?.nome || 'Alguém';
-        showNotif('Novo seguidor!', `<strong>${nome}</strong> quer te seguir.`);
+        const msg = `👤 <strong>${nome}</strong> quer te seguir`;
+        showNotif('Novo seguidor!', msg);
+        adicionarNotifHistorico(msg);
       });
     })
     .subscribe();
+}
+
+// ===== PERFIL PAINEL =====
+let _notifHistorico = [];
+
+function abrirPerfil() {
+  document.getElementById('perfil-avatar').textContent = currentUser.nome[0].toUpperCase();
+  document.getElementById('perfil-nome').textContent = currentUser.nome;
+  const toggle = document.getElementById('toggle-privado');
+  toggle.classList.toggle('on', !!currentUser.perfil_privado);
+  document.getElementById('perfil-overlay').classList.add('open');
+  renderNotifsPerfil();
+}
+
+function fecharPerfil(e) {
+  if (e && e.target !== document.getElementById('perfil-overlay')) return;
+  document.getElementById('perfil-overlay').classList.remove('open');
+}
+
+async function togglePrivado() {
+  const novo = !currentUser.perfil_privado;
+  currentUser.perfil_privado = novo;
+  document.getElementById('toggle-privado').classList.toggle('on', novo);
+  await sb.from('usuarios').update({ perfil_privado: novo }).eq('id', currentUser.id);
+}
+
+function renderNotifsPerfil() {
+  const el = document.getElementById('perfil-notifs-lista');
+  if (!_notifHistorico.length) { el.innerHTML = '<span>Nenhuma notificação recente.</span>'; return; }
+  el.innerHTML = _notifHistorico.slice(0,8).map(n =>
+    `<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">${n}</div>`
+  ).join('');
+}
+
+function adicionarNotifHistorico(msg) {
+  _notifHistorico.unshift(msg);
+  if (_notifHistorico.length > 20) _notifHistorico.pop();
+  atualizarBellBadge(_notifHistorico.length);
+}
+
+function atualizarBellBadge(n) {
+  const badge = document.getElementById('bell-badge');
+  if (!badge) return;
+  if (n > 0) { badge.textContent = n > 9 ? '9+' : n; badge.classList.add('show'); }
+  else badge.classList.remove('show');
+}
+
+// ===== PONTOS DE TROCA =====
+let _mapaInicializado = false;
+let _mapaObj = null;
+let _mapaModalObj = null;
+let _pontoMarker = null;
+let _pontoLat = null, _pontoLng = null;
+let _todosPontos = [];
+let _filtroPontos = 'ativo';
+let _marcadores = [];
+
+async function loadPontosTab() {
+  if (!_mapaInicializado) {
+    await new Promise(r => setTimeout(r, 100)); // espera DOM
+    _mapaObj = L.map('mapa-pontos').setView([-15.78, -47.93], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(_mapaObj);
+    _mapaInicializado = true;
+  }
+  await carregarPontos();
+}
+
+async function carregarPontos() {
+  const { data } = await sb.from('pontos_troca').select('*').order('criado_em', { ascending: false });
+  _todosPontos = data || [];
+
+  // busca nomes dos donos
+  const ids = [...new Set(_todosPontos.map(p => p.usuario_id))];
+  let nomeMap = {};
+  if (ids.length) {
+    const { data: users } = await sb.from('usuarios').select('id,nome').in('id', ids);
+    (users||[]).forEach(u => nomeMap[u.id] = u.nome);
+  }
+  _todosPontos.forEach(p => p._nome = nomeMap[p.usuario_id] || '?');
+
+  renderPontos();
+}
+
+function filtrarPontos() { renderPontos(); }
+
+function toggleFiltroPontos(btn, filtro) {
+  _filtroPontos = filtro;
+  document.getElementById('filtro-ativo-btn').classList.toggle('active', filtro === 'ativo');
+  document.getElementById('filtro-todos-btn').classList.toggle('active', filtro === 'todos');
+  renderPontos();
+}
+
+function renderPontos() {
+  const busca = (document.getElementById('busca-cidade')?.value || '').toLowerCase();
+  let pontos = _todosPontos;
+  if (_filtroPontos === 'ativo') pontos = pontos.filter(p => p.ativo);
+  if (busca) pontos = pontos.filter(p => p.cidade.toLowerCase().includes(busca) || (p.bairro||'').toLowerCase().includes(busca));
+
+  // limpa marcadores do mapa
+  _marcadores.forEach(m => m.remove());
+  _marcadores = [];
+
+  pontos.forEach(p => {
+    const m = L.marker([p.lat, p.lng])
+      .addTo(_mapaObj)
+      .bindPopup(`<strong>${p.nome}</strong><br>${p.cidade}/${p.estado}${p.horario?'<br>'+p.horario:''}<br><em>${p._nome}</em>`);
+    _marcadores.push(m);
+  });
+
+  if (!pontos.length) {
+    document.getElementById('pontos-lista').innerHTML = `<div class="empty-state"><div class="emoji">📍</div>Nenhum ponto encontrado.</div>`;
+    return;
+  }
+
+  const euHtml = p => p.usuario_id === currentUser.id
+    ? `<button onclick="toggleAtivarPonto('${p.id}',${p.ativo})" style="font-size:11px;background:none;border:1px solid var(--muted);color:var(--muted);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:inherit">${p.ativo?'Desativar':'Ativar'}</button>
+       <button onclick="deletarPonto('${p.id}')" style="font-size:11px;background:none;border:1px solid var(--danger);color:var(--danger);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:inherit">Remover</button>`
+    : '';
+
+  document.getElementById('pontos-lista').innerHTML = pontos.map(p => `
+    <div class="ponto-card">
+      <div class="ponto-card-header">
+        <div class="ponto-pin">📍</div>
+        <div style="flex:1">
+          <div class="ponto-nome">${p.nome}</div>
+          <div class="ponto-local">${p.cidade}/${p.estado}${p.bairro?' · '+p.bairro:''}</div>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">${euHtml(p)}</div>
+      </div>
+      ${p.horario ? `<div style="font-size:12px;color:var(--muted)">🕐 ${p.horario}</div>` : ''}
+      ${p.descricao ? `<div style="font-size:12px;color:var(--muted);margin-top:4px">${p.descricao}</div>` : ''}
+      <div class="ponto-tags">
+        <span class="ponto-tag ${p.ativo?'ativo':'inativo'}">${p.ativo?'● Ativo':'○ Inativo'}</span>
+        <span class="ponto-tag inativo">👤 ${p._nome}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function toggleAtivarPonto(id, ativoAtual) {
+  await sb.from('pontos_troca').update({ ativo: !ativoAtual }).eq('id', id);
+  await carregarPontos();
+}
+
+async function deletarPonto(id) {
+  if (!confirm('Remover este ponto de troca?')) return;
+  await sb.from('pontos_troca').delete().eq('id', id);
+  await carregarPontos();
+}
+
+let _mapaModalInicializado = false;
+function abrirModalPonto() {
+  document.getElementById('ponto-modal-overlay').classList.add('open');
+  ['ponto-nome','ponto-cidade','ponto-estado','ponto-bairro','ponto-horario','ponto-desc'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  _pontoLat = null; _pontoLng = null;
+  document.getElementById('ponto-coord-info').textContent = 'Nenhuma localização marcada';
+
+  setTimeout(() => {
+    if (!_mapaModalInicializado) {
+      _mapaModalObj = L.map('mapa-ponto-modal').setView([-15.78, -47.93], 4);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(_mapaModalObj);
+      _mapaModalObj.on('click', e => {
+        _pontoLat = e.latlng.lat.toFixed(6);
+        _pontoLng = e.latlng.lng.toFixed(6);
+        if (_pontoMarker) _pontoMarker.remove();
+        _pontoMarker = L.marker([_pontoLat, _pontoLng]).addTo(_mapaModalObj);
+        document.getElementById('ponto-coord-info').textContent = `📌 ${_pontoLat}, ${_pontoLng}`;
+      });
+      _mapaModalInicializado = true;
+    } else {
+      _mapaModalObj.invalidateSize();
+    }
+  }, 200);
+}
+
+function fecharModalPonto() {
+  document.getElementById('ponto-modal-overlay').classList.remove('open');
+}
+
+async function salvarPonto() {
+  const nome = document.getElementById('ponto-nome').value.trim();
+  const cidade = document.getElementById('ponto-cidade').value.trim();
+  const estado = document.getElementById('ponto-estado').value.trim().toUpperCase();
+  if (!nome || !cidade || !estado) { alert('Preencha nome, cidade e estado.'); return; }
+  if (!_pontoLat || !_pontoLng) { alert('Clique no mapa para marcar a localização.'); return; }
+
+  const btn = document.querySelector('#ponto-modal-overlay .auth-btn');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  await sb.from('pontos_troca').insert({
+    usuario_id: currentUser.id,
+    nome,
+    cidade,
+    estado,
+    bairro: document.getElementById('ponto-bairro').value.trim() || null,
+    horario: document.getElementById('ponto-horario').value.trim() || null,
+    descricao: document.getElementById('ponto-desc').value.trim() || null,
+    lat: parseFloat(_pontoLat),
+    lng: parseFloat(_pontoLng),
+    ativo: true,
+  });
+
+  btn.disabled = false; btn.textContent = 'Salvar Ponto';
+  fecharModalPonto();
+  if (document.getElementById('pontos-tab').style.display !== 'none') await carregarPontos();
 }
 
 // ===== COPA TAB =====
