@@ -1729,47 +1729,22 @@ function atualizarBadgeSeguidores(n) {
 }
 
 async function verRepetidasDe(uid, nome) {
-  // muda para o painel do feed e mostra as repetidas
-  showSocialSubtab('feed');
-  const el = document.getElementById('social-feed-panel');
-  el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-    <button onclick="showSocialSubtab('seguindo')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;font-family:inherit">← Voltar</button>
-    <div style="font-weight:700;font-size:16px">🔄 Repetidas de ${nome}</div>
-  </div>
-  <div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando...</div>`;
+  // Navega para o subtab Repetidas e abre o detalhe deste amigo
+  showSocialSubtab('repetidas');
 
-  const { data: fig } = await sb.from('figurinhas').select('dados').eq('usuario_id', uid).single();
-  const compact = fig?.dados || {};
-  let html = '';
-  let total = 0;
+  // Garante que os dados do amigo estejam no cache
+  if (!_amigosNomeMap[uid] || !_amigosFigsMap[uid]) {
+    await renderAmigosSeguidos();
+  }
 
-  ALL_COUNTRIES.forEach(c => {
-    const labels = [];
-    const cdata = compact[c.id] || {};
-    for(let i=0;i<c.stickers;i++){
-      const v = cdata[i]??cdata[String(i)]??0;
-      const euTenho = (state[c.id]?.[i]??0) >= 1;
-      if(v>=2 && !euTenho) { const qty=v-1; total+=qty; labels.push({lbl:getStickerLabel(c,i),qty,cid:c.id,cname:c.name}); }
-    }
-    if(!labels.length) return;
-    const tagsHtml = labels.map(({lbl,qty,cid,cname}) =>
-      `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
-        <div class="dup-tag">${lbl}${qty>1?` ×${qty}`:''}</div>
-        <button class="quero-btn" onclick="abrirModalTroca('${uid}','${nome}','${cid}','${cname}','${lbl}')">⇄ Trocar</button>
-      </div>`
-    ).join('');
-    html += `<div class="troca-country" style="margin-bottom:10px">
-      ${flagImgEl(c.iso,32,22,c.id)}
-      <div class="troca-country-name">${c.name}</div>
-      <div class="troca-tags">${tagsHtml}</div>
-    </div>`;
-  });
+  // Se ainda não tem no cache (ex: não segue), busca direto
+  if (!_amigosFigsMap[uid]) {
+    const { data: fig } = await sb.from('figurinhas').select('dados').eq('usuario_id', uid).single();
+    _amigosFigsMap[uid] = fig?.dados || {};
+    _amigosNomeMap[uid] = nome;
+  }
 
-  const feedEl = document.getElementById('social-feed-panel');
-  const header = feedEl.children[0].outerHTML;
-  feedEl.innerHTML = header + (html
-    ? `<div class="troca-section"><div class="troca-countries">${html}</div></div>`
-    : `<div class="empty-state"><div class="emoji">✨</div>Nenhuma repetida disponível para troca.</div>`);
+  verRepetidasAmigo(uid);
 }
 
 // ===== TROCAS TAB =====
