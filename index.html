@@ -613,9 +613,13 @@
       <div id="social-repetidas-panel" style="display:none">
         <div id="social-amigos-grid" class="users-grid"></div>
         <div id="social-repetidas-detalhe" style="display:none">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
             <button onclick="voltarParaAmigos()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:13px;font-family:inherit">← Voltar</button>
-            <div id="repetidas-detalhe-titulo" style="font-weight:700;font-size:16px"></div>
+            <div id="repetidas-detalhe-titulo" style="font-weight:700;font-size:16px;flex:1"></div>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none">
+              <input type="checkbox" id="chk-ocultar-tenho" onchange="renderRepetidasDetalhe()" style="cursor:pointer;accent-color:var(--primary)">
+              Ocultar que já tenho
+            </label>
           </div>
           <div id="repetidas-detalhe-content"></div>
         </div>
@@ -1497,14 +1501,23 @@ function voltarParaAmigos() {
   document.getElementById('social-repetidas-detalhe').style.display = 'none';
 }
 
+let _repetidasDetalheUid = null;
+
 function verRepetidasAmigo(uid) {
+  _repetidasDetalheUid = uid;
+  document.getElementById('social-amigos-grid').style.display = 'none';
+  document.getElementById('social-repetidas-detalhe').style.display = '';
+  const nome = _amigosNomeMap[uid] || '?';
+  document.getElementById('repetidas-detalhe-titulo').textContent = `🔄 Repetidas de ${nome}`;
+  renderRepetidasDetalhe();
+}
+
+function renderRepetidasDetalhe() {
+  const uid = _repetidasDetalheUid;
+  if (!uid) return;
   const nome = _amigosNomeMap[uid] || '?';
   const compact = _amigosFigsMap[uid] || {};
-
-  document.getElementById('social-amigos-grid').style.display = 'none';
-  const detalhe = document.getElementById('social-repetidas-detalhe');
-  detalhe.style.display = '';
-  document.getElementById('repetidas-detalhe-titulo').textContent = `🔄 Repetidas de ${nome}`;
+  const ocultarTenho = document.getElementById('chk-ocultar-tenho')?.checked;
 
   let html = '', totalDups = 0;
   ALL_COUNTRIES.forEach(c => {
@@ -1516,6 +1529,7 @@ function verRepetidasAmigo(uid) {
         const euTenho = (state[c.id]?.[i]??0) >= 1;
         const qty = v-1;
         totalDups += qty;
+        if(ocultarTenho && euTenho) continue;
         labels.push({ lbl: getStickerLabel(c,i), qty, euTenho, paisId: c.id, paisNome: c.name });
       }
     }
@@ -1541,7 +1555,7 @@ function verRepetidasAmigo(uid) {
   });
 
   document.getElementById('repetidas-detalhe-content').innerHTML = totalDups
-    ? `<p style="color:var(--muted);font-size:12px;margin-bottom:14px">${totalDups} repetida${totalDups>1?'s':''} no total · figurinhas riscadas você já tem</p>${html}`
+    ? `<p style="color:var(--muted);font-size:12px;margin-bottom:14px">${totalDups} repetida${totalDups>1?'s':''} no total${ocultarTenho?'':' · figurinhas riscadas você já tem'}</p>${html}`
     : `<div class="empty-state"><div class="emoji">✨</div>${nome} não tem repetidas ainda.</div>`;
 }
 
