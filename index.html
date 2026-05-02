@@ -162,10 +162,16 @@
   .qty-input { width:28px; height:18px; border-radius:4px; border:1px solid var(--warning); background:var(--bg); color:var(--text); font-size:11px; font-weight:700; text-align:center; outline:none; padding:0; font-family:inherit; }
 
   /* DUP PANEL */
-  .dup-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px; }
-  .dup-section-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-  .dup-list { display:flex; flex-wrap:wrap; gap:5px; }
-  .dup-tag { background:rgba(245,158,11,.15); border:1px solid var(--warning); border-radius:5px; padding:3px 9px; font-size:11px; font-weight:600; color:var(--warning); }
+  .dup-section { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:10px; }
+  .dup-section-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .dup-list { display:flex; flex-wrap:wrap; gap:7px; }
+  .dup-tag { background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.35); border-radius:8px; padding:4px 10px; font-size:11px; font-weight:700; color:var(--warning); letter-spacing:.3px; }
+  .dup-item { display:flex; align-items:stretch; border-radius:8px; overflow:hidden; border:1px solid rgba(245,158,11,.35); }
+  .dup-item-label { background:rgba(245,158,11,.12); color:var(--warning); font-size:11px; font-weight:700; padding:5px 10px; letter-spacing:.3px; display:flex; align-items:center; gap:5px; }
+  .dup-item-label.tenho { background:rgba(255,255,255,.04); color:var(--muted); border-color:var(--border); text-decoration:line-through; opacity:.6; }
+  .dup-item-qty { background:rgba(245,158,11,.22); color:var(--warning); font-size:10px; font-weight:800; padding:5px 7px; display:flex; align-items:center; border-left:1px solid rgba(245,158,11,.25); }
+  .dup-item-trocar { background:rgba(0,48,135,.25); color:#7aaeff; font-size:10px; font-weight:700; padding:5px 9px; border:none; border-left:1px solid rgba(107,154,255,.25); cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:3px; transition:background .15s; white-space:nowrap; }
+  .dup-item-trocar:hover { background:var(--azul); color:#fff; }
 
   /* CTX MENU */
   .ctx-menu { position:fixed; background:var(--card); border:1px solid var(--border); border-radius:9px; padding:5px; z-index:200; box-shadow:0 8px 28px rgba(0,0,0,.5); display:none; min-width:150px; }
@@ -1583,19 +1589,20 @@ function renderRepetidasDetalhe() {
     if(!labels.length) return;
     html += `<div class="dup-section">
       <div class="dup-section-header">
-        ${flagImgEl(c.iso,36,24,c.id)}
-        <div>
+        ${flagImgEl(c.iso,40,27,c.id)}
+        <div style="flex:1">
           <div style="font-weight:700;font-size:14px">${c.name}</div>
-          <div style="font-size:11px;color:var(--muted)">${labels.length} repetida${labels.length>1?'s':''}</div>
+          <div style="font-size:11px;color:var(--muted)">${labels.length} figurinha${labels.length>1?'s':''} · ${labels.reduce((a,l)=>a+l.qty,0)} cópias</div>
         </div>
       </div>
       <div class="dup-list">
         ${labels.map(({lbl,qty,euTenho,paisId,paisNome}) => `
-          <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
-            <div class="dup-tag" style="${euTenho?'opacity:.45;text-decoration:line-through':''}" title="${euTenho?'Você já tem essa':'Você não tem essa'}">${lbl}${qty>1?` ×${qty}`:''}</div>
+          <div class="dup-item" style="${euTenho?'border-color:var(--border)':''}">
+            <div class="dup-item-label${euTenho?' tenho':''}" title="${euTenho?'Você já tem':'Você precisa'}">${lbl}</div>
+            ${qty>1?`<div class="dup-item-qty">×${qty}</div>`:''}
             ${!euTenho
-              ? `<button class="quero-btn" onclick="abrirModalTroca('${uid}','${nome}','${paisId}','${paisNome}','${lbl}')">⇄ Trocar</button>`
-              : `<span style="font-size:10px;color:var(--muted)">já tenho</span>`}
+              ? `<button class="dup-item-trocar" onclick="abrirModalTroca('${uid}','${nome}','${paisId}','${paisNome}','${lbl}')">⇄ Trocar</button>`
+              : ''}
           </div>`).join('')}
       </div>
     </div>`;
