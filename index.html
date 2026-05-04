@@ -901,7 +901,10 @@
       <div class="perfil-section-title">Notificações</div>
       <div id="perfil-notifs-lista" style="min-height:60px;font-size:13px;color:var(--muted)">Nenhuma notificação recente.</div>
       <div class="perfil-section-title">Conta</div>
-      <button id="btn-sincronizar-feed" onclick="sincronizarFeedRetroativo()" style="width:100%;padding:11px;background:rgba(245,158,11,.1);border:1px solid var(--warning);border-radius:9px;color:var(--warning);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;margin-bottom:8px">📡 Sincronizar histórico no feed</button>
+      <div style="margin-bottom:8px">
+        <button id="btn-sincronizar-feed" onclick="sincronizarFeedRetroativo()" style="width:100%;padding:11px;background:rgba(245,158,11,.1);border:1px solid var(--warning);border-radius:9px;color:var(--warning);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">📡 Reconstruir histórico do feed</button>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4">Use se o feed social estiver desatualizado ou com dados incorretos. Apaga e recria todo o seu histórico.</div>
+      </div>
       <button onclick="doLogout()" style="width:100%;padding:11px;background:rgba(239,68,68,.1);border:1px solid var(--danger);border-radius:9px;color:var(--danger);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">Sair da conta</button>
     </div>
   </div>
