@@ -1103,15 +1103,23 @@ const SPECIAL_IMGS = {
   intro: 'images/contra-cap.png',
 };
 
+function flagFallback(img) {
+  const initials = img.dataset.initials || '?';
+  const w = img.dataset.fw || 44, h = img.dataset.fh || 30;
+  const div = document.createElement('div');
+  div.style.cssText = `width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.35)}px;font-weight:700;color:var(--amarelo);letter-spacing:1px;font-family:Impact,sans-serif`;
+  div.textContent = initials;
+  img.replaceWith(div);
+}
+
 function flagImgEl(iso, w, h, id) {
   if(!iso) {
     const src = id && SPECIAL_IMGS[id];
-    if(src) return `<img src="${src}" width="${w}" height="${h}" style="border-radius:4px;object-fit:contain;background:#fff;padding:2px;border:1px solid rgba(255,255,255,.12)" onerror="this.outerHTML='<div style=\'width:${w}px;height:${h}px;background:#1e2d45;border-radius:4px\'></div>'">`;
+    if(src) return `<img src="${src}" width="${w}" height="${h}" style="border-radius:4px;object-fit:contain;background:#fff;padding:2px;border:1px solid rgba(255,255,255,.12)" data-fw="${w}" data-fh="${h}" data-initials="" onerror="flagFallback(this)">`;
     return `<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.4)}px;font-weight:700;color:var(--amarelo);letter-spacing:1px;font-family:Impact,'Arial Narrow',sans-serif">ESP</div>`;
   }
   const initials = id && COUNTRY_MAP[id] ? COUNTRY_MAP[id].name.slice(0,3).toUpperCase() : iso.toUpperCase();
-  const fallback = `this.outerHTML='<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.35)}px;font-weight:700;color:var(--amarelo);letter-spacing:1px;font-family:Impact,sans-serif">${initials}</div>'`;
-  return `<img src="https://flagcdn.com/w80/${iso}.png" width="${w}" height="${h}" style="border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#1e2d45" onerror="${fallback}">`;
+  return `<img src="https://flagcdn.com/w80/${iso}.png" width="${w}" height="${h}" style="border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#1e2d45" data-initials="${initials}" data-fw="${w}" data-fh="${h}" onerror="flagFallback(this)">`;
 }
 
 // ===== STATE =====
@@ -3655,7 +3663,7 @@ function montarJogo(m, isProximo = false) {
   const venue = comp?.venue;
   const localTxt = venue ? `<div class="copa-jogo-local">${venue.fullName || ''}${venue.address?.city ? ' · ' + venue.address.city : ''}</div>` : '';
 
-  const _logoFallback = (abbr) => `this.outerHTML='<div style="width:32px;height:32px;border-radius:99px;background:#1e2d45;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--amarelo)">${abbr}</div>'`;
+  const _logoFallback = (abbr) => `this.style.display='none';this.insertAdjacentHTML('afterend','<div style=\\'width:32px;height:32px;border-radius:99px;background:#1e2d45;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--amarelo)\\'>${abbr}</div>')`;
   const homeLogo = home?.team?.logo ? `<img src="${home.team.logo}" width="32" height="32" style="object-fit:contain" onerror="${_logoFallback(home?.team?.abbreviation||'?')}">` : '';
   const awayLogo = away?.team?.logo ? `<img src="${away.team.logo}" width="32" height="32" style="object-fit:contain" onerror="${_logoFallback(away?.team?.abbreviation||'?')}">` : '';
   const homeNome = home?.team?.shortDisplayName || home?.team?.name || '?';
