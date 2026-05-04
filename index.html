@@ -1614,8 +1614,17 @@ document.getElementById('btn-export-missing').addEventListener('click', () => {
 // ===== PDF FALTANTES =====
 function gerarPdfFaltantes() {
   const btn = document.getElementById('btn-pdf-faltantes');
-  btn.textContent = '⏳ Gerando...';
+  const textoOriginal = btn.innerHTML;
+  btn.innerHTML = '⏳ Gerando...';
   btn.disabled = true;
+  btn.style.opacity = '.7';
+
+  // animação de pontinhos enquanto o PDF é gerado
+  let dots = 0;
+  const anim = setInterval(() => {
+    dots = (dots + 1) % 4;
+    btn.innerHTML = '⏳ Gerando' + '.'.repeat(dots);
+  }, 300);
 
   setTimeout(() => {
     try {
@@ -1728,11 +1737,15 @@ function gerarPdfFaltantes() {
       }
 
       doc.save('copa2026-faltantes.pdf');
+    } catch(e) {
+      showAlert('Não foi possível gerar o PDF. Tente novamente.', { titulo: 'Erro ao gerar PDF', icone: '⚠️' });
     } finally {
-      btn.textContent = '📄 PDF';
+      clearInterval(anim);
+      btn.innerHTML = textoOriginal;
       btn.disabled = false;
+      btn.style.opacity = '';
     }
-  }, 50);
+  }, 80);
 }
 
 // ===== CTX MENU =====
