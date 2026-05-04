@@ -2306,20 +2306,25 @@ async function concluirTroca(trocaId, btn) {
     await sb.from('figurinhas').update({ dados: ds, atualizado_em: new Date().toISOString() }).eq('usuario_id', t.solicitante_id);
   }
 
-  const { data: uSolic } = await sb.from('usuarios').select('nome').eq('id', t.solicitante_id).single();
-  const nomeSolicitante = uSolic?.nome || '?';
+  // busca nome do solicitante e do receptor para garantir
+  const [{ data: uSolic }, { data: uRecep }] = await Promise.all([
+    sb.from('usuarios').select('nome').eq('id', t.solicitante_id).single(),
+    sb.from('usuarios').select('nome').eq('id', t.receptor_id).single(),
+  ]);
+  const nomeSolicitante = uSolic?.nome || _amigosNomeMap[t.solicitante_id] || '?';
+  const nomeReceptor = uRecep?.nome || currentUser.nome;
 
   await Promise.all([
     sb.from('trocas').update({ status: 'concluido' }).eq('id', trocaId),
-    sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'troca_concluida', dados: {
+    sb.from('atividades').insert({ usuario_id: t.receptor_id, tipo: 'troca_concluida', dados: {
       com_nome: nomeSolicitante,
-      entregou: t.quer_figurinha, entregou_pais: t.quer_pais_nome,
-      recebeu: t.oferece_figurinha, recebeu_pais: t.oferece_pais_nome
+      entregou: t.quer_figurinha, entregou_pais: t.quer_pais_nome || COUNTRY_MAP[t.quer_pais_id]?.name || '',
+      recebeu: t.oferece_figurinha, recebeu_pais: t.oferece_pais_nome || COUNTRY_MAP[t.oferece_pais_id]?.name || ''
     }}),
     sb.from('atividades').insert({ usuario_id: t.solicitante_id, tipo: 'troca_concluida', dados: {
-      com_nome: currentUser.nome,
-      entregou: t.oferece_figurinha, entregou_pais: t.oferece_pais_nome,
-      recebeu: t.quer_figurinha, recebeu_pais: t.quer_pais_nome
+      com_nome: nomeReceptor,
+      entregou: t.oferece_figurinha, entregou_pais: t.oferece_pais_nome || COUNTRY_MAP[t.oferece_pais_id]?.name || '',
+      recebeu: t.quer_figurinha, recebeu_pais: t.quer_pais_nome || COUNTRY_MAP[t.quer_pais_id]?.name || ''
     }}),
   ]);
 
