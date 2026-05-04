@@ -1,0 +1,26 @@
+{
+  "name": "Copa 2026 - Figurinhas",
+  "short_name": "Copa 2026",
+  "description": "Gerenciador de figurinhas da Copa do Mundo 2026",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0f1e",
+  "theme_color": "#003087",
+  "icons": [
+    {
+      "src": "logo/logo-copa.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo/logo-copa.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "entertainment"],
+  "lang": "pt-BR"
+}
