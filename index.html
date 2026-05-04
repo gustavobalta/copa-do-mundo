@@ -965,6 +965,18 @@
   <div class="ctx-item" id="ctx-remove">➖ Remover uma</div>
 </div>
 
+<!-- Modal de diálogo genérico (substitui confirm/alert nativos) -->
+<div class="modal-overlay" id="dialog-overlay" style="z-index:700">
+  <div class="modal" style="max-width:380px;padding:0">
+    <div style="padding:24px 24px 8px;text-align:center">
+      <div id="dialog-icon" style="font-size:36px;margin-bottom:12px"></div>
+      <div id="dialog-title" style="font-size:17px;font-weight:700;margin-bottom:8px"></div>
+      <div id="dialog-msg" style="font-size:14px;color:var(--muted);line-height:1.5"></div>
+    </div>
+    <div id="dialog-actions" style="display:flex;gap:8px;padding:20px 24px 24px"></div>
+  </div>
+</div>
+
 <script>
 // ===== SUPABASE =====
 const SUPA_URL = 'https://tawhxgqodyxdanjlparg.supabase.co';
@@ -2209,14 +2221,15 @@ async function seguirUsuario(uid, privado, btn) {
   _amigosCarregados = false; // invalida cache
 }
 
-async function deixarDeSeguir(uid, btn) {
-  if (!confirm('Deixar de seguir?')) return;
-  btn.disabled = true;
-  await sb.from('seguidores').delete().eq('seguidor_id', currentUser.id).eq('seguido_id', uid);
-  btn.textContent = '+ Seguir';
-  btn.className = 'btn-seguir';
-  btn.disabled = false;
-  _amigosCarregados = false; // invalida cache
+function deixarDeSeguir(uid, btn) {
+  showConfirm('Deixar de seguir esta pessoa?', async () => {
+    btn.disabled = true;
+    await sb.from('seguidores').delete().eq('seguidor_id', currentUser.id).eq('seguido_id', uid);
+    btn.textContent = '+ Seguir';
+    btn.className = 'btn-seguir';
+    btn.disabled = false;
+    _amigosCarregados = false;
+  }, { titulo: 'Deixar de seguir', icone: '👤', labelOk: 'Deixar de seguir', danger: true });
 }
 
 async function renderSeguindo() {
@@ -2252,12 +2265,13 @@ async function renderSeguindo() {
   }).join('');
 }
 
-async function deixarDeSeguirById(uid, btn) {
-  if (!confirm('Deixar de seguir?')) return;
-  btn.disabled = true;
-  await sb.from('seguidores').delete().eq('seguidor_id', currentUser.id).eq('seguido_id', uid);
-  btn.closest('.user-result').remove();
-  _amigosCarregados = false; // invalida cache
+function deixarDeSeguirById(uid, btn) {
+  showConfirm('Deixar de seguir esta pessoa?', async () => {
+    btn.disabled = true;
+    await sb.from('seguidores').delete().eq('seguidor_id', currentUser.id).eq('seguido_id', uid);
+    btn.closest('.user-result').remove();
+    _amigosCarregados = false;
+  }, { titulo: 'Deixar de seguir', icone: '👤', labelOk: 'Deixar de seguir', danger: true });
 }
 
 async function renderSeguidores() {
@@ -2759,7 +2773,7 @@ function abrirModalTroca(receptorId, receptorNome, querPaisId, querPaisNome, que
   });
 
   if (!minhasRepetidas.length) {
-    alert(`Você não tem repetidas que ${receptorNome} ainda não possui para oferecer em troca.`);
+    showAlert(`Você não tem repetidas que ${receptorNome} ainda não possui para oferecer em troca.`, { titulo: 'Sem repetidas disponíveis', icone: '🔄' });
     return;
   }
 
@@ -3022,6 +3036,31 @@ async function renderStats() {
     </div>`;
 }
 
+// ===== DIALOGO (substitui confirm/alert) =====
+function showConfirm(msg, onOk, { titulo = 'Confirmar', icone = '⚠️', labelOk = 'Confirmar', labelCancel = 'Cancelar', danger = false } = {}) {
+  const overlay = document.getElementById('dialog-overlay');
+  document.getElementById('dialog-icon').textContent = icone;
+  document.getElementById('dialog-title').textContent = titulo;
+  document.getElementById('dialog-msg').textContent = msg;
+  document.getElementById('dialog-actions').innerHTML = `
+    <button id="dialog-cancel" style="flex:1;padding:11px;background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">${labelCancel}</button>
+    <button id="dialog-ok" style="flex:1;padding:11px;background:${danger?'var(--danger)':'var(--amarelo)'};border:none;border-radius:9px;color:${danger?'#fff':'#000'};font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">${labelOk}</button>`;
+  overlay.classList.add('open');
+  document.getElementById('dialog-ok').onclick = () => { overlay.classList.remove('open'); onOk(); };
+  document.getElementById('dialog-cancel').onclick = () => overlay.classList.remove('open');
+}
+
+function showAlert(msg, { titulo = 'Atenção', icone = 'ℹ️', labelOk = 'OK' } = {}) {
+  const overlay = document.getElementById('dialog-overlay');
+  document.getElementById('dialog-icon').textContent = icone;
+  document.getElementById('dialog-title').textContent = titulo;
+  document.getElementById('dialog-msg').textContent = msg;
+  document.getElementById('dialog-actions').innerHTML = `
+    <button id="dialog-ok" style="flex:1;padding:11px;background:var(--amarelo);border:none;border-radius:9px;color:#000;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">${labelOk}</button>`;
+  overlay.classList.add('open');
+  document.getElementById('dialog-ok').onclick = () => overlay.classList.remove('open');
+}
+
 // ===== NOTIFICACOES =====
 function showNotif(titulo, msg) {
   const container = document.getElementById('notif-container');
@@ -3266,11 +3305,12 @@ async function toggleAtivarPonto(id, ativoAtual) {
   if (document.getElementById('pontos-panel-meus').style.display !== 'none') renderMeusPontos();
 }
 
-async function deletarPonto(id) {
-  if (!confirm('Remover este ponto de troca?')) return;
-  await sb.from('pontos_troca').delete().eq('id', id);
-  await carregarPontos();
-  if (document.getElementById('pontos-panel-meus').style.display !== 'none') renderMeusPontos();
+function deletarPonto(id) {
+  showConfirm('Remover este ponto de troca do mapa?', async () => {
+    await sb.from('pontos_troca').delete().eq('id', id);
+    await carregarPontos();
+    if (document.getElementById('pontos-panel-meus').style.display !== 'none') renderMeusPontos();
+  }, { titulo: 'Remover ponto', icone: '📍', labelOk: 'Remover', danger: true });
 }
 
 let _mapaModalInicializado = false;
@@ -3309,8 +3349,8 @@ async function salvarPonto() {
   const nome = document.getElementById('ponto-nome').value.trim();
   const cidade = document.getElementById('ponto-cidade').value.trim();
   const estado = document.getElementById('ponto-estado').value.trim().toUpperCase();
-  if (!nome || !cidade || !estado) { alert('Preencha nome, cidade e estado.'); return; }
-  if (!_pontoLat || !_pontoLng) { alert('Clique no mapa para marcar a localização.'); return; }
+  if (!nome || !cidade || !estado) { showAlert('Preencha nome, cidade e estado.', { titulo: 'Campos obrigatórios', icone: '📝' }); return; }
+  if (!_pontoLat || !_pontoLng) { showAlert('Clique no mapa para marcar a localização do ponto.', { titulo: 'Localização não marcada', icone: '📍' }); return; }
 
   const btn = document.querySelector('#ponto-modal-overlay .auth-btn');
   btn.disabled = true; btn.textContent = 'Salvando...';
