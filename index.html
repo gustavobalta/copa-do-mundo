@@ -2364,14 +2364,14 @@ let realtimeChannel = null;
 
 function startRealtimeNotifs() {
   if (realtimeChannel) sb.removeChannel(realtimeChannel);
-  realtimeChannel = sb.channel(`trocas-notif-${currentUser.id}`)
+  realtimeChannel = sb.channel('notifs-' + currentUser.id)
     .on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
-      table: 'trocas',
-      filter: `receptor_id=eq.${currentUser.id}`
+      table: 'trocas'
     }, payload => {
       const t = payload.new;
+      if (t.receptor_id !== currentUser.id) return; // filtra no cliente
       sb.from('usuarios').select('nome').eq('id', t.solicitante_id).single().then(({ data }) => {
         const nome = data?.nome || 'Alguém';
         const msg = `🔄 <strong>${nome}</strong> quer trocar <strong>${t.oferece_figurinha}</strong> pela sua <strong>${t.quer_figurinha}</strong>`;
@@ -2383,9 +2383,9 @@ function startRealtimeNotifs() {
     .on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
-      table: 'seguidores',
-      filter: `seguido_id=eq.${currentUser.id}`
+      table: 'seguidores'
     }, payload => {
+      if (payload.new.seguido_id !== currentUser.id) return; // filtra no cliente
       sb.from('usuarios').select('nome').eq('id', payload.new.seguidor_id).single().then(({ data }) => {
         const nome = data?.nome || 'Alguém';
         const msg = `👤 <strong>${nome}</strong> quer te seguir`;
@@ -2393,7 +2393,10 @@ function startRealtimeNotifs() {
         adicionarNotifHistorico(msg);
       });
     })
-    .subscribe();
+    .subscribe((status, err) => {
+      if (err) console.error('[Realtime] erro:', err);
+      else console.log('[Realtime] status:', status);
+    });
 }
 
 // ===== PERFIL PAINEL =====
