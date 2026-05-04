@@ -2225,25 +2225,57 @@ async function recusarTroca(trocaId, btn) {
 
 async function concluirTroca(trocaId, btn) {
   btn.disabled = true;
-  // busca dados da troca para decrementar o state e registrar atividade
+
   const { data: t } = await sb.from('trocas').select('*').eq('id', trocaId).single();
-  if (t) {
-    // decrementa a figurinha que entregou (quer_figurinha = o que o receptor entrega)
-    const c = COUNTRY_MAP[t.quer_pais_id];
-    if (c) {
-      let idx;
-      if (c.stickerLabels) idx = c.stickerLabels.indexOf(t.quer_figurinha);
-      else { const num = parseInt(t.quer_figurinha.replace(t.quer_pais_id.toUpperCase(),'')); idx = isNaN(num)?-1:num-1; }
-      if (idx >= 0 && state[t.quer_pais_id]) {
-        state[t.quer_pais_id][idx] = Math.max(0, (state[t.quer_pais_id][idx]||0) - 1);
-        updateHeader(); renderGrid(); scheduleSave();
-      }
+  if (!t) { btn.disabled = false; return; }
+
+  // ── Receptor (currentUser): entrega quer_figurinha, ganha oferece_figurinha ──
+  function aplicarTrocaLocal(state, entregaPaisId, entregaLbl, ganhaPaisId, ganhaLbl) {
+    const ce = COUNTRY_MAP[entregaPaisId], cg = COUNTRY_MAP[ganhaPaisId];
+    if (ce) {
+      const idxE = ce.stickerLabels ? ce.stickerLabels.indexOf(entregaLbl)
+        : parseInt(entregaLbl.replace(entregaPaisId.toUpperCase(),'')) - 1;
+      if (idxE >= 0) state[entregaPaisId][idxE] = Math.max(0, (state[entregaPaisId][idxE]||0) - 1);
     }
-    await Promise.all([
-      sb.from('trocas').update({ status: 'concluido' }).eq('id', trocaId),
-      sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'troca_concluida', dados: {} })
-    ]);
+    if (cg) {
+      const idxG = cg.stickerLabels ? cg.stickerLabels.indexOf(ganhaLbl)
+        : parseInt(ganhaLbl.replace(ganhaPaisId.toUpperCase(),'')) - 1;
+      if (idxG >= 0) state[ganhaPaisId][idxG] = Math.max(1, (state[ganhaPaisId][idxG]||0) + 1);
+    }
   }
+
+  // atualiza álbum do receptor localmente
+  aplicarTrocaLocal(state,
+    t.quer_pais_id, t.quer_figurinha,      // entrega
+    t.oferece_pais_id, t.oferece_figurinha  // ganha
+  );
+  updateHeader(); renderGrid(); scheduleSave();
+
+  // atualiza álbum do solicitante no Supabase
+  const { data: figSolic } = await sb.from('figurinhas').select('dados').eq('usuario_id', t.solicitante_id).single();
+  if (figSolic?.dados) {
+    const ds = figSolic.dados;
+    // solicitante entrega oferece_figurinha, ganha quer_figurinha
+    const cEnt = COUNTRY_MAP[t.oferece_pais_id], cGan = COUNTRY_MAP[t.quer_pais_id];
+    if (cEnt) {
+      const idxE = cEnt.stickerLabels ? cEnt.stickerLabels.indexOf(t.oferece_figurinha)
+        : parseInt(t.oferece_figurinha.replace(t.oferece_pais_id.toUpperCase(),'')) - 1;
+      if (idxE >= 0) { ds[t.oferece_pais_id] = ds[t.oferece_pais_id]||{}; ds[t.oferece_pais_id][idxE] = Math.max(0, (ds[t.oferece_pais_id][idxE]||0) - 1); }
+    }
+    if (cGan) {
+      const idxG = cGan.stickerLabels ? cGan.stickerLabels.indexOf(t.quer_figurinha)
+        : parseInt(t.quer_figurinha.replace(t.quer_pais_id.toUpperCase(),'')) - 1;
+      if (idxG >= 0) { ds[t.quer_pais_id] = ds[t.quer_pais_id]||{}; ds[t.quer_pais_id][idxG] = Math.max(1, (ds[t.quer_pais_id][idxG]||0) + 1); }
+    }
+    await sb.from('figurinhas').update({ dados: ds, atualizado_em: new Date().toISOString() }).eq('usuario_id', t.solicitante_id);
+  }
+
+  await Promise.all([
+    sb.from('trocas').update({ status: 'concluido' }).eq('id', trocaId),
+    sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'troca_concluida', dados: { com: t.solicitante_id } }),
+    sb.from('atividades').insert({ usuario_id: t.solicitante_id, tipo: 'troca_concluida', dados: { com: currentUser.id } }),
+  ]);
+
   btn.closest('.troca-card').remove();
   renderTrocasRecebidas();
 }
