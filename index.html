@@ -2850,6 +2850,9 @@ function abrirModalTroca(receptorId, receptorNome, querPaisId, querPaisNome, que
     </div>
   </div>`;
   document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.remove();
+  });
 }
 
 function toggleOfertaCheck(cb) {
