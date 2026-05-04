@@ -143,6 +143,7 @@
   .sticker.have { background:var(--verde); border-color:var(--verde); color:#fff; }
   .sticker.duplicate { background:var(--warning); border-color:var(--warning); color:#000; }
   .dup-count { position:absolute; top:-5px; right:-5px; background:var(--danger); color:#fff; font-size:7px; font-weight:700; width:13px; height:13px; border-radius:99px; display:flex; align-items:center; justify-content:center; border:1px solid var(--bg); }
+  .sticker-amigos-want { font-size:9px; color:#6b9aff; margin-left:2px; vertical-align:middle; }
 
   /* MODAL */
   .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(4px); z-index:600; display:flex; align-items:center; justify-content:center; padding:16px; opacity:0; pointer-events:none; transition:opacity .25s; }
@@ -686,6 +687,12 @@
         <button class="social-subtab" onclick="showSocialSubtab('descobrir')">🔍 Descobrir</button>
         <button class="social-subtab" onclick="showSocialSubtab('seguindo')">👤 Seguindo</button>
         <button class="social-subtab" onclick="showSocialSubtab('seguidores')">👥 Seguidores <span id="badge-seguidores"></span></button>
+      </div>
+      <div id="feed-new-badge" style="display:none;text-align:center;margin-bottom:8px">
+        <button onclick="renderFeed();this.parentElement.style.display='none'"
+          style="background:rgba(107,154,255,.15);border:1px solid rgba(107,154,255,.4);border-radius:20px;padding:6px 16px;color:#6b9aff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
+          ↑ Nova atividade no feed
+        </button>
       </div>
       <div id="social-feed-panel"></div>
       <div id="social-repetidas-panel" style="display:none">
@@ -1247,6 +1254,7 @@ function enterApp() {
   renderGrid();
   updateHeader();
   startRealtimeNotifs();
+  startFeedRealtime();
   sincronizarFeedAoLogin(); // silencioso, só roda se não tiver atividades
   const savedTab = localStorage.getItem('copa_active_tab') || 'album';
   const validTabs = ['album','social','trocas','pontos','copa'];
@@ -1329,7 +1337,15 @@ function renderGrid() {
     let mini='';
     for(let i=0;i<c.stickers;i++){
       const v=s[i], lbl=getStickerLabel(c,i);
-      mini+=`<div class="sticker${v===1?' have':v>=2?' have duplicate':''}" title="${lbl}">${v>=2?`<span class="dup-count">${v}</span>`:''}${lbl}</div>`;
+      let amigosQrm = 0;
+      if (v >= 2 && _amigosCarregados) {
+        for (const uid of _amigosIds) {
+          const af = _amigosFigsMap[uid]?.[c.id] || {};
+          if ((af[i] ?? af[String(i)] ?? 0) === 0) amigosQrm++;
+        }
+      }
+      const amigosTag = amigosQrm > 0 ? `<span class="sticker-amigos-want" title="${amigosQrm} amigo(s) precisam">👥${amigosQrm}</span>` : '';
+      mini+=`<div class="sticker${v===1?' have':v>=2?' have duplicate':''}" title="${lbl}">${v>=2?`<span class="dup-count">${v}</span>`:''}${lbl}${amigosTag}</div>`;
     }
     return `<div class="country-card${st.have===st.total?' complete':''}" data-id="${c.id}">
       <div class="card-header">
@@ -1387,7 +1403,16 @@ function refreshCard(cid) {
   card.querySelectorAll('.sticker').forEach((el,i) => {
     const v=s[i], lbl=getStickerLabel(c,i);
     el.className='sticker'+(v===1?' have':v>=2?' have duplicate':'');
-    el.title=lbl; el.innerHTML=(v>=2?`<span class="dup-count">${v}</span>`:'')+lbl;
+    el.title=lbl;
+    let amigosQrm = 0;
+    if (v >= 2 && _amigosCarregados) {
+      for (const uid of _amigosIds) {
+        const af = _amigosFigsMap[uid]?.[c.id] || {};
+        if ((af[i] ?? af[String(i)] ?? 0) === 0) amigosQrm++;
+      }
+    }
+    const amigosTag = amigosQrm > 0 ? `<span class="sticker-amigos-want" title="${amigosQrm} amigo(s) precisam">👥${amigosQrm}</span>` : '';
+    el.innerHTML=(v>=2?`<span class="dup-count">${v}</span>`:'')+lbl+amigosTag;
   });
 }
 
@@ -1737,6 +1762,7 @@ async function renderFeed() {
 
   // inclui o próprio usuário no feed
   const todosIds = [currentUser.id, ...ids];
+  _feedSeguidoIds = todosIds;
   const { data: atividades } = await sb.from('atividades')
     .select('usuario_id,tipo,dados,criado_em')
     .in('usuario_id', todosIds)
@@ -2716,6 +2742,24 @@ function dismissNotif(btn) {
 }
 
 let realtimeChannel = null;
+let _feedRealtimeChannel = null;
+let _feedSeguidoIds = [];
+
+function startFeedRealtime() {
+  if (_feedRealtimeChannel) sb.removeChannel(_feedRealtimeChannel);
+  _feedRealtimeChannel = sb.channel('feed-rt-' + currentUser.id)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'atividades' }, payload => {
+      const a = payload.new;
+      if (!_feedSeguidoIds.includes(a.usuario_id)) return;
+      // mostra badge se o feed estiver visível
+      const badge = document.getElementById('feed-new-badge');
+      const feedEl = document.getElementById('social-feed-panel');
+      if (badge && feedEl && feedEl.offsetParent !== null) {
+        badge.style.display = '';
+      }
+    })
+    .subscribe();
+}
 
 function startRealtimeNotifs() {
   if (realtimeChannel) sb.removeChannel(realtimeChannel);
@@ -2746,6 +2790,24 @@ function startRealtimeNotifs() {
         const msg = `👤 <strong>${nome}</strong> quer te seguir`;
         showNotif('Novo seguidor!', msg);
         adicionarNotifHistorico(msg);
+      });
+    })
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'trocas'
+    }, payload => {
+      const t = payload.new;
+      const old = payload.old;
+      // só notifica o solicitante quando status muda para aceito
+      if (t.status !== 'aceito' || old?.status === 'aceito') return;
+      if (t.solicitante_id !== currentUser.id) return;
+      sb.from('usuarios').select('nome').eq('id', t.receptor_id).single().then(({ data }) => {
+        const nome = data?.nome || 'Alguém';
+        const msg = `✅ <strong>${nome}</strong> aceitou sua proposta de troca de <strong>${t.quer_figurinha}</strong>`;
+        showNotif('Troca aceita!', msg);
+        adicionarNotifHistorico(msg);
+        renderTrocasEnviadas();
       });
     })
     .subscribe((status, err) => {
