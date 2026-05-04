@@ -2706,11 +2706,20 @@ const _chatChannels = {}; // trocaId -> realtime channel
 async function carregarChatTroca(trocaId) {
   const el = document.getElementById(`chat_${trocaId}`);
   if (!el) return;
-  const { data: msgs } = await sb.from('mensagens_troca')
-    .select('*').eq('troca_id', trocaId)
-    .order('criado_em', { ascending: true });
-  _chatCache[trocaId] = msgs || [];
-  renderChatMsgs(trocaId);
+  try {
+    const { data: msgs, error } = await sb.from('mensagens_troca')
+      .select('*').eq('troca_id', trocaId)
+      .order('criado_em', { ascending: true });
+    if (error) throw error;
+    _chatCache[trocaId] = msgs || [];
+    renderChatMsgs(trocaId);
+  } catch {
+    el.innerHTML = `<div style="text-align:center;font-size:11px;color:var(--danger);padding:8px">
+      Não foi possível carregar as mensagens.
+      <span onclick="carregarChatTroca('${trocaId}')" style="color:var(--amarelo);cursor:pointer;margin-left:4px;text-decoration:underline">Tentar novamente</span>
+    </div>`;
+    return;
+  }
 
   // realtime para novas mensagens
   if (!_chatChannels[trocaId]) {
@@ -2746,15 +2755,31 @@ function renderChatMsgs(trocaId) {
 
 async function enviarMensagemTroca(trocaId) {
   const input = document.getElementById(`chat-input_${trocaId}`);
+  const btn = input?.nextElementSibling;
   const texto = input.value.trim();
   if (!texto) return;
-  input.value = '';
-  await sb.from('mensagens_troca').insert({
+
+  input.disabled = true;
+  if (btn) btn.disabled = true;
+
+  const { error } = await sb.from('mensagens_troca').insert({
     troca_id: trocaId,
     autor_id: currentUser.id,
     autor_nome: currentUser.nome,
     texto,
   });
+
+  input.disabled = false;
+  if (btn) btn.disabled = false;
+
+  if (error) {
+    // mantém o texto no input para o usuário tentar de novo
+    input.style.borderColor = 'var(--danger)';
+    setTimeout(() => { input.style.borderColor = ''; }, 2000);
+  } else {
+    input.value = '';
+  }
+  input.focus();
 }
 
 function atualizarBadgeTrocas(n) {
