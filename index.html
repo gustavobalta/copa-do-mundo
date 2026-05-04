@@ -690,6 +690,28 @@
       <button class="view-btn" id="btn-pdf-faltantes" onclick="gerarPdfFaltantes()" title="Baixar PDF das faltantes" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;gap:4px;white-space:nowrap">📄 PDF</button>
       <button class="view-btn" id="btn-stats" onclick="showPanel('stats');renderStats()" title="Estatísticas" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;gap:4px;white-space:nowrap">📊 Stats</button>
     </div>
+    <div id="onboarding-card" style="display:none;margin:16px 28px 0;background:linear-gradient(135deg,rgba(0,48,135,.4),rgba(0,104,71,.4));border:1px solid rgba(255,215,0,.3);border-radius:16px;padding:20px 22px">
+      <div style="font-family:Impact,'Arial Narrow',sans-serif;font-size:15px;letter-spacing:2px;color:var(--amarelo);margin-bottom:14px;text-transform:uppercase">Bem-vindo ao seu álbum!</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div style="font-size:22px;flex-shrink:0">👆</div>
+          <div><div style="font-size:13px;font-weight:700;margin-bottom:2px">Clique na figurinha</div><div style="font-size:12px;color:var(--muted)">para marcar que você tem ela no álbum</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div style="font-size:22px;flex-shrink:0">🖱️</div>
+          <div><div style="font-size:13px;font-weight:700;margin-bottom:2px">Botão direito</div><div style="font-size:12px;color:var(--muted)">para diminuir ou remover uma figurinha</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div style="font-size:22px;flex-shrink:0">👥</div>
+          <div><div style="font-size:13px;font-weight:700;margin-bottom:2px">Aba Social</div><div style="font-size:12px;color:var(--muted)">siga amigos e proponha trocas de repetidas</div></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div style="font-size:22px;flex-shrink:0">🔍</div>
+          <div><div style="font-size:13px;font-weight:700;margin-bottom:2px">Busca por código</div><div style="font-size:12px;color:var(--muted)">digite ex: MEX04 para ir direto à figurinha</div></div>
+        </div>
+      </div>
+      <button onclick="fecharOnboarding()" style="background:var(--amarelo);color:#000;border:none;border-radius:8px;padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Entendido!</button>
+    </div>
     <main>
       <div id="panel-selecoes">
         <div class="section-header">
@@ -1295,6 +1317,23 @@ function enterApp() {
   const savedTab = localStorage.getItem('copa_active_tab') || 'album';
   const validTabs = ['album','social','trocas','pontos','copa'];
   showTab(validTabs.includes(savedTab) ? savedTab : 'album');
+
+  // mostra onboarding só se nunca fechou antes e álbum está zerado
+  const jaViu = localStorage.getItem('copa_onboarding_visto_' + currentUser.id);
+  if (!jaViu) {
+    const totalColadas = ALL_COUNTRIES.reduce((s, c) => {
+      const st = getCountryStats(c.id);
+      return s + st.have;
+    }, 0);
+    if (totalColadas === 0) {
+      document.getElementById('onboarding-card').style.display = '';
+    }
+  }
+}
+
+function fecharOnboarding() {
+  document.getElementById('onboarding-card').style.display = 'none';
+  localStorage.setItem('copa_onboarding_visto_' + currentUser.id, '1');
 }
 
 async function sincronizarFeedAoLogin() {
