@@ -445,6 +445,12 @@
   .feed-sticker-card-tag.entregou { background:rgba(239,68,68,.2); color:#f87171; border:1px solid rgba(239,68,68,.3); }
   .feed-sticker-card-tag.recebeu-tag { background:rgba(34,197,94,.2); color:#4ade80; border:1px solid rgba(34,197,94,.3); }
   .feed-troca-arrow { font-size:22px; color:#60a5fa; font-weight:900; flex-shrink:0; align-self:center; }
+  .feed-completou-card { background:linear-gradient(145deg,#0f2a0f,#0a3020); border:2px solid #1a5c30; border-radius:12px; padding:12px 16px; display:flex; align-items:center; gap:12px; margin-top:10px; }
+  .feed-completou-flag { border-radius:6px; object-fit:cover; border:2px solid rgba(255,255,255,.2); flex-shrink:0; }
+  .feed-completou-info { flex:1; }
+  .feed-completou-label { font-size:9px; font-weight:700; color:#4ade80; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
+  .feed-completou-nome { font-family:Impact,'Arial Narrow',sans-serif; font-size:16px; color:#fff; letter-spacing:1px; line-height:1.1; }
+  .feed-completou-check { font-size:26px; flex-shrink:0; }
 
   /* USER SEARCH RESULT */
   .user-result { background:var(--card); border:1px solid var(--border); border-radius:11px; padding:14px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px; }
@@ -1102,7 +1108,7 @@ async function sincronizarFeedRetroativo() {
       }
     }
     if (todasColadas && c.stickers > 0) {
-      lote.push({ usuario_id: currentUser.id, tipo: 'completou_pais', dados: { pais_id: c.id, pais_nome: c.name }, criado_em: agora.toISOString() });
+      lote.push({ usuario_id: currentUser.id, tipo: 'completou_pais', dados: { pais_id: c.id, pais_nome: c.name, pais_iso: c.iso }, criado_em: agora.toISOString() });
     }
   });
 
@@ -1178,7 +1184,7 @@ async function saveStateToSupabase() {
       const snap = _estadoAnterior?.[c.id] || {};
       const antesCompleto = Object.keys(snap).filter(k => (snap[k]||0) >= 1).length === c.stickers;
       if (!antesCompleto && st.have === st.total) {
-        sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'completou_pais', dados: { pais_id: c.id, pais_nome: c.name } });
+        sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'completou_pais', dados: { pais_id: c.id, pais_nome: c.name, pais_iso: c.iso } });
       }
     });
   }
@@ -1232,7 +1238,7 @@ async function sincronizarFeedAoLogin() {
       }
     }
     if (todasColadas && c.stickers > 0) {
-      lote.push({ usuario_id: currentUser.id, tipo: 'completou_pais', dados: { pais_id: c.id, pais_nome: c.name }, criado_em: agora.toISOString() });
+      lote.push({ usuario_id: currentUser.id, tipo: 'completou_pais', dados: { pais_id: c.id, pais_nome: c.name, pais_iso: c.iso }, criado_em: agora.toISOString() });
     }
   });
   for (let i = 0; i < lote.length; i += 200) {
@@ -1715,7 +1721,25 @@ async function renderFeed() {
     let texto = '';
     const d = a.dados || {};
     if (a.tipo === 'colou') texto = `${eu?'Você colou':'<strong>'+nome+'</strong> colou'} <strong>${d.figurinha}</strong> (${d.pais_nome})`;
-    else if (a.tipo === 'completou_pais') texto = `${eu?'Você completou':'<strong>'+nome+'</strong> completou'} a seleção de <strong>${d.pais_nome}</strong>!`;
+    else if (a.tipo === 'completou_pais') {
+      const iso = d.pais_iso || (COUNTRY_MAP[d.pais_id]?.iso) || '';
+      const dt3 = new Date(a.criado_em);
+      return `<div class="feed-item">
+        <div class="feed-avatar">${nome[0].toUpperCase()}</div>
+        <div class="feed-body">
+          <div><strong>${eu?'Você':nome}</strong> completou uma seleção!</div>
+          <div class="feed-completou-card">
+            ${iso ? `<img class="feed-completou-flag" src="https://flagcdn.com/w80/${iso}.png" width="52" height="34" onerror="this.style.display='none'">` : ''}
+            <div class="feed-completou-info">
+              <div class="feed-completou-label">✓ Álbum completo</div>
+              <div class="feed-completou-nome">${d.pais_nome}</div>
+            </div>
+            <div class="feed-completou-check">🏅</div>
+          </div>
+          <div class="feed-time">${formatarTempo(dt3)}</div>
+        </div>
+      </div>`;
+    }
     else if (a.tipo === 'troca_concluida') {
       const comNome = d.com_nome || '?';
       const dt2 = new Date(a.criado_em);
