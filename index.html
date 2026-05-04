@@ -2317,8 +2317,8 @@ function montarTrocaCard(t, nomeMap, tipo) {
   const temOpcoes = opcoes && opcoes.length > 1;
   if (tipo === 'recebida' && t.status === 'pendente' && temOpcoes) {
     const opcoesHtml = opcoes.map((o, i) => `
-      <label class="troca-opcao-item" onclick="selecionarOpcaoTroca(this)">
-        <input type="radio" name="opcao_${t.id}" value="${i}" ${i===0?'checked':''}>
+      <label class="troca-opcao-item${i===0?' selecionado':''}">
+        <input type="radio" name="opcao_${t.id}" value="${i}" ${i===0?'checked':''} onchange="selecionarOpcaoTroca(this)">
         <div>
           <div class="troca-opcao-lbl">${o.lbl}</div>
           <div class="troca-opcao-pais">${o.paisNome}</div>
@@ -2401,10 +2401,10 @@ function montarTrocaCard(t, nomeMap, tipo) {
   </div>`;
 }
 
-function selecionarOpcaoTroca(label) {
-  const grupo = label.closest('.troca-opcoes');
+function selecionarOpcaoTroca(radio) {
+  const grupo = radio.closest('.troca-opcoes');
   grupo.querySelectorAll('.troca-opcao-item').forEach(l => l.classList.remove('selecionado'));
-  label.classList.add('selecionado');
+  radio.closest('.troca-opcao-item').classList.add('selecionado');
 }
 
 async function aceitarTroca(trocaId, btn) {
@@ -2610,8 +2610,8 @@ function abrirModalTroca(receptorId, receptorNome, querPaisId, querPaisNome, que
   }
 
   const checkHtml = minhasRepetidas.map((r, i) =>
-    `<label class="oferta-check-item" onclick="toggleOfertaCheck(this)">
-      <input type="checkbox" value="${i}" ${i===0?'checked':''}>
+    `<label class="oferta-check-item${i===0?' marcado':''}">
+      <input type="checkbox" value="${i}" ${i===0?'checked':''} onchange="toggleOfertaCheck(this)">
       <div>
         <div style="font-family:Impact,'Arial Narrow',sans-serif;font-size:16px;color:var(--amarelo)">${r.lbl}</div>
         <div style="font-size:11px;color:var(--muted)">${r.paisNome}</div>
@@ -2644,21 +2644,16 @@ function abrirModalTroca(receptorId, receptorNome, querPaisId, querPaisNome, que
     </div>
   </div>`;
   document.body.appendChild(overlay);
-  // marca o primeiro como selecionado visualmente
-  const primeiro = overlay.querySelector('.oferta-check-item');
-  if (primeiro) primeiro.classList.add('marcado');
 }
 
-function toggleOfertaCheck(label) {
-  const cb = label.querySelector('input[type=checkbox]');
-  const lista = label.closest('.oferta-check-lista');
-  const marcados = [...lista.querySelectorAll('input:checked')];
-  // se vai marcar e já tem 3, cancela
-  if (!cb.checked && marcados.length >= 3) {
+function toggleOfertaCheck(cb) {
+  const lista = cb.closest('.oferta-check-lista');
+  // se está marcando e já tem 3, impede
+  if (cb.checked && lista.querySelectorAll('input:checked').length > 3) {
     cb.checked = false;
     return;
   }
-  label.classList.toggle('marcado', cb.checked);
+  cb.closest('.oferta-check-item').classList.toggle('marcado', cb.checked);
 }
 
 async function enviarProposta() {
