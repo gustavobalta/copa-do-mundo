@@ -119,6 +119,9 @@
   .view-btns { display:flex; gap:5px; }
   .view-btn { width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:all .2s; }
   .view-btn:hover,.view-btn.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); }
+  .album-acoes { display:flex; gap:6px; margin-left:auto; padding-left:10px; border-left:1px solid var(--border); }
+  .album-acao-btn { height:32px; padding:0 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s; white-space:nowrap; }
+  .album-acao-btn:hover { border-color:var(--amarelo); color:var(--amarelo); }
 
   main { padding:20px 28px; max-width:1400px; margin:0 auto; }
   .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
@@ -711,8 +714,10 @@
         <button class="view-btn active" id="grid-view" title="Grade">⊞</button>
         <button class="view-btn" id="list-view-btn" title="Lista">☰</button>
       </div>
-      <button class="view-btn" id="btn-pdf-faltantes" onclick="gerarPdfFaltantes()" title="Baixar PDF das faltantes" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;gap:4px;white-space:nowrap">📄 PDF</button>
-      <button class="view-btn" id="btn-stats" onclick="showPanel('stats');renderStats()" title="Estatísticas" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;gap:4px;white-space:nowrap">📊 Stats</button>
+      <div class="album-acoes">
+        <button class="album-acao-btn" id="btn-pdf-faltantes" onclick="gerarPdfFaltantes()" title="Baixar PDF das faltantes">📄 PDF</button>
+        <button class="album-acao-btn" id="btn-stats" onclick="showPanel('stats');renderStats()" title="Ver estatísticas do álbum">📊 Stats</button>
+      </div>
     </div>
     <div id="onboarding-card" style="display:none;margin:16px 28px 0;background:linear-gradient(135deg,rgba(0,48,135,.4),rgba(0,104,71,.4));border:1px solid rgba(255,215,0,.3);border-radius:16px;padding:20px 22px">
       <div style="font-family:Impact,'Arial Narrow',sans-serif;font-size:15px;letter-spacing:2px;color:var(--amarelo);margin-bottom:14px;text-transform:uppercase">Bem-vindo ao seu álbum!</div>
@@ -1815,6 +1820,9 @@ function showPanel(p){
   document.getElementById('panel-stats').style.display=p==='stats'?'':'none';
   document.getElementById('search-input').closest('.search-box').style.display=p==='selecoes'?'':'none';
   document.querySelector('.view-btns').style.display=p==='selecoes'?'':'none';
+  // destaca botão Stats quando painel está ativo
+  const btnStats = document.getElementById('btn-stats');
+  if (btnStats) { btnStats.style.color = p==='stats' ? 'var(--amarelo)' : ''; btnStats.style.borderColor = p==='stats' ? 'var(--amarelo)' : ''; }
   // deseleciona filtros quando vai para stats
   if (p==='stats') document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
 }
