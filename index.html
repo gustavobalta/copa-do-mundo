@@ -753,6 +753,7 @@
       <div class="perfil-section-title">Notificações</div>
       <div id="perfil-notifs-lista" style="min-height:60px;font-size:13px;color:var(--muted)">Nenhuma notificação recente.</div>
       <div class="perfil-section-title">Conta</div>
+      <button id="btn-sincronizar-feed" onclick="sincronizarFeedRetroativo()" style="width:100%;padding:11px;background:rgba(245,158,11,.1);border:1px solid var(--warning);border-radius:9px;color:var(--warning);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;margin-bottom:8px">📡 Sincronizar histórico no feed</button>
       <button onclick="doLogout()" style="width:100%;padding:11px;background:rgba(239,68,68,.1);border:1px solid var(--danger);border-radius:9px;color:var(--danger);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">Sair da conta</button>
     </div>
   </div>
@@ -1066,6 +1067,44 @@ async function doRegister() {
   enterApp();
 }
 
+async function sincronizarFeedRetroativo() {
+  const btn = document.getElementById('btn-sincronizar-feed');
+  btn.disabled = true;
+  btn.textContent = '⏳ Sincronizando...';
+
+  // apaga atividades antigas do tipo 'colou' e 'completou_pais' deste usuário
+  await sb.from('atividades').delete()
+    .eq('usuario_id', currentUser.id)
+    .in('tipo', ['colou', 'completou_pais']);
+
+  // gera uma atividade por figurinha colada e por seleção completa
+  const lote = [];
+  const agora = new Date();
+  ALL_COUNTRIES.forEach(c => {
+    const s = state[c.id] || {};
+    let todasColadas = true;
+    for (let i = 0; i < c.stickers; i++) {
+      const v = s[i] || 0;
+      if (v >= 1) {
+        lote.push({ usuario_id: currentUser.id, tipo: 'colou', dados: { figurinha: getStickerLabel(c, i), pais_id: c.id, pais_nome: c.name }, criado_em: agora.toISOString() });
+      } else {
+        todasColadas = false;
+      }
+    }
+    if (todasColadas && c.stickers > 0) {
+      lote.push({ usuario_id: currentUser.id, tipo: 'completou_pais', dados: { pais_id: c.id, pais_nome: c.name }, criado_em: agora.toISOString() });
+    }
+  });
+
+  // insere em lotes de 200
+  for (let i = 0; i < lote.length; i += 200) {
+    await sb.from('atividades').insert(lote.slice(i, i + 200));
+  }
+
+  btn.textContent = `✓ ${lote.length} atividades sincronizadas!`;
+  setTimeout(() => { btn.textContent = '📡 Sincronizar histórico no feed'; btn.disabled = false; }, 3000);
+}
+
 function doLogout() {
   localStorage.removeItem('copa_user_id');
   currentUser = null;
@@ -1082,13 +1121,32 @@ async function loadUserState() {
   setLoading(true, 'Carregando figurinhas...');
   const { data } = await sb.from('figurinhas').select('dados').eq('usuario_id', currentUser.id).single();
   expandState(data?.dados || null);
+  _estadoAnterior = JSON.parse(JSON.stringify(state)); // snapshot inicial
 }
+
+let _estadoAnterior = null; // snapshot do estado antes do último save
 
 async function saveStateToSupabase() {
   showSaveIndicator('saving');
   const compact = compactState();
 
-  // Tenta update primeiro, se não existir cria
+  // detecta figurinhas recém coladas (0 → 1) para registrar no feed
+  const novasColadas = [];
+  if (_estadoAnterior) {
+    ALL_COUNTRIES.forEach(c => {
+      const antes = _estadoAnterior[c.id] || {};
+      const agora = state[c.id] || {};
+      for (let i = 0; i < c.stickers; i++) {
+        const vAntes = antes[i] || 0;
+        const vAgora = agora[i] || 0;
+        if (vAntes === 0 && vAgora === 1) {
+          novasColadas.push({ cid: c.id, nome: c.name, lbl: getStickerLabel(c, i) });
+        }
+      }
+    });
+  }
+
+  // salva estado
   const { data: existing } = await sb.from('figurinhas').select('id').eq('usuario_id', currentUser.id).maybeSingle();
   let error;
   if(existing) {
@@ -1097,7 +1155,25 @@ async function saveStateToSupabase() {
     ({ error } = await sb.from('figurinhas').insert({ usuario_id: currentUser.id, dados: compact, atualizado_em: new Date().toISOString() }));
   }
   showSaveIndicator(error ? 'error' : 'saved');
-  if(error) console.error('saveState error:', error);
+  if(error) { console.error('saveState error:', error); return; }
+
+  // atualiza snapshot
+  _estadoAnterior = JSON.parse(JSON.stringify(state));
+
+  // registra atividades (em lote, sem await para não travar UI)
+  if (novasColadas.length) {
+    // verifica completou alguma seleção
+    novasColadas.forEach(({ cid, nome, lbl }) => {
+      sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'colou', dados: { figurinha: lbl, pais_id: cid, pais_nome: nome } });
+    });
+    ALL_COUNTRIES.forEach(c => {
+      const st = getCountryStats(c.id);
+      const antesCompleto = Object.values(_estadoAnterior[c.id] || {}).filter(v => v >= 1).length === c.stickers;
+      if (!antesCompleto && st.have === st.total) {
+        sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'completou_pais', dados: { pais_id: c.id, pais_nome: c.name } });
+      }
+    });
+  }
 }
 
 function scheduleSave() {
