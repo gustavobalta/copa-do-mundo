@@ -887,7 +887,7 @@ async function processar() {
       body.paymentMethodId = token.payment_method_id;
     }
 
-    const res = await fetch('/api/pagamento', {
+    const res = await fetch('https://tawhxgqodyxdanjlparg.supabase.co/functions/v1/hyper-responder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
