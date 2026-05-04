@@ -6,6 +6,7 @@
 <title>Álbum Copa do Mundo 2026</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -599,6 +600,7 @@
         <button class="view-btn active" id="grid-view" title="Grade">⊞</button>
         <button class="view-btn" id="list-view-btn" title="Lista">☰</button>
       </div>
+      <button class="view-btn" id="btn-pdf-faltantes" onclick="gerarPdfFaltantes()" title="Baixar PDF das faltantes" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;gap:4px;white-space:nowrap">📄 PDF</button>
     </div>
     <main>
       <div id="panel-selecoes">
@@ -1309,6 +1311,130 @@ document.getElementById('btn-export-missing').addEventListener('click', () => {
   const btn=document.getElementById('btn-export-missing'), orig=btn.textContent;
   btn.textContent='✓ Copiado!'; setTimeout(()=>btn.textContent=orig,2000);
 });
+
+// ===== PDF FALTANTES =====
+function gerarPdfFaltantes() {
+  const btn = document.getElementById('btn-pdf-faltantes');
+  btn.textContent = '⏳ Gerando...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const W = 210, margin = 14, colW = (W - margin * 2) / 3;
+      const verde = [0, 104, 71], amarelo = [200, 168, 0], cinza = [100, 120, 140];
+
+      // cabeçalho
+      doc.setFillColor(...verde);
+      doc.rect(0, 0, W, 22, 'F');
+      doc.setFillColor(...amarelo);
+      doc.rect(0, 22, W, 3, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.text('FIFA WORLD CUP 2026 — FIGURINHAS FALTANTES', margin, 14);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...cinza);
+      doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} · ${currentUser?.user_metadata?.nome || ''}`, margin, 30);
+
+      // coleta faltantes por seleção
+      const grupos = [];
+      ALL_COUNTRIES.forEach(c => {
+        const s = state[c.id] || {};
+        const faltam = [];
+        for (let i = 0; i < c.stickers; i++) {
+          if ((s[i] || 0) === 0) faltam.push(getStickerLabel(c, i));
+        }
+        if (faltam.length) grupos.push({ nome: c.name, faltam, grupo: COUNTRY_MAP[c.id]?._group || '' });
+      });
+
+      if (!grupos.length) {
+        doc.setTextColor(0, 150, 80);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text('🎉 Álbum completo! Nenhuma figurinha faltando.', margin, 60);
+        doc.save('copa2026-faltantes.pdf');
+        return;
+      }
+
+      // total
+      const totalFaltam = grupos.reduce((a, g) => a + g.faltam.length, 0);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(30, 30, 30);
+      doc.text(`Total: ${totalFaltam} figurinhas faltando em ${grupos.length} seleções`, margin, 36);
+
+      // renderiza seleções em 3 colunas
+      let col = 0, y = 44;
+      const pageH = 287, lineH = 4.5, headerH = 8, padding = 3;
+
+      grupos.forEach(g => {
+        const linhas = Math.ceil(g.faltam.length / 4);
+        const blockH = headerH + linhas * lineH + padding;
+        const x = margin + col * colW;
+
+        if (y + blockH > pageH) {
+          col++;
+          y = 44;
+          if (col >= 3) { col = 0; doc.addPage(); y = 14; }
+        }
+
+        const xb = margin + col * colW;
+
+        // fundo do card
+        doc.setFillColor(245, 247, 250);
+        doc.roundedRect(xb, y, colW - 2, blockH, 2, 2, 'F');
+        doc.setDrawColor(210, 220, 230);
+        doc.roundedRect(xb, y, colW - 2, blockH, 2, 2, 'S');
+
+        // nome da seleção
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(0, 60, 40);
+        doc.text(g.nome.toUpperCase(), xb + 2, y + 5.5);
+
+        // quantidade faltando
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.5);
+        doc.setTextColor(...cinza);
+        doc.text(`${g.faltam.length} faltando`, xb + colW - 4, y + 5.5, { align: 'right' });
+
+        // linha separadora
+        doc.setDrawColor(...amarelo);
+        doc.line(xb + 2, y + 7, xb + colW - 4, y + 7);
+
+        // figurinhas em grupos de 4 por linha
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.5);
+        doc.setTextColor(30, 30, 30);
+        for (let i = 0; i < g.faltam.length; i += 4) {
+          const row = g.faltam.slice(i, i + 4).join('  ');
+          doc.text(row, xb + 2, y + headerH + (i / 4) * lineH);
+        }
+
+        y += blockH + 3;
+      });
+
+      // rodapé
+      const pages = doc.getNumberOfPages();
+      for (let p = 1; p <= pages; p++) {
+        doc.setPage(p);
+        doc.setFontSize(7);
+        doc.setTextColor(...cinza);
+        doc.text(`Pág. ${p}/${pages}`, W - margin, 293, { align: 'right' });
+        doc.setFillColor(...verde);
+        doc.rect(0, 291, W, 6, 'F');
+      }
+
+      doc.save('copa2026-faltantes.pdf');
+    } finally {
+      btn.textContent = '📄 PDF';
+      btn.disabled = false;
+    }
+  }, 50);
+}
 
 // ===== CTX MENU =====
 function showCtxMenu(e,cid,idx,inModal=false){
