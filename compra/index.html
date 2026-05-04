@@ -796,15 +796,26 @@
   </div>
 </div>
 
-<script src="https://sdk.mercadopago.com/js/v2"></script>
 <script>
-const MP_PUBLIC_KEY = 'APP_USR-ddd07c4e-288a-436c-89bb-f9fa4930b7b8';
-const mp = new MercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' });
+let mp = null;
 let metodo = 'pix';
 
-function abrirModal() {
+async function carregarMP() {
+  if (mp) return;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://sdk.mercadopago.com/js/v2';
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  mp = new MercadoPago('APP_USR-ddd07c4e-288a-436c-89bb-f9fa4930b7b8', { locale: 'pt-BR' });
+}
+
+async function abrirModal() {
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  await carregarMP();
 }
 function fecharModal() {
   document.getElementById('modal-overlay').classList.remove('open');
