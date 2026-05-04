@@ -2067,17 +2067,21 @@ let _trocaProposta = null; // { receptorId, receptorNome, querPaisId, querPaisNo
 function abrirModalTroca(receptorId, receptorNome, querPaisId, querPaisNome, querFigurinha) {
   _trocaProposta = { receptorId, receptorNome, querPaisId, querPaisNome, querFigurinha };
 
-  // monta lista de repetidas do usuário atual para oferecer
+  // monta lista de repetidas do usuário atual que o receptor NÃO tem
+  const dadosReceptor = _amigosFigsMap[receptorId] || {};
   const minhasRepetidas = [];
   ALL_COUNTRIES.forEach(c => {
     const s = state[c.id] || {};
+    const sr = dadosReceptor[c.id] || {};
     for(let i=0;i<c.stickers;i++) {
-      if((s[i]||0) >= 2) minhasRepetidas.push({ lbl: getStickerLabel(c,i), paisId: c.id, paisNome: c.name });
+      const euTenhoRepetida = (s[i]||0) >= 2;
+      const eleJaTem = (sr[i]??sr[String(i)]??0) >= 1;
+      if(euTenhoRepetida && !eleJaTem) minhasRepetidas.push({ lbl: getStickerLabel(c,i), paisId: c.id, paisNome: c.name });
     }
   });
 
   if (!minhasRepetidas.length) {
-    alert('Você não tem nenhuma repetida para oferecer em troca!');
+    alert(`Você não tem repetidas que ${receptorNome} ainda não possui para oferecer em troca.`);
     return;
   }
 
