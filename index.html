@@ -316,8 +316,7 @@
   .nav-tab-copa.active { border-bottom-color:var(--amarelo) !important; }
   .copa-rodada { margin-bottom:28px; }
   .copa-rodada-titulo { font-family:Impact,'Arial Narrow',sans-serif; font-size:14px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border); }
-  .copa-jogo { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; transition:border-color .2s; }
-  .copa-jogo:hover { border-color:rgba(255,215,0,.2); }
+  .copa-jogo { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; cursor:default; }
   .copa-jogo.ao-vivo { border-color:var(--danger); box-shadow:0 0 0 1px rgba(239,68,68,.3); }
   .copa-jogo.proximo { border-color:#6b9aff; box-shadow:0 0 0 1px rgba(107,154,255,.25); }
   .copa-time { display:flex; align-items:center; gap:10px; }
@@ -462,7 +461,7 @@
     .btn-aceitar, .btn-recusar, .btn-concluir { flex:1; text-align:center; padding:5px 8px; }
 
     /* Notificações */
-    #notif-container { top:8px; right:8px; left:8px; }
+    #notif-container { top:auto; bottom:80px; right:8px; left:8px; flex-direction:column-reverse; }
     .notif-toast { min-width:unset; max-width:100%; }
 
     /* Save indicator */
@@ -1110,7 +1109,9 @@ function flagImgEl(iso, w, h, id) {
     if(src) return `<img src="${src}" width="${w}" height="${h}" style="border-radius:4px;object-fit:contain;background:#fff;padding:2px;border:1px solid rgba(255,255,255,.12)" onerror="this.outerHTML='<div style=\'width:${w}px;height:${h}px;background:#1e2d45;border-radius:4px\'></div>'">`;
     return `<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.4)}px;font-weight:700;color:var(--amarelo);letter-spacing:1px;font-family:Impact,'Arial Narrow',sans-serif">ESP</div>`;
   }
-  return `<img src="https://flagcdn.com/w80/${iso}.png" width="${w}" height="${h}" style="border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#1e2d45" onerror="this.style.display='none'">`;
+  const initials = id && COUNTRY_MAP[id] ? COUNTRY_MAP[id].name.slice(0,3).toUpperCase() : iso.toUpperCase();
+  const fallback = `this.outerHTML='<div style="width:${w}px;height:${h}px;background:linear-gradient(135deg,#1e2d45,#2a3f5f);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*.35)}px;font-weight:700;color:var(--amarelo);letter-spacing:1px;font-family:Impact,sans-serif">${initials}</div>'`;
+  return `<img src="https://flagcdn.com/w80/${iso}.png" width="${w}" height="${h}" style="border-radius:4px;object-fit:cover;border:1px solid rgba(255,255,255,.12);background:#1e2d45" onerror="${fallback}">`;
 }
 
 // ===== STATE =====
@@ -3648,8 +3649,9 @@ function montarJogo(m, isProximo = false) {
   const venue = comp?.venue;
   const localTxt = venue ? `<div class="copa-jogo-local">${venue.fullName || ''}${venue.address?.city ? ' · ' + venue.address.city : ''}</div>` : '';
 
-  const homeLogo = home?.team?.logo ? `<img src="${home.team.logo}" onerror="this.style.display='none'">` : '';
-  const awayLogo = away?.team?.logo ? `<img src="${away.team.logo}" onerror="this.style.display='none'">` : '';
+  const _logoFallback = (abbr) => `this.outerHTML='<div style="width:32px;height:32px;border-radius:99px;background:#1e2d45;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--amarelo)">${abbr}</div>'`;
+  const homeLogo = home?.team?.logo ? `<img src="${home.team.logo}" width="32" height="32" style="object-fit:contain" onerror="${_logoFallback(home?.team?.abbreviation||'?')}">` : '';
+  const awayLogo = away?.team?.logo ? `<img src="${away.team.logo}" width="32" height="32" style="object-fit:contain" onerror="${_logoFallback(away?.team?.abbreviation||'?')}">` : '';
   const homeNome = home?.team?.shortDisplayName || home?.team?.name || '?';
   const awayNome = away?.team?.shortDisplayName || away?.team?.name || '?';
   const homeVenc = encerrado && homeGol > awayGol;
