@@ -435,6 +435,16 @@
   .feed-avatar { width:38px; height:38px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .feed-body { flex:1; font-size:13px; line-height:1.5; }
   .feed-time { font-size:11px; color:var(--muted); margin-top:3px; }
+  .feed-troca-cards { display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
+  .feed-sticker-card { background:linear-gradient(145deg,#0a1628,#0f2040); border:2px solid #1e3a6e; border-radius:10px; padding:10px 14px; text-align:center; min-width:90px; position:relative; }
+  .feed-sticker-card.recebeu { background:linear-gradient(145deg,#0f2a0f,#0a3020); border-color:#1a5c30; }
+  .feed-sticker-card-label { font-family:Impact,'Arial Narrow',sans-serif; font-size:20px; color:#fff; letter-spacing:1px; text-shadow:0 0 12px rgba(100,180,255,.6); line-height:1; }
+  .feed-sticker-card.recebeu .feed-sticker-card-label { text-shadow:0 0 12px rgba(100,255,160,.6); }
+  .feed-sticker-card-pais { font-size:10px; color:rgba(255,255,255,.6); margin-top:4px; text-transform:uppercase; letter-spacing:.5px; }
+  .feed-sticker-card-tag { font-size:9px; font-weight:700; padding:2px 6px; border-radius:99px; margin-bottom:5px; display:inline-block; }
+  .feed-sticker-card-tag.entregou { background:rgba(239,68,68,.2); color:#f87171; border:1px solid rgba(239,68,68,.3); }
+  .feed-sticker-card-tag.recebeu-tag { background:rgba(34,197,94,.2); color:#4ade80; border:1px solid rgba(34,197,94,.3); }
+  .feed-troca-arrow { font-size:22px; color:#60a5fa; font-weight:900; flex-shrink:0; }
 
   /* USER SEARCH RESULT */
   .user-result { background:var(--card); border:1px solid var(--border); border-radius:11px; padding:14px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px; }
@@ -1675,10 +1685,30 @@ async function renderFeed() {
     else if (a.tipo === 'completou_pais') texto = `${eu?'Você completou':'<strong>'+nome+'</strong> completou'} a seleção de <strong>${d.pais_nome}</strong>!`;
     else if (a.tipo === 'troca_concluida') {
       const comNome = d.com_nome || '?';
-      const detalhe = d.entregou && d.recebeu
-        ? ` · entregou <strong>${d.entregou}</strong> e recebeu <strong>${d.recebeu}</strong>`
-        : '';
-      texto = `${eu?'Você':'<strong>'+nome+'</strong>'} concluiu uma troca com <strong>${comNome}</strong>${detalhe}`;
+      const dt2 = new Date(a.criado_em);
+      const tempo2 = formatarTempo(dt2);
+      const cardsTroca = d.entregou && d.recebeu ? `
+        <div class="feed-troca-cards">
+          <div class="feed-sticker-card">
+            <div class="feed-sticker-card-tag entregou">entregou</div>
+            <div class="feed-sticker-card-label">${d.entregou}</div>
+            <div class="feed-sticker-card-pais">${d.entregou_pais||''}</div>
+          </div>
+          <div class="feed-troca-arrow">»</div>
+          <div class="feed-sticker-card recebeu">
+            <div class="feed-sticker-card-tag recebeu-tag">recebeu</div>
+            <div class="feed-sticker-card-label">${d.recebeu}</div>
+            <div class="feed-sticker-card-pais">${d.recebeu_pais||''}</div>
+          </div>
+        </div>` : '';
+      return `<div class="feed-item">
+        <div class="feed-avatar">${nome[0].toUpperCase()}</div>
+        <div class="feed-body">
+          <div><strong>${eu?'Você':nome}</strong> trocou figurinha com <strong>${comNome}</strong></div>
+          ${cardsTroca}
+          <div class="feed-time">${tempo2}</div>
+        </div>
+      </div>`;
     }
     else texto = `${eu?'Você':'<strong>'+nome+'</strong>'} fez algo`;
     const dt = new Date(a.criado_em);
