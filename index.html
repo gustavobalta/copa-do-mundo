@@ -306,14 +306,17 @@
   .copa-jogo { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; transition:border-color .2s; }
   .copa-jogo:hover { border-color:rgba(255,215,0,.2); }
   .copa-jogo.ao-vivo { border-color:var(--danger); box-shadow:0 0 0 1px rgba(239,68,68,.3); }
+  .copa-jogo.proximo { border-color:#6b9aff; box-shadow:0 0 0 1px rgba(107,154,255,.25); }
   .copa-time { display:flex; align-items:center; gap:10px; }
   .copa-time.away { flex-direction:row-reverse; text-align:right; }
   .copa-time img { width:32px; height:32px; object-fit:contain; }
   .copa-time-nome { font-weight:700; font-size:14px; }
-  .copa-placar { text-align:center; }
+  .copa-time.vencedor .copa-time-nome { color:var(--amarelo); }
+  .copa-placar { text-align:center; min-width:90px; }
   .copa-placar-nums { font-family:Impact,'Arial Narrow',sans-serif; font-size:26px; letter-spacing:4px; color:var(--amarelo); line-height:1; }
   .copa-placar-info { font-size:10px; color:var(--muted); margin-top:3px; letter-spacing:.5px; text-transform:uppercase; }
   .copa-placar-info.ao-vivo { color:var(--danger); font-weight:700; animation:pulse 1.5s ease infinite; }
+  .copa-jogo-local { font-size:10px; color:var(--muted); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; margin-left:auto; margin-right:auto; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
   .copa-filtro-btn { padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s; white-space:nowrap; }
   .copa-filtro-btn:hover { border-color:var(--amarelo); color:var(--amarelo); }
@@ -2847,19 +2850,30 @@ let _copaFiltroAtivo = 'todos';
 let _copaAutoRefresh = null;
 
 async function loadCopaTab() {
-  if (_copaJogos.length) { renderCopaJogos(); return; }
+  if (_copaJogos.length) { renderCopaJogos(); scrollParaProximoJogo(); return; }
   document.getElementById('copa-content').innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando jogos...</div>`;
   try {
     const res = await fetch(ESPN_URL);
     if (!res.ok) throw new Error(res.status);
     const json = await res.json();
     _copaJogos = json.events || [];
+    // Padrão: "hoje" se estiver no período da Copa, senão "todos"
+    const agora = new Date();
+    const inicioCopa = new Date('2026-06-11');
+    const fimCopa = new Date('2026-07-20');
+    if (agora >= inicioCopa && agora <= fimCopa) _copaFiltroAtivo = 'hoje';
     renderCopaFiltros();
     renderCopaJogos();
+    setTimeout(scrollParaProximoJogo, 100);
     _copaAutoRefresh = setInterval(refreshCopaAoVivo, 60000);
   } catch(e) {
     document.getElementById('copa-content').innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div>Erro ao carregar jogos.<br><span style="font-size:12px;color:var(--muted)">${e.message}</span></div>`;
   }
+}
+
+function scrollParaProximoJogo() {
+  const proximo = document.querySelector('.copa-jogo.proximo');
+  if (proximo) proximo.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 async function refreshCopaAoVivo() {
@@ -2900,7 +2914,7 @@ function setCopaFiltro(filtro) {
 
 function renderCopaJogos() {
   const hoje = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
-  let jogos = _copaJogos;
+  let jogos = [..._copaJogos].sort((a,b) => new Date(a.date) - new Date(b.date));
 
   if (_copaFiltroAtivo === 'hoje') {
     jogos = jogos.filter(m => m.date.slice(0,10) === hoje);
@@ -2913,22 +2927,46 @@ function renderCopaJogos() {
     return;
   }
 
-  const porFase = {};
-  jogos.forEach(m => {
-    const fase = traduzirFaseESPN(m.season?.slug, m.competitions?.[0]?.notes?.[0]?.headline);
-    if (!porFase[fase]) porFase[fase] = [];
-    porFase[fase].push(m);
+  // Marca o próximo jogo agendado
+  const proximoIdx = jogos.findIndex(m => m.competitions?.[0]?.status?.type?.state === 'pre');
+
+  // Agrupa: fase de grupos → por data; outras fases → por slug
+  const gruposDatas = {}; // data -> numero da rodada
+  const datasGrupo = [...new Set(
+    jogos.filter(m => m.season?.slug === 'group-stage').map(m => m.date.slice(0,10)).sort()
+  )];
+  datasGrupo.forEach((d, i) => { gruposDatas[d] = i + 1; });
+
+  const porFase = {}; // chave de ordenação -> { titulo, jogos[] }
+  jogos.forEach((m, i) => {
+    const slug = m.season?.slug || '';
+    let chave, titulo;
+    if (slug === 'group-stage') {
+      const data = m.date.slice(0,10);
+      const rodada = gruposDatas[data] || '';
+      const ordemFase = '1-';
+      chave = `${ordemFase}${data}`;
+      const dtFmt = new Date(data + 'T12:00:00').toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long' });
+      titulo = `Fase de Grupos · Rodada ${rodada} <span style="font-weight:400;font-size:12px;color:var(--muted)">${dtFmt}</span>`;
+    } else {
+      const ordens = { 'round-of-32':'2', 'round-of-16':'3', 'quarterfinals':'4', 'semifinals':'5', '3rd-place-match':'6', 'final':'7' };
+      chave = (ordens[slug] || '8') + '-' + slug;
+      titulo = traduzirFaseESPN(slug, m.competitions?.[0]?.notes?.[0]?.headline);
+    }
+    if (!porFase[chave]) porFase[chave] = { titulo, jogos: [] };
+    porFase[chave].jogos.push({ m, isProximo: i === proximoIdx });
   });
 
   let html = '';
-  for (const fase in porFase) {
-    const jogosHtml = porFase[fase].map(m => montarJogo(m)).join('');
-    html += `<div class="copa-rodada"><div class="copa-rodada-titulo">${fase}</div>${jogosHtml}</div>`;
+  for (const chave of Object.keys(porFase).sort()) {
+    const { titulo, jogos: grupo } = porFase[chave];
+    const jogosHtml = grupo.map(({ m, isProximo }) => montarJogo(m, isProximo)).join('');
+    html += `<div class="copa-rodada"><div class="copa-rodada-titulo">${titulo}</div>${jogosHtml}</div>`;
   }
   document.getElementById('copa-content').innerHTML = html;
 }
 
-function montarJogo(m) {
+function montarJogo(m, isProximo = false) {
   const comp = m.competitions?.[0];
   const status = comp?.status?.type;
   const aoVivo = status?.state === 'in';
@@ -2951,26 +2989,31 @@ function montarJogo(m) {
     infoTxt = `<div class="copa-placar-info">Encerrado</div>`;
   } else {
     const dt = new Date(m.date);
-    const dataFmt = dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', timeZone:'America/Sao_Paulo' });
     const horaFmt = dt.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo' });
-    infoTxt = `<div class="copa-placar-info">${dataFmt} ${horaFmt}</div>`;
+    infoTxt = `<div class="copa-placar-info">${horaFmt}</div>`;
   }
+
+  const venue = comp?.venue;
+  const localTxt = venue ? `<div class="copa-jogo-local">${venue.fullName || ''}${venue.address?.city ? ' · ' + venue.address.city : ''}</div>` : '';
 
   const homeLogo = home?.team?.logo ? `<img src="${home.team.logo}" onerror="this.style.display='none'">` : '';
   const awayLogo = away?.team?.logo ? `<img src="${away.team.logo}" onerror="this.style.display='none'">` : '';
   const homeNome = home?.team?.shortDisplayName || home?.team?.name || '?';
   const awayNome = away?.team?.shortDisplayName || away?.team?.name || '?';
+  const homeVenc = encerrado && homeGol > awayGol;
+  const awayVenc = encerrado && awayGol > homeGol;
 
-  return `<div class="copa-jogo${aoVivo?' ao-vivo':''}">
-    <div class="copa-time">
+  return `<div class="copa-jogo${aoVivo?' ao-vivo':''}${isProximo?' proximo':''}">
+    <div class="copa-time${homeVenc?' vencedor':''}">
       ${homeLogo}
       <div class="copa-time-nome">${homeNome}</div>
     </div>
     <div class="copa-placar">
       <div class="copa-placar-nums">${placarNums}</div>
       ${infoTxt}
+      ${localTxt}
     </div>
-    <div class="copa-time away">
+    <div class="copa-time away${awayVenc?' vencedor':''}">
       ${awayLogo}
       <div class="copa-time-nome">${awayNome}</div>
     </div>
