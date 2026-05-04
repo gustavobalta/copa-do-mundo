@@ -1729,9 +1729,12 @@ async function renderFeed() {
         <div class="feed-body">
           <div><strong>${eu?'Você':nome}</strong> completou uma seleção!</div>
           <div class="feed-completou-card">
-            ${iso
-              ? `<img class="feed-completou-flag" src="https://flagcdn.com/w80/${iso}.png" width="52" height="34" onerror="this.outerHTML='<img class=\'feed-completou-flag\' src=\'logo/logo-copa.png\' width=\'52\' height=\'34\' style=\'object-fit:contain\'>'>">`
-              : `<img class="feed-completou-flag" src="logo/logo-copa.png" width="52" height="34" style="object-fit:contain">`}
+            ${(() => {
+                const specialSrc = d.pais_id && SPECIAL_IMGS[d.pais_id];
+                if (specialSrc) return `<img class="feed-completou-flag" src="${specialSrc}" width="52" height="34" style="object-fit:contain;background:#fff;border-radius:6px;padding:2px">`;
+                if (iso) return `<img class="feed-completou-flag" src="https://flagcdn.com/w80/${iso}.png" width="52" height="34">`;
+                return `<img class="feed-completou-flag" src="logo/logo-copa.png" width="52" height="34" style="object-fit:contain">`;
+              })()}
             <div class="feed-completou-info">
               <div class="feed-completou-label">✓ Álbum completo</div>
               <div class="feed-completou-nome">${d.pais_nome}</div>
