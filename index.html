@@ -173,6 +173,8 @@
   .modal-sticker { border-radius:9px; border:2px solid var(--border); background:var(--bg); padding:6px 4px 5px; text-align:center; cursor:pointer; transition:all .15s; position:relative; user-select:none; }
   .modal-sticker:hover { border-color:var(--amarelo); transform:scale(1.05); }
   .modal-sticker.have { background:rgba(0,104,71,.3); border-color:var(--verde); }
+  .modal-sticker.highlight-pulse { animation:highlightPulse 2s ease; border-color:var(--amarelo) !important; }
+  @keyframes highlightPulse { 0%,100%{box-shadow:none} 20%{box-shadow:0 0 0 4px rgba(255,215,0,.5)} 80%{box-shadow:0 0 0 4px rgba(255,215,0,.2)} }
   .modal-sticker.duplicate { background:rgba(245,158,11,.25); border-color:var(--warning); }
   .ms-num { font-family:Impact,'Arial Narrow',sans-serif; font-size:13px; line-height:1; color:var(--text); }
   .ms-name { font-size:8px; color:var(--muted); margin-top:2px; line-height:1.2; height:16px; overflow:hidden; }
@@ -322,6 +324,36 @@
   .copa-filtro-btn { padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s; white-space:nowrap; }
   .copa-filtro-btn:hover { border-color:var(--amarelo); color:var(--amarelo); }
   .copa-filtro-btn.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); }
+
+  /* STATS PANEL */
+  #panel-stats { padding:4px 0 24px; }
+  .stats-section { margin-bottom:28px; }
+  .stats-section-title { font-family:Impact,'Arial Narrow',sans-serif; font-size:13px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-bottom:16px; }
+  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 16px; text-align:center; }
+  .stat-card-num { font-family:Impact,'Arial Narrow',sans-serif; font-size:32px; color:var(--amarelo); line-height:1; }
+  .stat-card-lbl { font-size:11px; color:var(--muted); margin-top:4px; text-transform:uppercase; letter-spacing:.5px; }
+  /* Gráfico SVG simples */
+  .chart-wrap { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; overflow-x:auto; }
+  .chart-svg { display:block; overflow:visible; }
+  .chart-line { fill:none; stroke:var(--amarelo); stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+  .chart-area { fill:url(#chartGrad); opacity:.35; }
+  .chart-dot { fill:var(--amarelo); }
+  .chart-lbl { font-size:10px; fill:var(--muted); text-anchor:middle; }
+  .chart-tip { font-size:11px; fill:var(--text); }
+  /* Ranking */
+  .ranking-list { display:flex; flex-direction:column; gap:8px; }
+  .ranking-item { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:11px 14px; display:flex; align-items:center; gap:12px; }
+  .ranking-item.eu { border-color:var(--amarelo); background:rgba(255,215,0,.06); }
+  .ranking-pos { font-family:Impact,'Arial Narrow',sans-serif; font-size:20px; color:var(--muted); width:24px; text-align:center; flex-shrink:0; }
+  .ranking-pos.ouro { color:#FFD700; }
+  .ranking-pos.prata { color:#C0C0C0; }
+  .ranking-pos.bronze { color:#CD7F32; }
+  .ranking-bar-wrap { flex:1; }
+  .ranking-nome { font-size:13px; font-weight:700; margin-bottom:4px; }
+  .ranking-bar { height:6px; background:var(--border); border-radius:99px; overflow:hidden; }
+  .ranking-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--verde),var(--amarelo)); transition:width .6s; }
+  .ranking-num { font-size:12px; color:var(--muted); text-align:right; white-space:nowrap; }
 
   /* NOTIFICACAO TOAST */
   #notif-container { position:fixed; top:16px; right:16px; z-index:500; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
@@ -656,6 +688,7 @@
         <button class="view-btn" id="list-view-btn" title="Lista">☰</button>
       </div>
       <button class="view-btn" id="btn-pdf-faltantes" onclick="gerarPdfFaltantes()" title="Baixar PDF das faltantes" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;gap:4px;white-space:nowrap">📄 PDF</button>
+      <button class="view-btn" id="btn-stats" onclick="showPanel('stats');renderStats()" title="Estatísticas" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;gap:4px;white-space:nowrap">📊 Stats</button>
     </div>
     <main>
       <div id="panel-selecoes">
@@ -671,6 +704,9 @@
           <button class="btn btn-yellow" id="btn-copy-all-dups" style="font-size:11px;padding:5px 11px">📋 Copiar lista</button>
         </div>
         <div id="dup-panel-full"></div>
+      </div>
+      <div id="panel-stats" style="display:none">
+        <div id="stats-content"></div>
       </div>
     </main>
   </div>
@@ -1688,8 +1724,11 @@ document.getElementById('btn-copy-all-dups').addEventListener('click', () => {
 function showPanel(p){
   document.getElementById('panel-selecoes').style.display=p==='selecoes'?'':'none';
   document.getElementById('panel-repetidas').style.display=p==='repetidas'?'':'none';
+  document.getElementById('panel-stats').style.display=p==='stats'?'':'none';
   document.getElementById('search-input').closest('.search-box').style.display=p==='selecoes'?'':'none';
   document.querySelector('.view-btns').style.display=p==='selecoes'?'':'none';
+  // deseleciona filtros quando vai para stats
+  if (p==='stats') document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
 }
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1700,7 +1739,31 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     else { showPanel('selecoes'); renderGrid(); }
   });
 });
-document.getElementById('search-input').addEventListener('input', e => { currentSearch=e.target.value; renderGrid(); });
+document.getElementById('search-input').addEventListener('input', e => {
+  currentSearch = e.target.value;
+  // busca direta por código de figurinha (ex: MEX04, BRA12)
+  const termo = currentSearch.trim().toUpperCase();
+  if (termo.length >= 3) {
+    for (const c of ALL_COUNTRIES) {
+      for (let i = 0; i < c.stickers; i++) {
+        if (getStickerLabel(c, i).toUpperCase() === termo) {
+          // abre o modal do país e destaca a figurinha
+          openModal(c.id);
+          setTimeout(() => {
+            const el = document.querySelector(`#modal-sticker-grid .modal-sticker[data-idx="${i}"]`);
+            if (el) {
+              el.scrollIntoView({ behavior:'smooth', block:'center' });
+              el.classList.add('highlight-pulse');
+              setTimeout(() => el.classList.remove('highlight-pulse'), 2000);
+            }
+          }, 80);
+          return;
+        }
+      }
+    }
+  }
+  renderGrid();
+});
 document.getElementById('grid-view').addEventListener('click', () => { document.getElementById('countries-grid').classList.remove('list-view'); document.getElementById('grid-view').classList.add('active'); document.getElementById('list-view-btn').classList.remove('active'); });
 document.getElementById('list-view-btn').addEventListener('click', () => { document.getElementById('countries-grid').classList.add('list-view'); document.getElementById('list-view-btn').classList.add('active'); document.getElementById('grid-view').classList.remove('active'); });
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
@@ -2722,6 +2785,152 @@ async function enviarProposta() {
 
   document.getElementById('troca-modal-overlay').remove();
   showNotif('Troca proposta!', `Sua proposta foi enviada para <strong>${receptorNome}</strong>.`);
+}
+
+// ===== STATS =====
+async function renderStats() {
+  const el = document.getElementById('stats-content');
+  el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando estatísticas...</div>`;
+
+  // Totais pessoais
+  let totalColadas = 0, totalFaltam = 0, totalRepetidas = 0, totalCompletas = 0;
+  ALL_COUNTRIES.forEach(c => {
+    const st = getCountryStats(c.id);
+    totalColadas += st.have;
+    totalFaltam += st.need;
+    totalRepetidas += st.dup;
+    if (st.have === st.total) totalCompletas++;
+  });
+  const pct = Math.round(totalColadas / GRAND_TOTAL * 100);
+
+  // Atividades para o gráfico (colou + completou)
+  const { data: atividades } = await sb.from('atividades')
+    .select('tipo,dados,criado_em')
+    .eq('usuario_id', currentUser.id)
+    .in('tipo', ['colou','completou_pais'])
+    .order('criado_em', { ascending: true });
+
+  // Ranking: eu + amigos
+  let rankingHtml = '';
+  if (_amigosCarregados && _amigosIds.length) {
+    const rankData = [];
+    // eu
+    rankData.push({ nome: currentUser.nome + ' (você)', coladas: totalColadas, eu: true });
+    // amigos
+    for (const uid of _amigosIds) {
+      const figs = _amigosFigsMap[uid] || {};
+      let cnt = 0;
+      ALL_COUNTRIES.forEach(c => {
+        const s = figs[c.id] || {};
+        for (let i = 0; i < c.stickers; i++) cnt += (s[i] ?? s[String(i)] ?? 0) >= 1 ? 1 : 0;
+      });
+      rankData.push({ nome: _amigosNomeMap[uid] || '?', coladas: cnt, eu: false });
+    }
+    rankData.sort((a, b) => b.coladas - a.coladas);
+    const max = rankData[0]?.coladas || 1;
+    rankingHtml = rankData.map((r, i) => {
+      const pos = i + 1;
+      const cls = pos===1?'ouro':pos===2?'prata':pos===3?'bronze':'';
+      const pct = Math.round(r.coladas / GRAND_TOTAL * 100);
+      return `<div class="ranking-item${r.eu?' eu':''}">
+        <div class="ranking-pos ${cls}">${pos}</div>
+        <div class="ranking-bar-wrap">
+          <div class="ranking-nome">${r.nome}</div>
+          <div class="ranking-bar"><div class="ranking-bar-fill" style="width:${Math.round(r.coladas/max*100)}%"></div></div>
+        </div>
+        <div class="ranking-num">${r.coladas} <span style="font-size:10px;color:var(--muted)">(${pct}%)</span></div>
+      </div>`;
+    }).join('');
+  } else {
+    rankingHtml = `<div style="font-size:13px;color:var(--muted);padding:12px 0">Siga amigos para ver o ranking comparativo.</div>`;
+  }
+
+  // Gráfico de evolução — acumula por dia
+  let graficoHtml = '';
+  if (atividades && atividades.length) {
+    // Conta quantas coladas por dia
+    const porDia = {};
+    atividades.filter(a => a.tipo === 'colou').forEach(a => {
+      const dia = a.criado_em.slice(0, 10);
+      porDia[dia] = (porDia[dia] || 0) + 1;
+    });
+    const dias = Object.keys(porDia).sort();
+    // Acumula (parte do total histórico — aproximação pelo que foi registrado)
+    const pts = [];
+    let acum = 0;
+    dias.forEach(dia => { acum += porDia[dia]; pts.push({ dia, acum }); });
+
+    if (pts.length >= 2) {
+      const W = 480, H = 140, padL = 32, padB = 28, padT = 16, padR = 12;
+      const gW = W - padL - padR, gH = H - padB - padT;
+      const maxV = pts[pts.length - 1].acum;
+      const xOf = i => padL + (i / (pts.length - 1)) * gW;
+      const yOf = v => padT + gH - (v / maxV) * gH;
+
+      // Pontos para path
+      const pathD = pts.map((p, i) => `${i===0?'M':'L'}${xOf(i).toFixed(1)},${yOf(p.acum).toFixed(1)}`).join(' ');
+      const areaD = pathD + ` L${xOf(pts.length-1).toFixed(1)},${(padT+gH).toFixed(1)} L${padL},${(padT+gH).toFixed(1)} Z`;
+
+      // Labels do eixo X (máx 6)
+      const step = Math.max(1, Math.floor(pts.length / 6));
+      const xLabels = pts.filter((_, i) => i % step === 0 || i === pts.length - 1).map((p, _, arr) => {
+        const idx = pts.indexOf(p);
+        const d = new Date(p.dia + 'T12:00');
+        const lbl = d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+        return `<text class="chart-lbl" x="${xOf(idx).toFixed(1)}" y="${H - 6}">${lbl}</text>`;
+      }).join('');
+
+      // Dots nos pontos (só se poucos)
+      const dots = pts.length <= 20 ? pts.map((p, i) =>
+        `<circle class="chart-dot" cx="${xOf(i).toFixed(1)}" cy="${yOf(p.acum).toFixed(1)}" r="3"/>`
+      ).join('') : '';
+
+      graficoHtml = `<div class="chart-wrap">
+        <svg class="chart-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+          <defs>
+            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FFD700" stop-opacity=".6"/>
+              <stop offset="100%" stop-color="#FFD700" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <!-- eixo X -->
+          <line x1="${padL}" y1="${padT+gH}" x2="${W-padR}" y2="${padT+gH}" stroke="var(--border)" stroke-width="1"/>
+          <!-- área -->
+          <path class="chart-area" d="${areaD}"/>
+          <!-- linha -->
+          <path class="chart-line" d="${pathD}"/>
+          ${dots}
+          ${xLabels}
+          <!-- valor máximo -->
+          <text class="chart-tip" x="${padL - 4}" y="${(padT).toFixed(1)}" text-anchor="end" dominant-baseline="middle">${maxV}</text>
+        </svg>
+      </div>`;
+    } else {
+      graficoHtml = `<div style="font-size:13px;color:var(--muted);padding:12px 0">Dados insuficientes para o gráfico. Cole mais figurinhas!</div>`;
+    }
+  } else {
+    graficoHtml = `<div style="font-size:13px;color:var(--muted);padding:12px 0">Nenhuma atividade registrada ainda.</div>`;
+  }
+
+  el.innerHTML = `
+    <div class="stats-section">
+      <div class="stats-section-title">Resumo</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-card-num">${totalColadas}</div><div class="stat-card-lbl">Coladas</div></div>
+        <div class="stat-card"><div class="stat-card-num" style="color:var(--danger)">${totalFaltam}</div><div class="stat-card-lbl">Faltam</div></div>
+        <div class="stat-card"><div class="stat-card-num" style="color:var(--warning)">${totalRepetidas}</div><div class="stat-card-lbl">Repetidas</div></div>
+        <div class="stat-card"><div class="stat-card-num" style="color:var(--success)">${totalCompletas}</div><div class="stat-card-lbl">Completas</div></div>
+        <div class="stat-card"><div class="stat-card-num">${pct}%</div><div class="stat-card-lbl">do álbum</div></div>
+      </div>
+    </div>
+    <div class="stats-section">
+      <div class="stats-section-title">Evolução de colagens</div>
+      ${graficoHtml}
+    </div>
+    <div class="stats-section">
+      <div class="stats-section-title">Ranking entre amigos</div>
+      <div class="ranking-list">${rankingHtml}</div>
+    </div>`;
 }
 
 // ===== NOTIFICACOES =====
