@@ -435,8 +435,8 @@
   .feed-avatar { width:38px; height:38px; border-radius:99px; background:linear-gradient(135deg,var(--azul),var(--verde)); color:#fff; font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .feed-body { flex:1; font-size:13px; line-height:1.5; }
   .feed-time { font-size:11px; color:var(--muted); margin-top:3px; }
-  .feed-troca-cards { display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
-  .feed-sticker-card { background:linear-gradient(145deg,#0a1628,#0f2040); border:2px solid #1e3a6e; border-radius:10px; padding:10px 14px; text-align:center; min-width:90px; position:relative; }
+  .feed-troca-cards { display:flex; align-items:stretch; gap:10px; margin-top:10px; flex-wrap:wrap; }
+  .feed-sticker-card { background:linear-gradient(145deg,#0a1628,#0f2040); border:2px solid #1e3a6e; border-radius:10px; padding:10px 14px; text-align:center; width:110px; flex-shrink:0; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; }
   .feed-sticker-card.recebeu { background:linear-gradient(145deg,#0f2a0f,#0a3020); border-color:#1a5c30; }
   .feed-sticker-card-label { font-family:Impact,'Arial Narrow',sans-serif; font-size:20px; color:#fff; letter-spacing:1px; text-shadow:0 0 12px rgba(100,180,255,.6); line-height:1; }
   .feed-sticker-card.recebeu .feed-sticker-card-label { text-shadow:0 0 12px rgba(100,255,160,.6); }
@@ -1167,23 +1167,24 @@ async function saveStateToSupabase() {
   showSaveIndicator(error ? 'error' : 'saved');
   if(error) { console.error('saveState error:', error); return; }
 
-  // atualiza snapshot
-  _estadoAnterior = JSON.parse(JSON.stringify(state));
-
-  // registra atividades (em lote, sem await para não travar UI)
+  // registra atividades ANTES de atualizar o snapshot
   if (novasColadas.length) {
-    // verifica completou alguma seleção
     novasColadas.forEach(({ cid, nome, lbl }) => {
       sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'colou', dados: { figurinha: lbl, pais_id: cid, pais_nome: nome } });
     });
+    // verifica completou alguma seleção comparando com snapshot anterior (ainda não atualizado)
     ALL_COUNTRIES.forEach(c => {
       const st = getCountryStats(c.id);
-      const antesCompleto = Object.values(_estadoAnterior[c.id] || {}).filter(v => v >= 1).length === c.stickers;
+      const snap = _estadoAnterior?.[c.id] || {};
+      const antesCompleto = Object.keys(snap).filter(k => (snap[k]||0) >= 1).length === c.stickers;
       if (!antesCompleto && st.have === st.total) {
         sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'completou_pais', dados: { pais_id: c.id, pais_nome: c.name } });
       }
     });
   }
+
+  // atualiza snapshot depois de registrar atividades
+  _estadoAnterior = JSON.parse(JSON.stringify(state));
 }
 
 function scheduleSave() {
