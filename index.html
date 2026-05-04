@@ -3060,10 +3060,18 @@ async function renderStats() {
         </svg>
       </div>`;
     } else {
-      graficoHtml = `<div style="font-size:13px;color:var(--muted);padding:12px 0">Dados insuficientes para o gráfico. Cole mais figurinhas!</div>`;
+      graficoHtml = `<div style="text-align:center;padding:20px 0">
+        <div style="font-size:28px;margin-bottom:8px">📈</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Quase lá!</div>
+        <div style="font-size:13px;color:var(--muted)">Cole mais algumas figurinhas para o gráfico aparecer.</div>
+      </div>`;
     }
   } else {
-    graficoHtml = `<div style="font-size:13px;color:var(--muted);padding:12px 0">Nenhuma atividade registrada ainda.</div>`;
+    graficoHtml = `<div style="text-align:center;padding:20px 0">
+      <div style="font-size:28px;margin-bottom:8px">🚀</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Sua jornada começa agora!</div>
+      <div style="font-size:13px;color:var(--muted)">Cole sua primeira figurinha e acompanhe sua evolução aqui.</div>
+    </div>`;
   }
 
   el.innerHTML = `
