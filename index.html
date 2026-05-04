@@ -1810,8 +1810,10 @@ document.getElementById('search-input').addEventListener('input', e => {
     for (const c of ALL_COUNTRIES) {
       for (let i = 0; i < c.stickers; i++) {
         if (getStickerLabel(c, i).toUpperCase() === termo) {
-          // abre o modal do país e destaca a figurinha
           openModal(c.id);
+          // limpa o campo para não deixar filtro sujo ao fechar o modal
+          currentSearch = '';
+          document.getElementById('search-input').value = '';
           setTimeout(() => {
             const el = document.querySelector(`#modal-sticker-grid .modal-sticker[data-idx="${i}"]`);
             if (el) {
