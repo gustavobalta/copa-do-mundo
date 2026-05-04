@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Álbum Copa 2026 — Gerenciador Digital de Figurinhas</title>
+  <meta name="description" content="Gerencie sua coleção de figurinhas da Copa do Mundo 2026. Marque, troque e acompanhe seu progresso com amigos.">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg: #0a0f1e;
+      --card: #111827;
+      --primary: #003087;
+      --amarelo: #FFD700;
+      --text: #f0f4ff;
+      --muted: #8899aa;
+      --success: #22c55e;
+      --border: rgba(255,255,255,.08);
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background:#fff; color:#111; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #0a0f1e 0%, #003087 60%, #001a4d 100%);
+      color: #fff;
+      padding: 0 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 70% 50%, rgba(255,215,0,.08) 0%, transparent 70%);
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 18px;
+      color: #fff;
+    }
+    .nav-logo img { width: 36px; height: 36px; border-radius: 8px; }
+    .nav-cta {
+      background: var(--amarelo);
+      color: #000;
+      font-weight: 700;
+      padding: 10px 22px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: transform .15s;
+    }
+    .nav-cta:hover { transform: translateY(-1px); }
+
+    .hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      padding: 60px 0 80px;
+    }
+    @media(max-width:768px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 40px; padding: 40px 0 60px; }
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,215,0,.15);
+      border: 1px solid rgba(255,215,0,.3);
+      color: var(--amarelo);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 99px;
+      margin-bottom: 20px;
+      letter-spacing: .5px;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .hero h1 span { color: var(--amarelo); }
+    .hero p {
+      font-size: 18px;
+      color: rgba(255,255,255,.75);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+    .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--amarelo);
+      color: #000;
+      font-weight: 800;
+      padding: 16px 32px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 20px rgba(255,215,0,.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,215,0,.4); }
+    .btn-secondary {
+      background: rgba(255,255,255,.1);
+      color: #fff;
+      font-weight: 600;
+      padding: 16px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 15px;
+      border: 1px solid rgba(255,255,255,.2);
+      transition: background .15s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,.15); }
+    .hero-price {
+      margin-top: 24px;
+      font-size: 14px;
+      color: rgba(255,255,255,.5);
+    }
+    .hero-price strong { color: var(--amarelo); font-size: 22px; }
+
+    /* MOCKUP */
+    .mockup {
+      position: relative;
+      display: flex;
+      justify-content: center;
+    }
+    .phone-frame {
+      width: 260px;
+      background: #0a0f1e;
+      border-radius: 36px;
+      border: 6px solid #1e2d45;
+      box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.05);
+      overflow: hidden;
+      position: relative;
+    }
+    .phone-notch {
+      background: #0a0f1e;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .phone-notch::after {
+      content: '';
+      width: 80px;
+      height: 6px;
+      background: #1e2d45;
+      border-radius: 99px;
+    }
+    .phone-screen { padding: 0; }
+    .phone-header {
+      background: linear-gradient(135deg, #003087, #001a4d);
+      padding: 10px 12px 8px;
+    }
+    .phone-header-title {
+      font-size: 9px;
+      font-weight: 900;
+      color: #FFD700;
+      letter-spacing: .5px;
+    }
+    .phone-header-sub { font-size: 7px; color: rgba(255,255,255,.5); }
+    .phone-stats {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .phone-stat {
+      background: rgba(255,255,255,.1);
+      border-radius: 6px;
+      padding: 4px 8px;
+      text-align: center;
+      flex: 1;
+    }
+    .phone-stat-num { font-size: 11px; font-weight: 800; color: #FFD700; }
+    .phone-stat-lbl { font-size: 6px; color: rgba(255,255,255,.5); }
+    .phone-progress { height: 3px; background: rgba(255,255,255,.1); margin-top: 8px; border-radius: 99px; overflow: hidden; }
+    .phone-progress-fill { height: 100%; width: 35%; background: #FFD700; border-radius: 99px; }
+    .phone-tabs {
+      display: flex;
+      background: #111827;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .phone-tab {
+      flex: 1;
+      padding: 6px 2px;
+      text-align: center;
+      font-size: 6px;
+      color: rgba(255,255,255,.4);
+    }
+    .phone-tab.active { color: #FFD700; border-bottom: 1.5px solid #FFD700; }
+    .phone-grid {
+      padding: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: #0a0f1e;
+    }
+    .phone-card {
+      background: #111827;
+      border-radius: 8px;
+      padding: 8px;
+      border: 1px solid rgba(255,255,255,.06);
+    }
+    .phone-card-name { font-size: 7px; font-weight: 700; color: #f0f4ff; }
+    .phone-card-group { font-size: 5px; color: rgba(255,255,255,.4); margin-bottom: 4px; }
+    .phone-card-stickers { display: flex; flex-wrap: wrap; gap: 2px; }
+    .phone-sticker {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      border: 1px solid rgba(255,255,255,.15);
+      background: #0a0f1e;
+    }
+    .phone-sticker.have { background: #22c55e; border-color: #22c55e; }
+    .phone-sticker.dup { background: #FFD700; border-color: #FFD700; }
+    .phone-bar { height: 2px; background: rgba(255,255,255,.08); border-radius: 99px; margin: 4px 0 2px; overflow: hidden; }
+    .phone-bar-fill { height: 100%; border-radius: 99px; background: #22c55e; }
+
+    /* FEATURES */
+    .features {
+      padding: 80px 20px;
+      background: #f8fafc;
+    }
+    .section-title {
+      text-align: center;
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .section-sub {
+      text-align: center;
+      color: #666;
+      font-size: 16px;
+      margin-bottom: 50px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .feature-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      border: 1px solid #e5e7eb;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,.08); }
+    .feature-icon { font-size: 32px; margin-bottom: 14px; }
+    .feature-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .feature-desc { color: #666; font-size: 14px; line-height: 1.6; }
+
+    /* PRICING */
+    .pricing {
+      padding: 80px 20px;
+      background: linear-gradient(135deg, #0a0f1e 0%, #003087 100%);
+      text-align: center;
+      color: #fff;
+    }
+    .pricing .section-title { color: #fff; }
+    .pricing .section-sub { color: rgba(255,255,255,.6); }
+    .pricing-card {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,215,0,.3);
+      border-radius: 24px;
+      padding: 48px 40px;
+      max-width: 440px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+    .pricing-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #FFD700, #FFA500);
+    }
+    .pricing-badge {
+      display: inline-block;
+      background: var(--amarelo);
+      color: #000;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 99px;
+      margin-bottom: 20px;
+      letter-spacing: .5px;
+    }
+    .pricing-price {
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--amarelo);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .pricing-price sup { font-size: 24px; vertical-align: super; }
+    .pricing-once { color: rgba(255,255,255,.5); font-size: 14px; margin-bottom: 32px; }
+    .pricing-items { list-style: none; text-align: left; margin-bottom: 36px; display: flex; flex-direction: column; gap: 12px; }
+    .pricing-items li { display: flex; align-items: center; gap: 10px; font-size: 15px; color: rgba(255,255,255,.85); }
+    .pricing-items li::before { content: '✓'; color: var(--amarelo); font-weight: 800; font-size: 16px; flex-shrink: 0; }
+    .btn-buy {
+      display: block;
+      width: 100%;
+      background: var(--amarelo);
+      color: #000;
+      font-weight: 800;
+      font-size: 18px;
+      padding: 18px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 20px rgba(255,215,0,.4);
+    }
+    .btn-buy:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,215,0,.5); }
+    .pricing-guarantee {
+      margin-top: 20px;
+      font-size: 13px;
+      color: rgba(255,255,255,.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* SOCIAL PROOF */
+    .proof {
+      padding: 80px 20px;
+      background: #fff;
+    }
+    .proof-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .proof-card {
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid #e5e7eb;
+    }
+    .proof-stars { color: #FFD700; font-size: 16px; margin-bottom: 10px; }
+    .proof-text { color: #333; font-size: 14px; line-height: 1.6; margin-bottom: 14px; }
+    .proof-author { font-weight: 700; font-size: 13px; color: #111; }
+    .proof-role { font-size: 12px; color: #999; }
+
+    /* URGENCY */
+    .urgency {
+      background: #FFD700;
+      padding: 20px;
+      text-align: center;
+    }
+    .urgency p { font-size: 15px; font-weight: 700; color: #000; }
+
+    /* FAQ */
+    .faq {
+      padding: 80px 20px;
+      background: #f8fafc;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .faq-item { border-bottom: 1px solid #e5e7eb; padding: 20px 0; cursor: pointer; }
+    .faq-q { font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .faq-a { color: #555; font-size: 14px; line-height: 1.7; margin-top: 12px; display: none; }
+    .faq-item.open .faq-a { display: block; }
+    .faq-item.open .faq-arrow { transform: rotate(180deg); }
+    .faq-arrow { transition: transform .2s; font-size: 12px; }
+
+    /* FOOTER */
+    footer {
+      background: #0a0f1e;
+      color: rgba(255,255,255,.4);
+      text-align: center;
+      padding: 30px 20px;
+      font-size: 13px;
+    }
+
+    /* MODAL PAGAMENTO */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 20px;
+      padding: 36px;
+      max-width: 480px;
+      width: 100%;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 20px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: #999;
+    }
+    .modal h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .modal-price { font-size: 32px; font-weight: 900; color: #003087; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color .15s;
+      font-family: inherit;
+    }
+    .form-group input:focus { border-color: #003087; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    #btn-pagar {
+      width: 100%;
+      background: #FFD700;
+      color: #000;
+      font-weight: 800;
+      font-size: 16px;
+      padding: 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: transform .15s;
+    }
+    #btn-pagar:hover { transform: translateY(-1px); }
+    #btn-pagar:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .modal-secure { text-align: center; font-size: 12px; color: #999; margin-top: 12px; }
+    .modal-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .modal-tab {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1.5px solid #e5e7eb;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      transition: all .15s;
+    }
+    .modal-tab.active { border-color: #003087; background: #003087; color: #fff; }
+    #pix-section, #card-section { display: none; }
+    #pix-section.active, #card-section.active { display: block; }
+    .pix-info { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 16px; text-align: center; margin-bottom: 16px; }
+    .pix-info p { font-size: 14px; color: #166534; }
+    #msg-erro { color: #dc2626; font-size: 13px; margin-top: 8px; display: none; }
+    #sucesso-overlay { display: none; text-align: center; }
+    #sucesso-overlay.show { display: block; }
+    .sucesso-icon { font-size: 56px; margin-bottom: 16px; }
+    .sucesso-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .sucesso-desc { color: #555; font-size: 15px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<!-- URGENCY BAR -->
+<div class="urgency">
+  <p>⚽ Copa do Mundo começa em 11 de junho — garanta seu álbum digital agora!</p>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <nav class="nav">
+    <div class="nav-logo">
+      <img src="/logo/icon-128.png" alt="Logo">
+      Álbum Copa 2026
+    </div>
+    <a href="#comprar" class="nav-cta">Comprar — R$19,90</a>
+  </nav>
+
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-badge">⚽ Copa do Mundo 2026 · EUA · Canadá · México</div>
+      <h1>Seu álbum de figurinhas <span>digital e completo</span></h1>
+      <p>Gerencie toda sua coleção no celular. Marque figurinhas, controle repetidas, troque com amigos e acompanhe seu progresso em tempo real.</p>
+      <div class="hero-btns">
+        <a href="#comprar" class="btn-primary">🏆 Quero meu álbum</a>
+        <a href="#funcionalidades" class="btn-secondary">Ver funcionalidades</a>
+      </div>
+      <div class="hero-price">Acesso completo e vitalício por apenas <strong>R$19,90</strong></div>
+    </div>
+
+    <!-- PHONE MOCKUP -->
+    <div class="mockup">
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="phone-header">
+            <div class="phone-header-title">FIFA WORLD CUP 2026™</div>
+            <div class="phone-header-sub">GERENCIADOR DE FIGURINHAS · PANINI</div>
+            <div class="phone-stats">
+              <div class="phone-stat"><div class="phone-stat-num">347</div><div class="phone-stat-lbl">COLADAS</div></div>
+              <div class="phone-stat"><div class="phone-stat-num" style="color:#ff6b6b">647</div><div class="phone-stat-lbl">FALTAM</div></div>
+              <div class="phone-stat"><div class="phone-stat-num" style="color:#ffd700">48</div><div class="phone-stat-lbl">REPETIDAS</div></div>
+            </div>
+            <div class="phone-progress"><div class="phone-progress-fill"></div></div>
+          </div>
+          <div class="phone-tabs">
+            <div class="phone-tab active">📖 Álbum</div>
+            <div class="phone-tab">👥 Social</div>
+            <div class="phone-tab">🔄 Trocas</div>
+            <div class="phone-tab">⚽ Copa</div>
+          </div>
+          <div class="phone-grid">
+            <div class="phone-card">
+              <div class="phone-card-name">Brasil</div>
+              <div class="phone-card-group">Grupo E</div>
+              <div class="phone-bar"><div class="phone-bar-fill" style="width:85%"></div></div>
+              <div class="phone-card-stickers">
+                <div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div>
+                <div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker dup"></div>
+                <div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div>
+                <div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker"></div><div class="phone-sticker"></div><div class="phone-sticker"></div>
+              </div>
+            </div>
+            <div class="phone-card">
+              <div class="phone-card-name">Argentina</div>
+              <div class="phone-card-group">Grupo C</div>
+              <div class="phone-bar"><div class="phone-bar-fill" style="width:60%"></div></div>
+              <div class="phone-card-stickers">
+                <div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker"></div><div class="phone-sticker"></div>
+                <div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker dup"></div><div class="phone-sticker have"></div><div class="phone-sticker"></div>
+                <div class="phone-sticker have"></div><div class="phone-sticker"></div><div class="phone-sticker"></div><div class="phone-sticker have"></div><div class="phone-sticker"></div>
+                <div class="phone-sticker"></div><div class="phone-sticker have"></div><div class="phone-sticker"></div><div class="phone-sticker"></div><div class="phone-sticker"></div>
+              </div>
+            </div>
+            <div class="phone-card">
+              <div class="phone-card-name">Portugal</div>
+              <div class="phone-card-group">Grupo B</div>
+              <div class="phone-bar"><div class="phone-bar-fill" style="width:100%;background:#FFD700"></div></div>
+              <div class="phone-card-stickers">
+                <div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div>
+                <div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div>
+                <div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div>
+                <div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div><div class="phone-sticker have"></div>
+              </div>
+            </div>
+            <div class="phone-card">
+              <div class="phone-card-name">França</div>
+              <div class="phone-card-group">Grupo D</div>
+              <div class="phone-bar"><div class="phone-bar-fill" style="width:40%"></div></div>
+              <div class="phone-card-stickers">
+                <div class="phone-sticker have"></div><div class="phone-sticker"></div><div class="phone-sticker have"></div><div class="phone-sticker"></div><div class="phone-sticker have"></div>
+                <div class="phone-sticker"></div><div class="phone-sticker have"></div><div class="phone-sticker"></div><div class="phone-sticker"></div><div class="phone-sticker"></div>
+                <div class="phone-sticker have"></div><div class="phone-sticker"></div><div class="phone-sticker"></div><div class="phone-sticker"></div><div class="phone-sticker have"></div>
+                <div class="phone-sticker"></div><div class="phone-sticker"></div><div class="phone-sticker"></div><div class="phone-sticker"></div><div class="phone-sticker"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="funcionalidades">
+  <div style="max-width:1100px;margin:0 auto">
+    <h2 class="section-title">Tudo que você precisa para completar o álbum</h2>
+    <p class="section-sub">Funcionalidades pensadas para quem leva a coleção a sério</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📖</div>
+        <div class="feature-title">Álbum completo digital</div>
+        <div class="feature-desc">Todas as 994 figurinhas da Copa 2026 organizadas por seleção. Marque com um toque, remova com botão direito.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <div class="feature-title">Troca com amigos</div>
+        <div class="feature-desc">Proponha trocas, ofereça até 3 opções para o outro escolher e combine a entrega pelo chat integrado.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <div class="feature-title">Social em tempo real</div>
+        <div class="feature-desc">Siga amigos, veja o feed de atividades ao vivo e saiba quais amigos precisam das suas repetidas.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Estatísticas e ranking</div>
+        <div class="feature-desc">Gráfico de evolução da sua coleção ao longo do tempo e ranking entre seus amigos.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📄</div>
+        <div class="feature-title">Lista em PDF</div>
+        <div class="feature-desc">Gere e compartilhe sua lista de figurinhas que faltam ou suas repetidas em PDF com um toque.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚽</div>
+        <div class="feature-title">Jogos da Copa ao vivo</div>
+        <div class="feature-desc">Acompanhe a tabela de jogos, resultados e próximas partidas diretamente no app.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📍</div>
+        <div class="feature-title">Pontos de troca no mapa</div>
+        <div class="feature-desc">Encontre e cadastre pontos de troca de figurinhas perto de você no mapa interativo.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <div class="feature-title">Funciona no celular</div>
+        <div class="feature-desc">Instale na tela inicial do iPhone ou Android. Funciona como um app nativo, sem precisar de loja.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section class="proof">
+  <div style="max-width:1000px;margin:0 auto">
+    <h2 class="section-title" style="margin-bottom:12px">Colecionadores aprovam</h2>
+    <p class="section-sub">O que estão dizendo sobre o Álbum Copa 2026</p>
+    <div class="proof-grid">
+      <div class="proof-card">
+        <div class="proof-stars">★★★★★</div>
+        <div class="proof-text">"Finalmente um app que entende quem coleciona de verdade. Controle de repetidas e trocas com amigos num só lugar."</div>
+        <div class="proof-author">Carlos M.</div>
+        <div class="proof-role">São Paulo, SP</div>
+      </div>
+      <div class="proof-card">
+        <div class="proof-stars">★★★★★</div>
+        <div class="proof-text">"Minha família toda usa. A função de troca é incrível, meu filho já completou a seleção brasileira trocando com os colegas."</div>
+        <div class="proof-author">Ana Paula R.</div>
+        <div class="proof-role">Rio de Janeiro, RJ</div>
+      </div>
+      <div class="proof-card">
+        <div class="proof-stars">★★★★★</div>
+        <div class="proof-text">"Vale muito o preço. Parei de anotar em papel e agora tenho tudo organizado no celular. O PDF para compartilhar é ótimo."</div>
+        <div class="proof-author">Rafael T.</div>
+        <div class="proof-role">Curitiba, PR</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="comprar">
+  <h2 class="section-title">Acesso completo por um preço justo</h2>
+  <p class="section-sub" style="margin-bottom:40px">Pague uma vez, use durante toda a Copa</p>
+  <div class="pricing-card">
+    <div class="pricing-badge">ACESSO VITALÍCIO</div>
+    <div class="pricing-price"><sup>R$</sup>19<span style="font-size:36px">,90</span></div>
+    <div class="pricing-once">pagamento único · sem mensalidade</div>
+    <ul class="pricing-items">
+      <li>994 figurinhas de todas as seleções</li>
+      <li>Trocas com chat integrado</li>
+      <li>Social e feed em tempo real</li>
+      <li>Estatísticas e ranking entre amigos</li>
+      <li>Jogos da Copa ao vivo</li>
+      <li>Exportação em PDF</li>
+      <li>App instalável no celular (iOS e Android)</li>
+      <li>Atualizações durante toda a Copa</li>
+    </ul>
+    <button class="btn-buy" onclick="abrirModal()">🏆 Comprar agora — R$19,90</button>
+    <div class="pricing-guarantee">🔒 Pagamento seguro via Mercado Pago · PIX e cartão</div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<div style="background:#f8fafc;padding:80px 20px">
+  <div style="max-width:700px;margin:0 auto">
+    <h2 class="section-title" style="margin-bottom:40px">Dúvidas frequentes</h2>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Como recebo o acesso após o pagamento? <span class="faq-arrow">▼</span></div>
+      <div class="faq-a">Assim que o pagamento for aprovado você receberá um email com o link para criar sua senha e acessar o app. O processo é automático e leva menos de 1 minuto.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Funciona no iPhone e Android? <span class="faq-arrow">▼</span></div>
+      <div class="faq-a">Sim! O app funciona em qualquer celular com navegador moderno. Você pode instalar na tela inicial como um app nativo — sem precisar da App Store ou Play Store.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Precisa de internet para usar? <span class="faq-arrow">▼</span></div>
+      <div class="faq-a">A maioria das funções requer conexão para sincronizar com outros usuários em tempo real. Uma versão básica funciona offline.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">O acesso expira? <span class="faq-arrow">▼</span></div>
+      <div class="faq-a">Não. O pagamento é único e o acesso é vitalício. Você poderá usar o app durante toda a Copa do Mundo 2026 e além.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Posso compartilhar com mais de uma pessoa? <span class="faq-arrow">▼</span></div>
+      <div class="faq-a">Cada acesso é individual — uma conta por pagamento. Mas cada membro da família pode ter sua própria conta por R$19,90.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 Álbum Copa 2026 — Gerenciador Digital de Figurinhas</p>
+  <p style="margin-top:6px">Este produto não é oficial da FIFA ou Panini. Todos os direitos reservados.</p>
+</footer>
+
+<!-- MODAL PAGAMENTO -->
+<div class="modal-overlay" id="modal-overlay" onclick="fecharModalFora(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="fecharModal()">×</button>
+
+    <div id="form-section">
+      <h2>Finalizar compra</h2>
+      <div class="modal-price">R$ 19,90</div>
+
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="setMetodo('pix', this)">⚡ PIX</button>
+        <button class="modal-tab" onclick="setMetodo('card', this)">💳 Cartão</button>
+      </div>
+
+      <div id="pix-section" class="active">
+        <div class="pix-info">
+          <p>⚡ <strong>Aprovação instantânea!</strong><br>Pague via PIX e receba o acesso em menos de 1 minuto.</p>
+        </div>
+        <div class="form-group">
+          <label>Nome completo</label>
+          <input type="text" id="pix-nome" placeholder="Seu nome completo">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="pix-email" placeholder="seu@email.com">
+        </div>
+        <div class="form-group">
+          <label>CPF</label>
+          <input type="text" id="pix-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCpf(this)">
+        </div>
+      </div>
+
+      <div id="card-section">
+        <div class="form-group">
+          <label>Nome completo</label>
+          <input type="text" id="card-nome" placeholder="Seu nome completo">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="card-email" placeholder="seu@email.com">
+        </div>
+        <div class="form-group">
+          <label>CPF</label>
+          <input type="text" id="card-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCpf(this)">
+        </div>
+        <div class="form-group">
+          <label>Número do cartão</label>
+          <input type="text" id="card-num" placeholder="0000 0000 0000 0000" maxlength="19" oninput="mascaraCartao(this)">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Validade</label>
+            <input type="text" id="card-val" placeholder="MM/AA" maxlength="5" oninput="mascaraVal(this)">
+          </div>
+          <div class="form-group">
+            <label>CVV</label>
+            <input type="text" id="card-cvv" placeholder="123" maxlength="4">
+          </div>
+        </div>
+      </div>
+
+      <div id="msg-erro"></div>
+      <button id="btn-pagar" onclick="processar()">⚡ Pagar R$19,90</button>
+      <div class="modal-secure">🔒 Pagamento processado pelo Mercado Pago</div>
+    </div>
+
+    <div id="sucesso-overlay">
+      <div class="sucesso-icon">🎉</div>
+      <div class="sucesso-title">Pagamento confirmado!</div>
+      <div class="sucesso-desc">Enviamos um email com o link para você criar sua senha e acessar o álbum. Verifique sua caixa de entrada.</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script>
+const MP_PUBLIC_KEY = 'APP_USR-ddd07c4e-288a-436c-89bb-f9fa4930b7b8';
+const mp = new MercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' });
+let metodo = 'pix';
+
+function abrirModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function fecharModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function fecharModalFora(e) {
+  if (e.target === document.getElementById('modal-overlay')) fecharModal();
+}
+function setMetodo(m, btn) {
+  metodo = m;
+  document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pix-section').classList.toggle('active', m === 'pix');
+  document.getElementById('card-section').classList.toggle('active', m === 'card');
+  document.getElementById('btn-pagar').textContent = m === 'pix' ? '⚡ Pagar R$19,90 via PIX' : '💳 Pagar R$19,90';
+}
+function toggleFaq(el) { el.classList.toggle('open'); }
+
+function mascaraCpf(inp) {
+  let v = inp.value.replace(/\D/g,'');
+  if(v.length>3) v=v.slice(0,3)+'.'+v.slice(3);
+  if(v.length>7) v=v.slice(0,7)+'.'+v.slice(7);
+  if(v.length>11) v=v.slice(0,11)+'-'+v.slice(11);
+  inp.value=v.slice(0,14);
+}
+function mascaraCartao(inp) {
+  let v = inp.value.replace(/\D/g,'');
+  v = v.match(/.{1,4}/g)?.join(' ')||v;
+  inp.value = v.slice(0,19);
+}
+function mascaraVal(inp) {
+  let v = inp.value.replace(/\D/g,'');
+  if(v.length>2) v=v.slice(0,2)+'/'+v.slice(2);
+  inp.value=v.slice(0,5);
+}
+
+function mostrarErro(msg) {
+  const el = document.getElementById('msg-erro');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function esconderErro() {
+  document.getElementById('msg-erro').style.display = 'none';
+}
+
+async function processar() {
+  esconderErro();
+  const btn = document.getElementById('btn-pagar');
+
+  const nome = document.getElementById(metodo === 'pix' ? 'pix-nome' : 'card-nome').value.trim();
+  const email = document.getElementById(metodo === 'pix' ? 'pix-email' : 'card-email').value.trim();
+  const cpf = document.getElementById(metodo === 'pix' ? 'pix-cpf' : 'card-cpf').value.replace(/\D/g,'');
+
+  if (!nome) { mostrarErro('Informe seu nome completo.'); return; }
+  if (!email || !email.includes('@')) { mostrarErro('Informe um email válido.'); return; }
+  if (cpf.length !== 11) { mostrarErro('Informe um CPF válido.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Processando...';
+
+  try {
+    const body = { nome, email, cpf, metodo };
+
+    if (metodo === 'card') {
+      const num = document.getElementById('card-num').value.replace(/\D/g,'');
+      const val = document.getElementById('card-val').value.split('/');
+      const cvv = document.getElementById('card-cvv').value;
+      if (num.length < 15) { mostrarErro('Número do cartão inválido.'); btn.disabled=false; btn.textContent='💳 Pagar R$19,90'; return; }
+
+      const token = await mp.createCardToken({
+        cardNumber: num,
+        cardholderName: nome,
+        cardExpirationMonth: val[0],
+        cardExpirationYear: '20'+val[1],
+        securityCode: cvv,
+        identificationType: 'CPF',
+        identificationNumber: cpf,
+      });
+      body.token = token.id;
+      body.installments = 1;
+      body.paymentMethodId = token.payment_method_id;
+    }
+
+    const res = await fetch('/api/pagamento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+
+    if (data.status === 'approved' || data.status === 'pending') {
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('sucesso-overlay').classList.add('show');
+    } else if (data.pix_qr) {
+      // mostra QR code PIX
+      document.getElementById('form-section').innerHTML = `
+        <h2 style="margin-bottom:16px">Pague via PIX</h2>
+        <p style="color:#555;font-size:14px;margin-bottom:16px">Escaneie o QR Code ou copie o código abaixo:</p>
+        <img src="data:image/png;base64,${data.pix_qr}" style="width:200px;height:200px;margin:0 auto 16px;display:block;border-radius:8px">
+        <textarea readonly style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;resize:none;height:80px">${data.pix_code}</textarea>
+        <button onclick="navigator.clipboard.writeText('${data.pix_code}')" style="width:100%;margin-top:8px;padding:12px;background:#003087;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">📋 Copiar código PIX</button>
+        <p style="text-align:center;margin-top:12px;font-size:13px;color:#999">Após o pagamento você receberá o acesso por email automaticamente.</p>
+      `;
+    } else {
+      mostrarErro(data.message || 'Erro ao processar. Tente novamente.');
+      btn.disabled = false;
+      btn.textContent = metodo === 'pix' ? '⚡ Pagar R$19,90 via PIX' : '💳 Pagar R$19,90';
+    }
+  } catch(e) {
+    mostrarErro('Erro de conexão. Tente novamente.');
+    btn.disabled = false;
+    btn.textContent = metodo === 'pix' ? '⚡ Pagar R$19,90 via PIX' : '💳 Pagar R$19,90';
+  }
+}
+</script>
+</body>
+</html>
