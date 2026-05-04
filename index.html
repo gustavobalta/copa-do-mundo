@@ -2792,6 +2792,29 @@ async function renderStats() {
   const el = document.getElementById('stats-content');
   el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando estatísticas...</div>`;
 
+  // Garante que os dados dos amigos estejam carregados
+  if (!_amigosCarregados) {
+    if (_amigosCarregandoPromise) {
+      await _amigosCarregandoPromise;
+    } else {
+      // carrega direto sem passar pelo renderAmigosSeguidos (que mexe no DOM do social)
+      const { data: seguindo } = await sb.from('seguidores')
+        .select('seguido_id').eq('seguidor_id', currentUser.id).eq('status','aceito');
+      _amigosIds = (seguindo||[]).map(s => s.seguido_id);
+      if (_amigosIds.length) {
+        const [{ data: users }, { data: figs }] = await Promise.all([
+          sb.from('usuarios').select('id,nome').in('id', _amigosIds),
+          sb.from('figurinhas').select('usuario_id,dados').in('usuario_id', _amigosIds)
+        ]);
+        _amigosFigsMap = {};
+        (figs||[]).forEach(f => _amigosFigsMap[f.usuario_id] = f.dados);
+        _amigosNomeMap = {};
+        (users||[]).forEach(u => _amigosNomeMap[u.id] = u.nome);
+      }
+      _amigosCarregados = true;
+    }
+  }
+
   // Totais pessoais
   let totalColadas = 0, totalFaltam = 0, totalRepetidas = 0, totalCompletas = 0;
   ALL_COUNTRIES.forEach(c => {
@@ -2801,7 +2824,8 @@ async function renderStats() {
     totalRepetidas += st.dup;
     if (st.have === st.total) totalCompletas++;
   });
-  const pct = Math.round(totalColadas / GRAND_TOTAL * 100);
+  const pctRaw = totalColadas / GRAND_TOTAL * 100;
+  const pct = pctRaw < 1 && pctRaw > 0 ? pctRaw.toFixed(1) : Math.round(pctRaw);
 
   // Atividades para o gráfico (colou + completou)
   const { data: atividades } = await sb.from('atividades')
