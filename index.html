@@ -488,6 +488,35 @@
   .troca-status-badge.aceito { background:rgba(255,215,0,.1); border:1px solid var(--amarelo); color:var(--amarelo); }
   .troca-status-badge.recusado { background:rgba(239,68,68,.1); border:1px solid var(--danger); color:var(--danger); }
   .troca-status-badge.concluido { background:rgba(34,197,94,.1); border:1px solid var(--success); color:var(--success); }
+  /* Troca múltipla: opções de escolha */
+  .troca-opcoes { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+  .troca-opcao-item { display:flex; align-items:center; gap:10px; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px; cursor:pointer; transition:border-color .15s; }
+  .troca-opcao-item:hover { border-color:var(--amarelo); }
+  .troca-opcao-item.selecionado { border-color:var(--amarelo); background:rgba(255,215,0,.07); }
+  .troca-opcao-item input[type=radio] { accent-color:var(--amarelo); width:16px; height:16px; flex-shrink:0; }
+  .troca-opcao-lbl { font-family:Impact,'Arial Narrow',sans-serif; font-size:16px; color:var(--amarelo); }
+  .troca-opcao-pais { font-size:11px; color:var(--muted); }
+  /* Checkbox para proposta múltipla */
+  .oferta-check-item { display:flex; align-items:center; gap:10px; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:9px 13px; cursor:pointer; transition:border-color .15s; }
+  .oferta-check-item:hover { border-color:var(--amarelo); }
+  .oferta-check-item.marcado { border-color:var(--amarelo); background:rgba(255,215,0,.07); }
+  .oferta-check-item input[type=checkbox] { accent-color:var(--amarelo); width:16px; height:16px; flex-shrink:0; }
+  /* Chat dentro da troca */
+  .troca-chat { border-top:1px solid var(--border); margin-top:14px; padding-top:12px; }
+  .troca-chat-titulo { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+  .troca-chat-msgs { max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
+  .troca-msg { max-width:80%; padding:7px 11px; border-radius:10px; font-size:13px; line-height:1.4; }
+  .troca-msg.minha { align-self:flex-end; background:rgba(107,154,255,.2); border:1px solid rgba(107,154,255,.3); }
+  .troca-msg.dele { align-self:flex-start; background:var(--bg); border:1px solid var(--border); }
+  .troca-msg-nome { font-size:10px; color:var(--muted); margin-bottom:2px; }
+  .troca-msg-hora { font-size:10px; color:var(--muted); text-align:right; margin-top:3px; }
+  .troca-chat-input { display:flex; gap:6px; }
+  .troca-chat-input input { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px; color:var(--text); font-size:13px; font-family:inherit; outline:none; }
+  .troca-chat-input input:focus { border-color:rgba(107,154,255,.5); }
+  .troca-chat-input button { background:rgba(107,154,255,.2); border:1px solid rgba(107,154,255,.4); border-radius:8px; padding:8px 13px; color:var(--text); font-size:13px; cursor:pointer; transition:all .2s; }
+  .troca-chat-input button:hover { background:rgba(107,154,255,.4); }
+  /* oferta checkbox list scroll */
+  .oferta-check-lista { max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-top:6px; }
 
   /* PERFIL PRIVADO TOGGLE */
   .privado-toggle { display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--card); border:1px solid var(--border); border-radius:10px; margin-bottom:16px; cursor:pointer; }
@@ -2209,6 +2238,7 @@ async function renderTrocasRecebidas() {
   (users||[]).forEach(u => nomeMap[u.id] = u.nome);
 
   el.innerHTML = trocas.map(t => montarTrocaCard(t, nomeMap, 'recebida')).join('');
+  trocas.filter(t => t.status==='pendente'||t.status==='aceito').forEach(t => carregarChatTroca(t.id));
 }
 
 async function renderTrocasEnviadas() {
@@ -2231,6 +2261,7 @@ async function renderTrocasEnviadas() {
   (users||[]).forEach(u => nomeMap[u.id] = u.nome);
 
   el.innerHTML = trocas.map(t => montarTrocaCard(t, nomeMap, 'enviada')).join('');
+  trocas.filter(t => t.status==='pendente'||t.status==='aceito').forEach(t => carregarChatTroca(t.id));
 }
 
 async function renderTrocasHistorico() {
@@ -2269,14 +2300,57 @@ function montarTrocaCard(t, nomeMap, tipo) {
   }</span>`;
 
   const subtitulo = tipo === 'recebida'
-    ? `<strong>${outroNome}</strong> quer trocar com você`
-    : `Você propôs troca com <strong>${outroNome}</strong>`;
+    ? `${outroNome} quer trocar com você`
+    : `Você propôs troca com ${outroNome}`;
 
-  // o que cada lado oferece/quer
-  const euOfereço = tipo === 'recebida' ? t.quer_figurinha : t.oferece_figurinha;
-  const euOfereçoPais = tipo === 'recebida' ? t.quer_pais_nome : t.oferece_pais_nome;
-  const eleOferece = tipo === 'recebida' ? t.oferece_figurinha : t.quer_figurinha;
-  const eleOfereçePais = tipo === 'recebida' ? t.oferece_pais_nome : t.quer_pais_nome;
+  // figurinha que EU quero receber
+  const euRecebe = t.quer_figurinha;
+  const euRecebePais = t.quer_pais_nome;
+
+  // lado que EU entrego — pode ser múltiplas opções
+  const opcoes = t.oferece_opcoes || null; // array [{lbl,paisId,paisNome}]
+  const ofereceUnica = t.oferece_figurinha;
+  const ofereceUnicaPais = t.oferece_pais_nome;
+
+  // Se recebida e pendente e tem múltiplas opções → receptor escolhe
+  let ladoEntrega = '';
+  const temOpcoes = opcoes && opcoes.length > 1;
+  if (tipo === 'recebida' && t.status === 'pendente' && temOpcoes) {
+    const opcoesHtml = opcoes.map((o, i) => `
+      <label class="troca-opcao-item" onclick="selecionarOpcaoTroca(this)">
+        <input type="radio" name="opcao_${t.id}" value="${i}" ${i===0?'checked':''}>
+        <div>
+          <div class="troca-opcao-lbl">${o.lbl}</div>
+          <div class="troca-opcao-pais">${o.paisNome}</div>
+        </div>
+      </label>`).join('');
+    ladoEntrega = `<div class="troca-lado">
+      <div class="troca-lado-titulo">Você recebe (escolha 1)</div>
+      <div class="troca-opcoes" id="opcoes_${t.id}">${opcoesHtml}</div>
+    </div>`;
+  } else {
+    // exibe o que está definido: se recebida mostra o que o solicitante oferece; se enviada mostra o que eu ofereci
+    const fig = tipo === 'recebida'
+      ? (t.oferece_figurinha || (opcoes?.[0]?.lbl ?? '?'))
+      : (t.oferece_figurinha || (opcoes?.[0]?.lbl ?? '?'));
+    const pais = tipo === 'recebida'
+      ? (t.oferece_pais_nome || (opcoes?.[0]?.paisNome ?? ''))
+      : (t.oferece_pais_nome || (opcoes?.[0]?.paisNome ?? ''));
+    const tituloLado = tipo === 'recebida' ? 'Você recebe' : 'Você entrega';
+    const labelExtra = temOpcoes && tipo === 'enviada'
+      ? `<div style="font-size:10px;color:var(--muted);margin-top:3px">+${opcoes.length-1} opção(ões)</div>` : '';
+    ladoEntrega = `<div class="troca-lado">
+      <div class="troca-lado-titulo">${tituloLado}</div>
+      <div class="troca-lado-fig">${fig}</div>
+      <div class="troca-lado-pais">${pais}</div>
+      ${labelExtra}
+    </div>`;
+  }
+
+  // lado do que eu entrego / ele recebe
+  const euEntregaLbl = tipo === 'recebida' ? euRecebe : (ofereceUnica || opcoes?.[0]?.lbl || '?');
+  const euEntregaPaisNome = tipo === 'recebida' ? euRecebePais : (ofereceUnicaPais || opcoes?.[0]?.paisNome || '');
+  const tituloEntrega = tipo === 'recebida' ? 'Você entrega' : 'Você entrega';
 
   let acoes = '';
   if (t.status === 'pendente' && tipo === 'recebida') {
@@ -2289,36 +2363,71 @@ function montarTrocaCard(t, nomeMap, tipo) {
     acoes = `<button class="btn-recusar" onclick="cancelarTroca('${t.id}',this)">✕ Cancelar</button>`;
   }
 
+  // chat disponível para trocas ativas (pendente ou aceito)
+  const mostrarChat = t.status === 'pendente' || t.status === 'aceito';
+  const chatHtml = mostrarChat ? `
+    <div class="troca-chat">
+      <div class="troca-chat-titulo">Chat · combinar entrega</div>
+      <div class="troca-chat-msgs" id="chat_${t.id}">
+        <div style="text-align:center;font-size:11px;color:var(--muted);padding:8px">Carregando mensagens...</div>
+      </div>
+      <div class="troca-chat-input">
+        <input type="text" id="chat-input_${t.id}" placeholder="Digite uma mensagem..." maxlength="300"
+          onkeydown="if(event.key==='Enter')enviarMensagemTroca('${t.id}')">
+        <button onclick="enviarMensagemTroca('${t.id}')">Enviar</button>
+      </div>
+    </div>` : '';
+
   return `<div class="troca-card" data-troca="${t.id}">
     <div class="troca-card-header">
       <div class="pedido-card-avatar">${outroNome[0].toUpperCase()}</div>
       <div style="flex:1">
         <div style="font-weight:700;font-size:15px">${outroNome}</div>
-        <div style="font-size:12px;color:var(--muted)">${subtitulo.replace(/<[^>]+>/g,'')}</div>
+        <div style="font-size:12px;color:var(--muted)">${subtitulo}</div>
       </div>
       ${statusBadge}
     </div>
     <div class="troca-card-body">
       <div class="troca-lado">
-        <div class="troca-lado-titulo">Você entrega</div>
-        <div class="troca-lado-fig">${euOfereço}</div>
-        <div class="troca-lado-pais">${euOfereçoPais}</div>
+        <div class="troca-lado-titulo">${tituloEntrega}</div>
+        <div class="troca-lado-fig">${euEntregaLbl}</div>
+        <div class="troca-lado-pais">${euEntregaPaisNome}</div>
       </div>
       <div class="troca-seta">⇄</div>
-      <div class="troca-lado">
-        <div class="troca-lado-titulo">Você recebe</div>
-        <div class="troca-lado-fig">${eleOferece}</div>
-        <div class="troca-lado-pais">${eleOfereçePais}</div>
-      </div>
+      ${ladoEntrega}
     </div>
     ${acoes ? `<div class="troca-actions">${acoes}</div>` : ''}
+    ${chatHtml}
   </div>`;
+}
+
+function selecionarOpcaoTroca(label) {
+  const grupo = label.closest('.troca-opcoes');
+  grupo.querySelectorAll('.troca-opcao-item').forEach(l => l.classList.remove('selecionado'));
+  label.classList.add('selecionado');
 }
 
 async function aceitarTroca(trocaId, btn) {
   btn.disabled = true;
   btn.closest('.troca-actions').querySelectorAll('button').forEach(b => b.disabled = true);
-  await sb.from('trocas').update({ status: 'aceito' }).eq('id', trocaId);
+
+  // Se tem múltiplas opções, persiste a escolhida antes de aceitar
+  const radioSel = document.querySelector(`input[name="opcao_${trocaId}"]:checked`);
+  const update = { status: 'aceito' };
+  if (radioSel) {
+    const { data: t } = await sb.from('trocas').select('oferece_opcoes').eq('id', trocaId).single();
+    const opcoes = t?.oferece_opcoes;
+    if (opcoes) {
+      const escolhida = opcoes[parseInt(radioSel.value)];
+      if (escolhida) {
+        update.oferece_figurinha = escolhida.lbl;
+        update.oferece_pais_id = escolhida.paisId;
+        update.oferece_pais_nome = escolhida.paisNome;
+      }
+    }
+  }
+
+  await sb.from('trocas').update(update).eq('id', trocaId);
   renderTrocasRecebidas();
 }
 
@@ -2409,6 +2518,64 @@ async function cancelarTroca(trocaId, btn) {
   btn.closest('.troca-card').remove();
 }
 
+// ===== CHAT DE TROCA =====
+const _chatCache = {}; // trocaId -> msgs[]
+const _chatChannels = {}; // trocaId -> realtime channel
+
+async function carregarChatTroca(trocaId) {
+  const el = document.getElementById(`chat_${trocaId}`);
+  if (!el) return;
+  const { data: msgs } = await sb.from('mensagens_troca')
+    .select('*').eq('troca_id', trocaId)
+    .order('criado_em', { ascending: true });
+  _chatCache[trocaId] = msgs || [];
+  renderChatMsgs(trocaId);
+
+  // realtime para novas mensagens
+  if (!_chatChannels[trocaId]) {
+    _chatChannels[trocaId] = sb.channel(`chat-${trocaId}`)
+      .on('postgres_changes', { event:'INSERT', schema:'public', table:'mensagens_troca' }, payload => {
+        if (payload.new.troca_id !== trocaId) return;
+        _chatCache[trocaId] = [...(_chatCache[trocaId]||[]), payload.new];
+        renderChatMsgs(trocaId);
+      })
+      .subscribe();
+  }
+}
+
+function renderChatMsgs(trocaId) {
+  const el = document.getElementById(`chat_${trocaId}`);
+  if (!el) return;
+  const msgs = _chatCache[trocaId] || [];
+  if (!msgs.length) {
+    el.innerHTML = `<div style="text-align:center;font-size:11px;color:var(--muted);padding:8px">Nenhuma mensagem ainda. Combine a entrega aqui.</div>`;
+    return;
+  }
+  el.innerHTML = msgs.map(m => {
+    const minha = m.autor_id === currentUser.id;
+    const hora = new Date(m.criado_em).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+    return `<div class="troca-msg ${minha?'minha':'dele'}">
+      ${!minha ? `<div class="troca-msg-nome">${m.autor_nome||'?'}</div>` : ''}
+      ${m.texto}
+      <div class="troca-msg-hora">${hora}</div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function enviarMensagemTroca(trocaId) {
+  const input = document.getElementById(`chat-input_${trocaId}`);
+  const texto = input.value.trim();
+  if (!texto) return;
+  input.value = '';
+  await sb.from('mensagens_troca').insert({
+    troca_id: trocaId,
+    autor_id: currentUser.id,
+    autor_nome: currentUser.nome,
+    texto,
+  });
+}
+
 function atualizarBadgeTrocas(n) {
   const btn = document.getElementById('nav-trocas');
   if (!btn) return;
@@ -2442,11 +2609,16 @@ function abrirModalTroca(receptorId, receptorNome, querPaisId, querPaisNome, que
     return;
   }
 
-  const opcoesHtml = minhasRepetidas.map(r =>
-    `<option value="${r.lbl}|${r.paisId}|${r.paisNome}">${r.lbl} (${r.paisNome})</option>`
+  const checkHtml = minhasRepetidas.map((r, i) =>
+    `<label class="oferta-check-item" onclick="toggleOfertaCheck(this)">
+      <input type="checkbox" value="${i}" ${i===0?'checked':''}>
+      <div>
+        <div style="font-family:Impact,'Arial Narrow',sans-serif;font-size:16px;color:var(--amarelo)">${r.lbl}</div>
+        <div style="font-size:11px;color:var(--muted)">${r.paisNome}</div>
+      </div>
+    </label>`
   ).join('');
 
-  // cria modal simples
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay open';
   overlay.id = 'troca-modal-overlay';
@@ -2464,24 +2636,56 @@ function abrirModalTroca(receptorId, receptorNome, querPaisId, querPaisNome, que
         Você quer: <strong style="color:var(--amarelo)">${querFigurinha} (${querPaisNome})</strong>
       </p>
       <div class="form-group">
-        <label>Você oferece em troca:</label>
-        <select id="troca-select" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit">
-          ${opcoesHtml}
-        </select>
+        <label style="font-size:13px;color:var(--muted)">Escolha até 3 cartas para oferecer — ${receptorNome} escolhe 1:</label>
+        <div class="oferta-check-lista" id="oferta-check-lista">${checkHtml}</div>
+        <div id="oferta-aviso" style="font-size:11px;color:var(--danger);margin-top:6px;display:none">Selecione ao menos 1 carta.</div>
       </div>
-      <button class="auth-btn" style="margin-top:8px" onclick="enviarProposta()">Enviar Proposta</button>
+      <button class="auth-btn" style="margin-top:12px" onclick="enviarProposta()">Enviar Proposta</button>
     </div>
   </div>`;
   document.body.appendChild(overlay);
+  // marca o primeiro como selecionado visualmente
+  const primeiro = overlay.querySelector('.oferta-check-item');
+  if (primeiro) primeiro.classList.add('marcado');
+}
+
+function toggleOfertaCheck(label) {
+  const cb = label.querySelector('input[type=checkbox]');
+  const lista = label.closest('.oferta-check-lista');
+  const marcados = [...lista.querySelectorAll('input:checked')];
+  // se vai marcar e já tem 3, cancela
+  if (!cb.checked && marcados.length >= 3) {
+    cb.checked = false;
+    return;
+  }
+  label.classList.toggle('marcado', cb.checked);
 }
 
 async function enviarProposta() {
-  const sel = document.getElementById('troca-select').value.split('|');
-  const [oferecelbl, ofpaisId, ofpaisNome] = sel;
   const { receptorId, receptorNome, querPaisId, querPaisNome, querFigurinha } = _trocaProposta;
+  const lista = document.getElementById('oferta-check-lista');
+  const aviso = document.getElementById('oferta-aviso');
+  const selecionados = [...lista.querySelectorAll('input:checked')].map(cb => parseInt(cb.value));
+
+  if (!selecionados.length) { aviso.style.display = ''; return; }
+  aviso.style.display = 'none';
 
   const btn = document.querySelector('#troca-modal-overlay .auth-btn');
   btn.disabled = true; btn.textContent = 'Enviando...';
+
+  const dadosReceptor = _amigosFigsMap[receptorId] || {};
+  const minhasRepetidas = [];
+  ALL_COUNTRIES.forEach(c => {
+    const s = state[c.id] || {};
+    const sr = dadosReceptor[c.id] || {};
+    for(let i=0;i<c.stickers;i++) {
+      if((s[i]||0)>=2 && !((sr[i]??sr[String(i)]??0)>=1))
+        minhasRepetidas.push({ lbl: getStickerLabel(c,i), paisId: c.id, paisNome: c.name });
+    }
+  });
+
+  const opcoes = selecionados.map(i => minhasRepetidas[i]).filter(Boolean);
+  const principal = opcoes[0];
 
   await sb.from('trocas').insert({
     solicitante_id: currentUser.id,
@@ -2489,9 +2693,10 @@ async function enviarProposta() {
     quer_pais_id: querPaisId,
     quer_pais_nome: querPaisNome,
     quer_figurinha: querFigurinha,
-    oferece_pais_id: ofpaisId,
-    oferece_pais_nome: ofpaisNome,
-    oferece_figurinha: oferecelbl,
+    oferece_pais_id: principal.paisId,
+    oferece_pais_nome: principal.paisNome,
+    oferece_figurinha: principal.lbl,
+    oferece_opcoes: opcoes.length > 1 ? opcoes : null,
   });
 
   document.getElementById('troca-modal-overlay').remove();
