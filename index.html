@@ -1429,9 +1429,10 @@ function updateHeader() {
   document.getElementById('stat-total').textContent=g.have;
   document.getElementById('stat-need').textContent=g.need;
   document.getElementById('stat-dup').textContent=g.dup;
-  const pct=Math.round(g.have/GRAND_TOTAL*100);
+  const pctRaw=g.have/GRAND_TOTAL*100;
+  const pct=pctRaw<1&&pctRaw>0?pctRaw.toFixed(1):Math.round(pctRaw);
   document.getElementById('progress-pct').textContent=`${pct}% completo`;
-  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-fill').style.width=pctRaw+'%';
 }
 
 // ===== GRID =====
@@ -1508,6 +1509,13 @@ function renderGrid() {
   grid.querySelectorAll('.card-header').forEach(h => {
     h.addEventListener('click', () => openModal(h.closest('.country-card').dataset.id));
   });
+
+  // se amigos ainda não carregados, carrega em background e atualiza badges 👥
+  if (!_amigosCarregados) {
+    _garantirAmigosCarregados().then(() => {
+      filtered.forEach(c => refreshCard(c.id));
+    });
+  }
 }
 
 function refreshCard(cid) {
@@ -1549,54 +1557,70 @@ function updateModalSub(cid){
   const c=COUNTRY_MAP[cid], st=getCountryStats(cid);
   document.getElementById('modal-country-sub').textContent=`${c.group} · ${st.have}/${st.total} coladas`;
 }
-function renderModalGrid(cid) {
-  const c=COUNTRY_MAP[cid], s=state[cid], grid=document.getElementById('modal-sticker-grid');
-  grid.innerHTML='';
-  for(let i=0;i<c.stickers;i++){
-    const v=s[i]||0, lbl=getStickerLabel(c,i), name=c.stickerLabels?lbl:(NAMES[i]||`J${i+1}`);
-    const div=document.createElement('div');
-    div.className=`modal-sticker${v===1?' have':v>=2?' have duplicate':''}`;
-    div.dataset.idx=i;
-    const qtyHtml=v>=1?`<div class="qty-editor" onclick="event.stopPropagation()">
-      <button class="qty-btn qty-minus" data-idx="${i}">−</button>
-      <input class="qty-input" type="number" min="0" max="99" value="${v}" data-idx="${i}">
-      <button class="qty-btn qty-plus" data-idx="${i}">+</button>
-    </div>`:'';
-    div.innerHTML=`${v>=2?`<div class="ms-dup">${v}</div>`:''}<div class="ms-num">${lbl}</div><div class="ms-name">${name}</div><div class="ms-status">${v===1?'tenho':v>=2?`×${v}`:''}</div>${qtyHtml}`;
-    div.addEventListener('click', e => {
-      if(e.target.closest('.qty-editor')) return;
-      state[cid][i]=(state[cid][i]||0)+1;
-      renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
-    });
-    div.addEventListener('contextmenu', e => { e.preventDefault(); showCtxMenu(e,cid,i,true); });
-    grid.appendChild(div);
-  }
-  grid.querySelectorAll('.qty-minus').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const idx=parseInt(btn.dataset.idx);
-      state[cid][idx]=Math.max(0,(state[cid][idx]||0)-1);
-      renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
-    });
+function _buildModalSticker(cid, i) {
+  const c=COUNTRY_MAP[cid], s=state[cid];
+  const v=s[i]||0, lbl=getStickerLabel(c,i), name=c.stickerLabels?lbl:(NAMES[i]||`J${i+1}`);
+  const div=document.createElement('div');
+  div.className=`modal-sticker${v===1?' have':v>=2?' have duplicate':''}`;
+  div.dataset.idx=i;
+  const qtyHtml=v>=1?`<div class="qty-editor" onclick="event.stopPropagation()">
+    <button class="qty-btn qty-minus" data-idx="${i}">−</button>
+    <input class="qty-input" type="number" min="0" max="99" value="${v}" data-idx="${i}">
+    <button class="qty-btn qty-plus" data-idx="${i}">+</button>
+  </div>`:'';
+  div.innerHTML=`${v>=2?`<div class="ms-dup">${v}</div>`:''}<div class="ms-num">${lbl}</div><div class="ms-name">${name}</div><div class="ms-status">${v===1?'tenho':v>=2?`×${v}`:''}</div>${qtyHtml}`;
+
+  div.addEventListener('click', e => {
+    if(e.target.closest('.qty-editor')) return;
+    state[cid][i]=(state[cid][i]||0)+1;
+    refreshModalSticker(cid,i); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
   });
-  grid.querySelectorAll('.qty-plus').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const idx=parseInt(btn.dataset.idx);
-      state[cid][idx]=(state[cid][idx]||0)+1;
-      renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
-    });
+  div.addEventListener('contextmenu', e => { e.preventDefault(); showCtxMenu(e,cid,i,true); });
+
+  const minus=div.querySelector('.qty-minus');
+  const plus=div.querySelector('.qty-plus');
+  const inp=div.querySelector('.qty-input');
+  if(minus) minus.addEventListener('click', e => {
+    e.stopPropagation();
+    state[cid][i]=Math.max(0,(state[cid][i]||0)-1);
+    refreshModalSticker(cid,i); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
   });
-  grid.querySelectorAll('.qty-input').forEach(inp => {
+  if(plus) plus.addEventListener('click', e => {
+    e.stopPropagation();
+    state[cid][i]=(state[cid][i]||0)+1;
+    refreshModalSticker(cid,i); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
+  });
+  if(inp) {
     inp.addEventListener('click', e => e.stopPropagation());
     inp.addEventListener('change', e => {
       e.stopPropagation();
-      const idx=parseInt(inp.dataset.idx);
-      state[cid][idx]=Math.max(0,Math.min(99,parseInt(inp.value)||0));
-      renderModalGrid(cid); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
+      state[cid][i]=Math.max(0,Math.min(99,parseInt(inp.value)||0));
+      refreshModalSticker(cid,i); refreshCard(cid); updateHeader(); scheduleSave(); updateModalSub(cid);
     });
     inp.addEventListener('keydown', e => { if(e.key==='Enter') inp.blur(); e.stopPropagation(); });
-  });
+  }
+  return div;
+}
+
+// substitui apenas o sticker alterado, sem recriar o grid inteiro
+function refreshModalSticker(cid, i) {
+  const grid=document.getElementById('modal-sticker-grid');
+  const old=grid.querySelector(`.modal-sticker[data-idx="${i}"]`);
+  const novo=_buildModalSticker(cid, i);
+  if(old) grid.replaceChild(novo, old);
+}
+
+function renderModalGrid(cid) {
+  const grid=document.getElementById('modal-sticker-grid');
+  grid.innerHTML='';
+  const c=COUNTRY_MAP[cid];
+  for(let i=0;i<c.stickers;i++) grid.appendChild(_buildModalSticker(cid,i));
+}
+
+// atualiza stickers em massa sem piscar (marca-tudo / limpa-tudo)
+function _refreshModalGridAll(cid) {
+  const c=COUNTRY_MAP[cid];
+  for(let i=0;i<c.stickers;i++) refreshModalSticker(cid,i);
 }
 
 function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); currentCountry=null; }
@@ -2028,6 +2052,29 @@ let _amigosIds = [];
 let _amigosCarregados = false;
 let _amigosCarregandoPromise = null;
 
+async function _garantirAmigosCarregados() {
+  if (_amigosCarregados) return;
+  if (_amigosCarregandoPromise) { await _amigosCarregandoPromise; return; }
+  let resolve;
+  _amigosCarregandoPromise = new Promise(r => resolve = r);
+  const { data: seguindo } = await sb.from('seguidores')
+    .select('seguido_id').eq('seguidor_id', currentUser.id).eq('status','aceito');
+  _amigosIds = (seguindo||[]).map(s => s.seguido_id);
+  if (_amigosIds.length) {
+    const [{ data: users }, { data: figs }] = await Promise.all([
+      sb.from('usuarios').select('id,nome').in('id', _amigosIds),
+      sb.from('figurinhas').select('usuario_id,dados').in('usuario_id', _amigosIds)
+    ]);
+    _amigosFigsMap = {};
+    (figs||[]).forEach(f => _amigosFigsMap[f.usuario_id] = f.dados);
+    _amigosNomeMap = {};
+    (users||[]).forEach(u => _amigosNomeMap[u.id] = u.nome);
+  }
+  _amigosCarregados = true;
+  _amigosCarregandoPromise = null;
+  resolve();
+}
+
 async function renderAmigosSeguidos() {
   const grid = document.getElementById('social-amigos-grid');
   const detalhe = document.getElementById('social-repetidas-detalhe');
@@ -2035,48 +2082,19 @@ async function renderAmigosSeguidos() {
   grid.style.display = '';
   detalhe.style.display = 'none';
 
-  // se já carregou, só re-renderiza o grid sem ir ao servidor
-  if (_amigosCarregados) { _renderAmigosGrid(); return; }
-
-  // evita chamadas paralelas
-  if (_amigosCarregandoPromise) { await _amigosCarregandoPromise; _renderAmigosGrid(); return; }
-
-  grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div>`;
-
-  const { data: seguindo } = await sb.from('seguidores')
-    .select('seguido_id').eq('seguidor_id', currentUser.id).eq('status','aceito');
-  _amigosIds = (seguindo||[]).map(s => s.seguido_id);
-
-  let resolve;
-  _amigosCarregandoPromise = new Promise(r => resolve = r);
-
-  if (!_amigosIds.length) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">👥</div>Você não segue ninguém ainda.<br><span style="font-size:12px">Use <strong>Descobrir</strong> para encontrar usuários.</span></div>`;
-    _amigosCarregados = true;
-    _amigosCarregandoPromise = null;
-    resolve();
-    return;
+  if (!_amigosCarregados) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto"></div></div>`;
+    await _garantirAmigosCarregados();
   }
-
-  const [{ data: users }, { data: figs }] = await Promise.all([
-    sb.from('usuarios').select('id,nome').in('id', _amigosIds),
-    sb.from('figurinhas').select('usuario_id,dados').in('usuario_id', _amigosIds)
-  ]);
-
-  _amigosFigsMap = {};
-  (figs||[]).forEach(f => _amigosFigsMap[f.usuario_id] = f.dados);
-  _amigosNomeMap = {};
-  (users||[]).forEach(u => _amigosNomeMap[u.id] = u.nome);
-
-  _amigosCarregados = true;
-  _amigosCarregandoPromise = null;
-  resolve();
   _renderAmigosGrid();
 }
 
 function _renderAmigosGrid() {
   const grid = document.getElementById('social-amigos-grid');
-  if (!_amigosIds.length) return;
+  if (!_amigosIds.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">👥</div>Você não segue ninguém ainda.<br><span style="font-size:12px">Use <strong>Descobrir</strong> para encontrar usuários.</span></div>`;
+    return;
+  }
   grid.innerHTML = _amigosIds.map(uid => {
     const nome = _amigosNomeMap[uid] || '?';
     const compact = _amigosFigsMap[uid] || {};
@@ -2925,27 +2943,7 @@ async function renderStats() {
   el.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 10px"></div>Carregando estatísticas...</div>`;
 
   // Garante que os dados dos amigos estejam carregados
-  if (!_amigosCarregados) {
-    if (_amigosCarregandoPromise) {
-      await _amigosCarregandoPromise;
-    } else {
-      // carrega direto sem passar pelo renderAmigosSeguidos (que mexe no DOM do social)
-      const { data: seguindo } = await sb.from('seguidores')
-        .select('seguido_id').eq('seguidor_id', currentUser.id).eq('status','aceito');
-      _amigosIds = (seguindo||[]).map(s => s.seguido_id);
-      if (_amigosIds.length) {
-        const [{ data: users }, { data: figs }] = await Promise.all([
-          sb.from('usuarios').select('id,nome').in('id', _amigosIds),
-          sb.from('figurinhas').select('usuario_id,dados').in('usuario_id', _amigosIds)
-        ]);
-        _amigosFigsMap = {};
-        (figs||[]).forEach(f => _amigosFigsMap[f.usuario_id] = f.dados);
-        _amigosNomeMap = {};
-        (users||[]).forEach(u => _amigosNomeMap[u.id] = u.nome);
-      }
-      _amigosCarregados = true;
-    }
-  }
+  await _garantirAmigosCarregados();
 
   // Totais pessoais
   let totalColadas = 0, totalFaltam = 0, totalRepetidas = 0, totalCompletas = 0;
