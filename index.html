@@ -1203,9 +1203,41 @@ function enterApp() {
   renderGrid();
   updateHeader();
   startRealtimeNotifs();
+  sincronizarFeedAoLogin(); // silencioso, só roda se não tiver atividades
   const savedTab = localStorage.getItem('copa_active_tab') || 'album';
   const validTabs = ['album','social','trocas','pontos','copa'];
   showTab(validTabs.includes(savedTab) ? savedTab : 'album');
+}
+
+async function sincronizarFeedAoLogin() {
+  // verifica se já tem atividades de colou/completou_pais
+  const { count } = await sb.from('atividades')
+    .select('*', { count: 'exact', head: true })
+    .eq('usuario_id', currentUser.id)
+    .in('tipo', ['colou', 'completou_pais']);
+  if (count > 0) return; // já sincronizado, não faz nada
+
+  // sem atividades — gera retroativamente (igual ao botão manual)
+  const lote = [];
+  const agora = new Date();
+  ALL_COUNTRIES.forEach(c => {
+    const s = state[c.id] || {};
+    let todasColadas = true;
+    for (let i = 0; i < c.stickers; i++) {
+      const v = s[i] || 0;
+      if (v >= 1) {
+        lote.push({ usuario_id: currentUser.id, tipo: 'colou', dados: { figurinha: getStickerLabel(c, i), pais_id: c.id, pais_nome: c.name }, criado_em: agora.toISOString() });
+      } else {
+        todasColadas = false;
+      }
+    }
+    if (todasColadas && c.stickers > 0) {
+      lote.push({ usuario_id: currentUser.id, tipo: 'completou_pais', dados: { pais_id: c.id, pais_nome: c.name }, criado_em: agora.toISOString() });
+    }
+  });
+  for (let i = 0; i < lote.length; i += 200) {
+    await sb.from('atividades').insert(lote.slice(i, i + 200));
+  }
 }
 
 // ===== COMPUTED =====
