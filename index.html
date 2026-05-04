@@ -1673,7 +1673,13 @@ async function renderFeed() {
     const d = a.dados || {};
     if (a.tipo === 'colou') texto = `${eu?'Você colou':'<strong>'+nome+'</strong> colou'} <strong>${d.figurinha}</strong> (${d.pais_nome})`;
     else if (a.tipo === 'completou_pais') texto = `${eu?'Você completou':'<strong>'+nome+'</strong> completou'} a seleção de <strong>${d.pais_nome}</strong>!`;
-    else if (a.tipo === 'troca_concluida') texto = `${eu?'Você concluiu':'<strong>'+nome+'</strong> concluiu'} uma troca de figurinhas`;
+    else if (a.tipo === 'troca_concluida') {
+      const comNome = d.com_nome || '?';
+      const detalhe = d.entregou && d.recebeu
+        ? ` · entregou <strong>${d.entregou}</strong> e recebeu <strong>${d.recebeu}</strong>`
+        : '';
+      texto = `${eu?'Você':'<strong>'+nome+'</strong>'} concluiu uma troca com <strong>${comNome}</strong>${detalhe}`;
+    }
     else texto = `${eu?'Você':'<strong>'+nome+'</strong>'} fez algo`;
     const dt = new Date(a.criado_em);
     const tempo = formatarTempo(dt);
@@ -2270,10 +2276,21 @@ async function concluirTroca(trocaId, btn) {
     await sb.from('figurinhas').update({ dados: ds, atualizado_em: new Date().toISOString() }).eq('usuario_id', t.solicitante_id);
   }
 
+  const { data: uSolic } = await sb.from('usuarios').select('nome').eq('id', t.solicitante_id).single();
+  const nomeSolicitante = uSolic?.nome || '?';
+
   await Promise.all([
     sb.from('trocas').update({ status: 'concluido' }).eq('id', trocaId),
-    sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'troca_concluida', dados: { com: t.solicitante_id } }),
-    sb.from('atividades').insert({ usuario_id: t.solicitante_id, tipo: 'troca_concluida', dados: { com: currentUser.id } }),
+    sb.from('atividades').insert({ usuario_id: currentUser.id, tipo: 'troca_concluida', dados: {
+      com_nome: nomeSolicitante,
+      entregou: t.quer_figurinha, entregou_pais: t.quer_pais_nome,
+      recebeu: t.oferece_figurinha, recebeu_pais: t.oferece_pais_nome
+    }}),
+    sb.from('atividades').insert({ usuario_id: t.solicitante_id, tipo: 'troca_concluida', dados: {
+      com_nome: currentUser.nome,
+      entregou: t.oferece_figurinha, entregou_pais: t.oferece_pais_nome,
+      recebeu: t.quer_figurinha, recebeu_pais: t.quer_pais_nome
+    }}),
   ]);
 
   btn.closest('.troca-card').remove();
