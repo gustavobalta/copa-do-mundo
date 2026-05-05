@@ -146,6 +146,7 @@ Deno.serve(async (req) => {
         email: email.toLowerCase(),
         senha: senhaGerada,
         premium: true,
+        nome_definido: false,
       });
 
       // Email de boas-vindas

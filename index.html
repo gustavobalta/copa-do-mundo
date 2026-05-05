@@ -613,6 +613,25 @@
 
 <div id="notif-container"></div>
 
+<!-- ESCOLHER NOME -->
+<div id="escolher-nome-screen" style="display:none;min-height:100vh;display:none;align-items:center;justify-content:center;padding:20px">
+  <div class="auth-box">
+    <div class="auth-header">
+      <span class="trophy">🏆</span>
+      <h1>FIFA WORLD CUP 2026™</h1>
+      <p>Escolha seu nome de usuário</p>
+    </div>
+    <div class="form-group">
+      <label>Nome de usuário</label>
+      <input type="text" id="escolher-nome-input" placeholder="ex: gustavo26" maxlength="20" autocomplete="off"
+        oninput="verificarNomeDisponivel(this.value)">
+      <div id="nome-status" style="font-size:12px;margin-top:6px;min-height:16px"></div>
+    </div>
+    <button class="auth-btn" onclick="salvarNomeUsuario()">Confirmar e entrar</button>
+    <div class="auth-msg" id="escolher-nome-msg"></div>
+  </div>
+</div>
+
 <!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-box">
@@ -1203,6 +1222,71 @@ function showLogin() {
   showAuthMsg('');
 }
 
+let _nomeVerificadoOk = false;
+let _nomeVerificandoTimeout = null;
+
+function showEscolherNome() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('escolher-nome-screen').style.display = 'flex';
+}
+
+async function verificarNomeDisponivel(valor) {
+  _nomeVerificadoOk = false;
+  const status = document.getElementById('nome-status');
+  valor = valor.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  document.getElementById('escolher-nome-input').value = valor;
+
+  if (valor.length < 3) {
+    status.textContent = 'Mínimo 3 caracteres';
+    status.style.color = 'var(--muted)';
+    return;
+  }
+
+  clearTimeout(_nomeVerificandoTimeout);
+  status.textContent = 'Verificando...';
+  status.style.color = 'var(--muted)';
+
+  _nomeVerificandoTimeout = setTimeout(async () => {
+    const { data } = await sb.from('usuarios').select('id').eq('nome', valor).maybeSingle();
+    if (data) {
+      status.textContent = 'Nome já em uso';
+      status.style.color = 'var(--danger)';
+      _nomeVerificadoOk = false;
+    } else {
+      status.textContent = 'Disponível!';
+      status.style.color = 'var(--success)';
+      _nomeVerificadoOk = true;
+    }
+  }, 500);
+}
+
+async function salvarNomeUsuario() {
+  const nome = document.getElementById('escolher-nome-input').value.trim().toLowerCase();
+  const msgEl = document.getElementById('escolher-nome-msg');
+
+  if (nome.length < 3) { msgEl.textContent = 'Mínimo 3 caracteres'; msgEl.className = 'auth-msg error'; return; }
+  if (!_nomeVerificadoOk) { msgEl.textContent = 'Escolha um nome disponível'; msgEl.className = 'auth-msg error'; return; }
+
+  msgEl.textContent = '';
+  const { error } = await sb.from('usuarios').update({ nome, nome_definido: true }).eq('id', currentUser.id);
+  if (error) { msgEl.textContent = 'Erro ao salvar. Tente novamente.'; msgEl.className = 'auth-msg error'; return; }
+
+  currentUser.nome = nome;
+  currentUser.nome_definido = true;
+  document.getElementById('escolher-nome-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('user-name-display').textContent = nome;
+  document.getElementById('user-avatar').textContent = nome[0].toUpperCase();
+  renderGrid();
+  updateHeader();
+  startRealtimeNotifs();
+  startFeedRealtime();
+  sincronizarFeedAoLogin();
+  const savedTab = localStorage.getItem('copa_active_tab') || 'album';
+  const validTabs = ['album','social','trocas','pontos','copa'];
+  showTab(validTabs.includes(savedTab) ? savedTab : 'album');
+}
+
 async function doRecuperarSenha() {
   const email = document.getElementById('recuperar-email').value.trim();
   if (!email) { showAuthMsg('Informe o email cadastrado'); return; }
@@ -1402,6 +1486,10 @@ function scheduleSave() {
 // ===== ENTER APP =====
 function enterApp() {
   setLoading(false);
+  if (currentUser.nome_definido === false) {
+    showEscolherNome();
+    return;
+  }
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   document.getElementById('user-name-display').textContent = currentUser.nome;
