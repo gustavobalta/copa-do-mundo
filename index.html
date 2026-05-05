@@ -625,6 +625,16 @@
       <div class="form-group"><label>Nome de usuário</label><input type="text" id="login-name" placeholder="seu nome" autocomplete="username"></div>
       <div class="form-group"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••" autocomplete="current-password"></div>
       <button class="auth-btn" onclick="doLogin()">Entrar</button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="showRecuperarSenha()" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline">Esqueci minha senha</button>
+      </div>
+    </div>
+    <div id="recuperar-form" style="display:none">
+      <div class="form-group"><label>Email cadastrado</label><input type="email" id="recuperar-email" placeholder="seu@email.com"></div>
+      <button class="auth-btn" onclick="doRecuperarSenha()">Enviar link de recuperação</button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="showLogin()" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline">← Voltar ao login</button>
+      </div>
     </div>
     <div class="auth-msg" id="auth-msg"></div>
     <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--muted)">
@@ -1177,8 +1187,44 @@ function showSaveIndicator(status) {
 
 function showAuthMsg(msg, isError=true) {
   const el = document.getElementById('auth-msg');
-  el.textContent = msg;
+  el.innerHTML = msg;
   el.className = 'auth-msg ' + (isError ? 'error' : 'success');
+}
+
+function showRecuperarSenha() {
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('recuperar-form').style.display = '';
+  showAuthMsg('');
+}
+
+function showLogin() {
+  document.getElementById('recuperar-form').style.display = 'none';
+  document.getElementById('login-form').style.display = '';
+  showAuthMsg('');
+}
+
+async function doRecuperarSenha() {
+  const email = document.getElementById('recuperar-email').value.trim();
+  if (!email) { showAuthMsg('Informe o email cadastrado'); return; }
+
+  setLoading(true, 'Enviando...');
+  try {
+    const res = await fetch('https://tawhxgqodyxdanjlparg.supabase.co/functions/v1/hyper-responder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'recuperar_senha', email })
+    });
+    const json = await res.json();
+    setLoading(false);
+    if (json.ok) {
+      showAuthMsg('Email enviado! Verifique sua caixa de entrada.', false);
+    } else {
+      showAuthMsg(json.erro || 'Email não encontrado');
+    }
+  } catch(e) {
+    setLoading(false);
+    showAuthMsg('Erro ao enviar. Tente novamente.');
+  }
 }
 
 function switchTab(tab) {
