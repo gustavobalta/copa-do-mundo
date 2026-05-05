@@ -621,23 +621,15 @@
       <h1>FIFA WORLD CUP 2026™</h1>
       <p>Álbum Panini · Entre Amigos</p>
     </div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Entrar</button>
-      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Cadastrar</button>
-    </div>
     <div id="login-form">
       <div class="form-group"><label>Nome de usuário</label><input type="text" id="login-name" placeholder="seu nome" autocomplete="username"></div>
       <div class="form-group"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••" autocomplete="current-password"></div>
       <button class="auth-btn" onclick="doLogin()">Entrar</button>
     </div>
-    <div id="register-form" style="display:none">
-      <div class="form-group"><label>Nome de usuário</label><input type="text" id="reg-name" placeholder="escolha um nome" autocomplete="username"></div>
-      <div class="form-group"><label>Senha</label><input type="password" id="reg-pass" placeholder="crie uma senha" autocomplete="new-password"></div>
-      <div class="form-group"><label>Confirmar senha</label><input type="password" id="reg-pass2" placeholder="repita a senha" autocomplete="new-password"></div>
-      <div class="form-group"><label>Senha de convite</label><input type="password" id="reg-invite" placeholder="••••••"></div>
-      <button class="auth-btn" onclick="doRegister()">Criar conta</button>
-    </div>
     <div class="auth-msg" id="auth-msg"></div>
+    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--muted)">
+      Não tem acesso? <a href="/compra" style="color:var(--amarelo);font-weight:700;text-decoration:none">Adquira aqui →</a>
+    </div>
   </div>
 </div>
 
@@ -1207,6 +1199,7 @@ async function doLogin() {
   const { data, error } = await sb.from('usuarios').select('*').eq('nome', nome).single();
   if(error || !data) { setLoading(false); showAuthMsg('Usuário não encontrado'); return; }
   if(data.senha !== senha) { setLoading(false); showAuthMsg('Senha incorreta'); return; }
+  if(!data.premium) { setLoading(false); showAuthMsg('Acesso não encontrado. <a href="/compra" style="color:var(--amarelo)">Adquira o acesso aqui →</a>'); return; }
 
   currentUser = data;
   localStorage.setItem('copa_user_id', data.id);
