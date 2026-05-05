@@ -506,7 +506,7 @@
     </div>
     <div style="display:flex;gap:10px;align-items:center">
       <a href="https://albumcopa2026.app.br" style="font-size:13px;color:rgba(255,255,255,.6);text-decoration:none;font-weight:600">Já tenho conta →</a>
-      <button class="nav-cta" onclick="document.getElementById('comprar').scrollIntoView({behavior:'smooth'})">Comprar — R$11,90</button>
+      <button class="nav-cta" onclick="document.getElementById('comprar').scrollIntoView({behavior:'smooth'})">Comprar — R$5,90</button>
     </div>
   </nav>
 
@@ -519,7 +519,7 @@
         <button class="btn-primary" onclick="document.getElementById('comprar').scrollIntoView({behavior:'smooth'})">🏆 Quero o app</button>
         <button class="btn-secondary" onclick="document.getElementById('funcionalidades').scrollIntoView({behavior:'smooth'})">Ver funcionalidades</button>
       </div>
-      <div class="hero-price">Acesso completo e vitalício por apenas <strong>R$11,90</strong></div>
+      <div class="hero-price">Acesso completo e vitalício por apenas <strong>R$5,90</strong></div>
     </div>
 
     <!-- PHONE MOCKUP -->
@@ -679,7 +679,7 @@
   <p class="section-sub" style="margin-bottom:40px">Pague uma vez, gerencie sua coleção durante toda a Copa</p>
   <div class="pricing-card">
     <div class="pricing-badge">ACESSO VITALÍCIO</div>
-    <div class="pricing-price"><sup>R$</sup>11<span style="font-size:36px">,90</span></div>
+    <div class="pricing-price"><sup>R$</sup>5<span style="font-size:36px">,90</span></div>
     <div class="pricing-once">pagamento único · sem mensalidade</div>
     <ul class="pricing-items">
       <li>994 figurinhas de todas as seleções</li>
@@ -691,7 +691,7 @@
       <li>App instalável no celular (iOS e Android)</li>
       <li>Atualizações durante toda a Copa</li>
     </ul>
-    <button class="btn-buy" onclick="abrirModal()">🏆 Comprar agora — R$11,90</button>
+    <button class="btn-buy" onclick="abrirModal()">🏆 Comprar agora — R$5,90</button>
     <div class="pricing-guarantee">🔒 Pagamento seguro via Mercado Pago · PIX e cartão</div>
   </div>
 </section>
@@ -718,7 +718,7 @@
     </div>
     <div class="faq-item" onclick="toggleFaq(this)">
       <div class="faq-q">Posso compartilhar com mais de uma pessoa? <span class="faq-arrow">▼</span></div>
-      <div class="faq-a">Cada acesso é individual — uma conta por pagamento. Mas cada membro da família pode ter sua própria conta por R$11,90.</div>
+      <div class="faq-a">Cada acesso é individual — uma conta por pagamento. Mas cada membro da família pode ter sua própria conta por R$5,90.</div>
     </div>
   </div>
 </div>
@@ -736,7 +736,7 @@
 
     <div id="form-section">
       <h2>Finalizar compra</h2>
-      <div class="modal-price">R$ 11,90</div>
+      <div class="modal-price">R$ 5,90</div>
 
       <div class="modal-tabs">
         <button class="modal-tab active" onclick="setMetodo('pix', this)">⚡ PIX</button>
@@ -791,7 +791,7 @@
       </div>
 
       <div id="msg-erro"></div>
-      <button id="btn-pagar" onclick="processar()">⚡ Pagar R$11,90</button>
+      <button id="btn-pagar" onclick="processar()">⚡ Pagar R$5,90</button>
       <div class="modal-secure">🔒 Pagamento processado pelo Mercado Pago</div>
     </div>
 
@@ -837,7 +837,7 @@ function setMetodo(m, btn) {
   btn.classList.add('active');
   document.getElementById('pix-section').classList.toggle('active', m === 'pix');
   document.getElementById('card-section').classList.toggle('active', m === 'card');
-  document.getElementById('btn-pagar').textContent = m === 'pix' ? '⚡ Pagar R$11,90 via PIX' : '💳 Pagar R$11,90';
+  document.getElementById('btn-pagar').textContent = m === 'pix' ? '⚡ Pagar R$5,90 via PIX' : '💳 Pagar R$5,90';
 }
 function toggleFaq(el) { el.classList.toggle('open'); }
 
@@ -890,7 +890,7 @@ async function processar() {
       const num = document.getElementById('card-num').value.replace(/\D/g,'');
       const val = document.getElementById('card-val').value.split('/');
       const cvv = document.getElementById('card-cvv').value;
-      if (num.length < 15) { mostrarErro('Número do cartão inválido.'); btn.disabled=false; btn.textContent='💳 Pagar R$11,90'; return; }
+      if (num.length < 15) { mostrarErro('Número do cartão inválido.'); btn.disabled=false; btn.textContent='💳 Pagar R$5,90'; return; }
 
       const token = await mp.createCardToken({
         cardNumber: num,
@@ -931,12 +931,12 @@ async function processar() {
     } else {
       mostrarErro(data.erro || data.message || 'Erro ao processar. Tente novamente.');
       btn.disabled = false;
-      btn.textContent = metodo === 'pix' ? '⚡ Pagar R$11,90 via PIX' : '💳 Pagar R$11,90';
+      btn.textContent = metodo === 'pix' ? '⚡ Pagar R$5,90 via PIX' : '💳 Pagar R$5,90';
     }
   } catch(e) {
     mostrarErro('Erro de conexão. Tente novamente.');
     btn.disabled = false;
-    btn.textContent = metodo === 'pix' ? '⚡ Pagar R$11,90 via PIX' : '💳 Pagar R$11,90';
+    btn.textContent = metodo === 'pix' ? '⚡ Pagar R$5,90 via PIX' : '💳 Pagar R$5,90';
   }
 }
 </script>

@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
   }
 
   const paymentData: Record<string, unknown> = {
-    transaction_amount: 11.90,
+    transaction_amount: 5.90,
     description: 'Album Copa 2026 — Acesso vitalício',
     payment_method_id: metodo === 'pix' ? 'pix' : paymentMethodId,
     payer: {
