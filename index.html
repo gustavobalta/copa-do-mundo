@@ -941,6 +941,20 @@
     <div class="modal-body">
       <div class="form-group"><label>Nome do local</label><input type="text" id="ponto-nome" placeholder="Ex: Praça da Liberdade"></div>
       <div class="form-group">
+        <label>Tipo</label>
+        <div style="display:flex;gap:8px">
+          <label style="flex:1;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer">
+            <input type="radio" name="ponto-tipo" value="troca" checked> Troca
+          </label>
+          <label style="flex:1;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer">
+            <input type="radio" name="ponto-tipo" value="venda"> Venda
+          </label>
+          <label style="flex:1;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer">
+            <input type="radio" name="ponto-tipo" value="ambos"> Ambos
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
         <label>CEP <span style="font-size:11px;color:var(--muted)">(preenche cidade, estado e bairro)</span></label>
         <div style="display:flex;gap:8px">
           <input type="text" id="ponto-cep" placeholder="00000-000" maxlength="9" oninput="formatarCep(this)" style="flex:1" onblur="buscarCep()">
@@ -2265,7 +2279,7 @@ function _renderAmigosGrid() {
       </div>
       <div class="user-card-bar"><div class="user-card-fill" style="width:${pct}%"></div></div>
       <div class="user-card-stats">
-        <span class="s-dup">🔄 ${dup} repetidas</span>
+        <span class="s-dup"><img src="logo/logo-troca.png" style="height:13px;vertical-align:middle;margin-right:3px">${dup} repetidas</span>
         <span style="color:var(--border)">·</span>
         ${precisoCount>0
           ? `<span style="color:var(--success);font-weight:600;font-size:12px">✓ ${precisoCount} que você precisa</span>`
@@ -3493,6 +3507,7 @@ function renderPontos() {
       <div class="ponto-tags">
         <span class="ponto-tag ${p.ativo?'ativo':'inativo'}">${p.ativo?'● Ativo':'○ Inativo'}</span>
         <span class="ponto-tag inativo">👤 ${p._nome}</span>
+        ${p.tipo==='troca'?'<span class="ponto-tag" style="background:rgba(0,48,135,.25);color:#6ab0ff">🔄 Troca</span>':p.tipo==='venda'?'<span class="ponto-tag" style="background:rgba(255,200,0,.15);color:var(--amarelo)">💰 Venda</span>':'<span class="ponto-tag" style="background:rgba(0,180,100,.15);color:#4ade80">🔄💰 Troca e Venda</span>'}
       </div>
     </div>
   `).join('');
@@ -3514,10 +3529,16 @@ function deletarPonto(id) {
 
 let _mapaModalInicializado = false;
 function abrirModalPonto() {
+  const meus = _todosPontos.filter(p => p.usuario_id === currentUser.id);
+  if (meus.length >= 3) {
+    showAlert('Você já atingiu o limite de 3 pontos cadastrados. Remova um existente para adicionar outro.', { titulo: 'Limite atingido', icone: '📍' });
+    return;
+  }
   document.getElementById('ponto-modal-overlay').classList.add('open');
   ['ponto-nome','ponto-cep','ponto-cidade','ponto-estado','ponto-bairro','ponto-horario','ponto-desc'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  document.querySelector('input[name="ponto-tipo"][value="troca"]').checked = true;
   document.getElementById('cep-status').textContent = '';
   _pontoLat = null; _pontoLng = null;
   document.getElementById('ponto-coord-info').textContent = 'Nenhuma localização marcada';
@@ -3554,6 +3575,7 @@ async function salvarPonto() {
   const btn = document.querySelector('#ponto-modal-overlay .auth-btn');
   btn.disabled = true; btn.textContent = 'Salvando...';
 
+  const tipo = document.querySelector('input[name="ponto-tipo"]:checked')?.value || 'troca';
   await sb.from('pontos_troca').insert({
     usuario_id: currentUser.id,
     nome,
@@ -3565,6 +3587,7 @@ async function salvarPonto() {
     lat: parseFloat(_pontoLat),
     lng: parseFloat(_pontoLng),
     ativo: true,
+    tipo,
   });
 
   btn.disabled = false; btn.textContent = 'Salvar Ponto';
@@ -3606,6 +3629,9 @@ function renderMeusPontos() {
       </div>
       ${p.horario ? `<div style="font-size:12px;color:var(--muted)">🕐 ${p.horario}</div>` : ''}
       ${p.descricao ? `<div style="font-size:12px;color:var(--muted);margin-top:4px">${p.descricao}</div>` : ''}
+      <div style="margin-top:8px">
+        ${p.tipo==='troca'?'<span class="ponto-tag" style="background:rgba(0,48,135,.25);color:#6ab0ff">🔄 Troca</span>':p.tipo==='venda'?'<span class="ponto-tag" style="background:rgba(255,200,0,.15);color:var(--amarelo)">💰 Venda</span>':'<span class="ponto-tag" style="background:rgba(0,180,100,.15);color:#4ade80">🔄💰 Troca e Venda</span>'}
+      </div>
     </div>
   `).join('');
 }
