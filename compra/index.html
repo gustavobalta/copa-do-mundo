@@ -913,21 +913,23 @@ async function processar() {
     });
     const data = await res.json();
 
-    if (data.status === 'approved' || data.status === 'pending') {
-      document.getElementById('form-section').style.display = 'none';
-      document.getElementById('sucesso-overlay').classList.add('show');
-    } else if (data.pix_qr) {
+    if (data.pix_qr_base64 || data.pix_qr) {
       // mostra QR code PIX
+      const pixCodigo = data.pix_qr || '';
+      const pixImg = data.pix_qr_base64 ? `<img src="data:image/png;base64,${data.pix_qr_base64}" style="width:200px;height:200px;margin:0 auto 16px;display:block;border-radius:8px">` : '';
       document.getElementById('form-section').innerHTML = `
         <h2 style="margin-bottom:16px">Pague via PIX</h2>
         <p style="color:#555;font-size:14px;margin-bottom:16px">Escaneie o QR Code ou copie o código abaixo:</p>
-        <img src="data:image/png;base64,${data.pix_qr}" style="width:200px;height:200px;margin:0 auto 16px;display:block;border-radius:8px">
-        <textarea readonly style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;resize:none;height:80px">${data.pix_code}</textarea>
-        <button onclick="navigator.clipboard.writeText('${data.pix_code}')" style="width:100%;margin-top:8px;padding:12px;background:#003087;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">📋 Copiar código PIX</button>
+        ${pixImg}
+        <textarea readonly style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;resize:none;height:80px">${pixCodigo}</textarea>
+        <button onclick="navigator.clipboard.writeText(${JSON.stringify(pixCodigo)})" style="width:100%;margin-top:8px;padding:12px;background:#003087;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">📋 Copiar código PIX</button>
         <p style="text-align:center;margin-top:12px;font-size:13px;color:#999">Após o pagamento você receberá o acesso por email automaticamente.</p>
       `;
+    } else if (data.status === 'approved') {
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('sucesso-overlay').classList.add('show');
     } else {
-      mostrarErro(data.message || 'Erro ao processar. Tente novamente.');
+      mostrarErro(data.erro || data.message || 'Erro ao processar. Tente novamente.');
       btn.disabled = false;
       btn.textContent = metodo === 'pix' ? '⚡ Pagar R$11,90 via PIX' : '💳 Pagar R$11,90';
     }
