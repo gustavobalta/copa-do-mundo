@@ -11,49 +11,27 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 );
 
-const GMAIL_USER = Deno.env.get('GMAIL_USER')!;
-const GMAIL_PASS = Deno.env.get('GMAIL_PASS')!;
 const MP_ACCESS_TOKEN = Deno.env.get('MP_ACCESS_TOKEN')!;
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
 
 async function sendEmail(to: string, subject: string, html: string) {
-  const boundary = '----=_Part_' + Math.random().toString(36).slice(2);
-  const message = [
-    `From: Copa 2026 <${GMAIL_USER}>`,
-    `To: ${to}`,
-    `Subject: ${subject}`,
-    'MIME-Version: 1.0',
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset=UTF-8',
-    '',
-    html,
-    `--${boundary}--`,
-  ].join('\r\n');
-
-  const encoded = btoa(unescape(encodeURIComponent(message)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-
-  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: Deno.env.get('GMAIL_CLIENT_ID')!,
-      client_secret: Deno.env.get('GMAIL_CLIENT_SECRET')!,
-      refresh_token: Deno.env.get('GMAIL_REFRESH_TOKEN')!,
-      grant_type: 'refresh_token',
-    }),
-  });
-  const { access_token } = await tokenRes.json();
-
-  await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/send`, {
+  const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${access_token}`,
+      'Authorization': `Bearer ${RESEND_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ raw: encoded }),
+    body: JSON.stringify({
+      from: 'Copa 2026 <onboarding@resend.dev>',
+      to,
+      subject,
+      html,
+    }),
   });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Resend error: ${err}`);
+  }
 }
 
 Deno.serve(async (req) => {
