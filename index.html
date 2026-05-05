@@ -622,7 +622,7 @@
       <p>Álbum Panini · Entre Amigos</p>
     </div>
     <div id="login-form">
-      <div class="form-group"><label>Nome de usuário</label><input type="text" id="login-name" placeholder="seu nome" autocomplete="username"></div>
+      <div class="form-group"><label>Usuário ou email</label><input type="text" id="login-name" placeholder="seu nome ou email" autocomplete="username"></div>
       <div class="form-group"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••" autocomplete="current-password"></div>
       <button class="auth-btn" onclick="doLogin()">Entrar</button>
       <div style="text-align:center;margin-top:12px">
@@ -1242,7 +1242,11 @@ async function doLogin() {
   if(!nome || !senha) { showAuthMsg('Preencha todos os campos'); return; }
 
   setLoading(true, 'Verificando...');
-  const { data, error } = await sb.from('usuarios').select('*').eq('nome', nome).single();
+  const isEmail = nome.includes('@');
+  const query = isEmail
+    ? sb.from('usuarios').select('*').ilike('email', nome)
+    : sb.from('usuarios').select('*').eq('nome', nome);
+  const { data, error } = await query.single();
   if(error || !data) { setLoading(false); showAuthMsg('Usuário não encontrado'); return; }
   if(data.senha !== senha) { setLoading(false); showAuthMsg('Senha incorreta'); return; }
   if(!data.premium) { setLoading(false); showAuthMsg('Acesso não encontrado. <a href="/compra" style="color:var(--amarelo)">Adquira o acesso aqui →</a>'); return; }
