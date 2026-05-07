@@ -2811,43 +2811,37 @@ async function concluirTroca(trocaId, btn) {
   if (!t) { btn.disabled = false; return; }
 
   // ── Receptor (currentUser): entrega quer_figurinha, ganha oferece_figurinha ──
-  function aplicarTrocaLocal(state, entregaPaisId, entregaLbl, ganhaPaisId, ganhaLbl) {
+  function getStickerIdx(c, lbl) {
+    if (c.stickerLabels) return c.stickerLabels.indexOf(lbl);
+    return parseInt(lbl.replace(c.id.toUpperCase(), '')) - 1;
+  }
+  function aplicarTrocaLocal(st, entregaPaisId, entregaLbl, ganhaPaisId, ganhaLbl) {
     const ce = COUNTRY_MAP[entregaPaisId], cg = COUNTRY_MAP[ganhaPaisId];
     if (ce) {
-      const idxE = ce.stickerLabels ? ce.stickerLabels.indexOf(entregaLbl)
-        : parseInt(entregaLbl.replace(entregaPaisId.toUpperCase(),'')) - 1;
-      if (idxE >= 0) state[entregaPaisId][idxE] = Math.max(0, (state[entregaPaisId][idxE]||0) - 1);
+      const idxE = getStickerIdx(ce, entregaLbl);
+      if (idxE >= 0) { st[entregaPaisId] = st[entregaPaisId]||{}; st[entregaPaisId][idxE] = Math.max(0, (st[entregaPaisId][idxE]||0) - 1); }
     }
     if (cg) {
-      const idxG = cg.stickerLabels ? cg.stickerLabels.indexOf(ganhaLbl)
-        : parseInt(ganhaLbl.replace(ganhaPaisId.toUpperCase(),'')) - 1;
-      if (idxG >= 0) state[ganhaPaisId][idxG] = Math.max(1, (state[ganhaPaisId][idxG]||0) + 1);
+      const idxG = getStickerIdx(cg, ganhaLbl);
+      if (idxG >= 0) { st[ganhaPaisId] = st[ganhaPaisId]||{}; st[ganhaPaisId][idxG] = (st[ganhaPaisId][idxG]||0) + 1; }
     }
   }
 
-  // atualiza álbum do receptor localmente
+  // atualiza álbum do receptor localmente e salva imediatamente
   aplicarTrocaLocal(state,
     t.quer_pais_id, t.quer_figurinha,      // entrega
     t.oferece_pais_id, t.oferece_figurinha  // ganha
   );
-  updateHeader(); renderGrid(); scheduleSave();
+  updateHeader(); renderGrid();
+  await sb.from('figurinhas').upsert({ usuario_id: currentUser.id, dados: state, atualizado_em: new Date().toISOString() });
 
   // atualiza álbum do solicitante no Supabase
   const { data: figSolic } = await sb.from('figurinhas').select('dados').eq('usuario_id', t.solicitante_id).single();
   if (figSolic?.dados) {
     const ds = figSolic.dados;
     // solicitante entrega oferece_figurinha, ganha quer_figurinha
-    const cEnt = COUNTRY_MAP[t.oferece_pais_id], cGan = COUNTRY_MAP[t.quer_pais_id];
-    if (cEnt) {
-      const idxE = cEnt.stickerLabels ? cEnt.stickerLabels.indexOf(t.oferece_figurinha)
-        : parseInt(t.oferece_figurinha.replace(t.oferece_pais_id.toUpperCase(),'')) - 1;
-      if (idxE >= 0) { ds[t.oferece_pais_id] = ds[t.oferece_pais_id]||{}; ds[t.oferece_pais_id][idxE] = Math.max(0, (ds[t.oferece_pais_id][idxE]||0) - 1); }
-    }
-    if (cGan) {
-      const idxG = cGan.stickerLabels ? cGan.stickerLabels.indexOf(t.quer_figurinha)
-        : parseInt(t.quer_figurinha.replace(t.quer_pais_id.toUpperCase(),'')) - 1;
-      if (idxG >= 0) { ds[t.quer_pais_id] = ds[t.quer_pais_id]||{}; ds[t.quer_pais_id][idxG] = Math.max(1, (ds[t.quer_pais_id][idxG]||0) + 1); }
-    }
+    // solicitante entrega oferece_figurinha, ganha quer_figurinha
+    aplicarTrocaLocal(ds, t.oferece_pais_id, t.oferece_figurinha, t.quer_pais_id, t.quer_figurinha);
     await sb.from('figurinhas').update({ dados: ds, atualizado_em: new Date().toISOString() }).eq('usuario_id', t.solicitante_id);
   }
 
