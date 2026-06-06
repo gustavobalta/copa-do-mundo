@@ -2821,11 +2821,21 @@ async function concluirTroca(trocaId, btn) {
     const ce = COUNTRY_MAP[entregaPaisId], cg = COUNTRY_MAP[ganhaPaisId];
     if (ce) {
       const idxE = getStickerIdx(ce, entregaLbl);
-      if (idxE >= 0) { st[entregaPaisId] = st[entregaPaisId]||{}; st[entregaPaisId][idxE] = Math.max(0, (st[entregaPaisId][idxE]||0) - 1); }
+      if (idxE >= 0) {
+        st[entregaPaisId] = st[entregaPaisId] || {};
+        const atual = st[entregaPaisId][idxE] ?? st[entregaPaisId][String(idxE)] ?? 0;
+        st[entregaPaisId][idxE] = Math.max(0, atual - 1);
+        st[entregaPaisId][String(idxE)] = st[entregaPaisId][idxE]; // garante string key tb
+      }
     }
     if (cg) {
       const idxG = getStickerIdx(cg, ganhaLbl);
-      if (idxG >= 0) { st[ganhaPaisId] = st[ganhaPaisId]||{}; st[ganhaPaisId][idxG] = (st[ganhaPaisId][idxG]||0) + 1; }
+      if (idxG >= 0) {
+        st[ganhaPaisId] = st[ganhaPaisId] || {};
+        const atual = st[ganhaPaisId][idxG] ?? st[ganhaPaisId][String(idxG)] ?? 0;
+        st[ganhaPaisId][idxG] = atual + 1;
+        st[ganhaPaisId][String(idxG)] = st[ganhaPaisId][idxG]; // garante string key tb
+      }
     }
   }
 
