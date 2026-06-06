@@ -2694,14 +2694,14 @@ function montarTrocaCard(t, nomeMap, tipo) {
       <div class="troca-opcoes" id="opcoes_${t.id}">${opcoesHtml}</div>
     </div>`;
   } else {
-    // exibe o que está definido: se recebida mostra o que o solicitante oferece; se enviada mostra o que eu ofereci
+    // lado direito: recebida → o que o solicitante oferece (eu recebo); enviada → o que eu quero receber
     const fig = tipo === 'recebida'
       ? (t.oferece_figurinha || (opcoes?.[0]?.lbl ?? '?'))
-      : (t.oferece_figurinha || (opcoes?.[0]?.lbl ?? '?'));
+      : euRecebe;
     const pais = tipo === 'recebida'
       ? (t.oferece_pais_nome || (opcoes?.[0]?.paisNome ?? ''))
-      : (t.oferece_pais_nome || (opcoes?.[0]?.paisNome ?? ''));
-    const tituloLado = tipo === 'recebida' ? 'Você recebe' : 'Você entrega';
+      : euRecebePais;
+    const tituloLado = 'Você recebe';
     const labelExtra = temOpcoes && tipo === 'enviada'
       ? `<div style="font-size:10px;color:var(--muted);margin-top:3px">+${opcoes.length-1} opção(ões)</div>` : '';
     ladoEntrega = `<div class="troca-lado">
@@ -2712,10 +2712,12 @@ function montarTrocaCard(t, nomeMap, tipo) {
     </div>`;
   }
 
-  // lado do que eu entrego / ele recebe
+  // lado esquerdo: o que EU entrego
+  // recebida: eu entrego quer_figurinha (o que o solicitante quer)
+  // enviada: eu entrego oferece_figurinha (o que eu ofereci)
   const euEntregaLbl = tipo === 'recebida' ? euRecebe : (ofereceUnica || opcoes?.[0]?.lbl || '?');
   const euEntregaPaisNome = tipo === 'recebida' ? euRecebePais : (ofereceUnicaPais || opcoes?.[0]?.paisNome || '');
-  const tituloEntrega = tipo === 'recebida' ? 'Você entrega' : 'Você entrega';
+  const tituloEntrega = 'Você entrega';
 
   let acoes = '';
   if (t.status === 'pendente' && tipo === 'recebida') {
@@ -2838,11 +2840,10 @@ async function concluirTroca(trocaId, btn) {
   // atualiza álbum do solicitante no Supabase
   const { data: figSolic } = await sb.from('figurinhas').select('dados').eq('usuario_id', t.solicitante_id).single();
   if (figSolic?.dados) {
-    const ds = figSolic.dados;
-    // solicitante entrega oferece_figurinha, ganha quer_figurinha
+    const ds = JSON.parse(JSON.stringify(figSolic.dados)); // deep copy
     // solicitante entrega oferece_figurinha, ganha quer_figurinha
     aplicarTrocaLocal(ds, t.oferece_pais_id, t.oferece_figurinha, t.quer_pais_id, t.quer_figurinha);
-    await sb.from('figurinhas').update({ dados: ds, atualizado_em: new Date().toISOString() }).eq('usuario_id', t.solicitante_id);
+    await sb.from('figurinhas').upsert({ usuario_id: t.solicitante_id, dados: ds, atualizado_em: new Date().toISOString() });
   }
 
   // busca nome do solicitante e do receptor para garantir
